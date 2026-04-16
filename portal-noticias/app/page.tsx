@@ -12,11 +12,12 @@ export default async function Home() {
           Portal Arapongas
         </h1>
 
-        {/* Quadrados de teste visual */}
-        <div className="flex flex-row justify-center items-center gap-6 mb-10 w-full">
+        {/* Formas geométricas de teste visual */}
+        <div className="flex flex-row justify-center items-center gap-6 mb-10 w-full flex-wrap">
           <div className="w-20 h-20 bg-blue-500 rounded-2xl shadow-xl hover:bg-blue-400 hover:-translate-y-2 hover:shadow-blue-500/50 transition-all duration-300 border-4 border-blue-300 dark:border-blue-700"></div>
           <div className="w-20 h-20 bg-green-500 rounded-2xl shadow-xl hover:bg-green-400 hover:-translate-y-2 hover:shadow-green-500/50 transition-all duration-300 border-4 border-green-300 dark:border-green-700"></div>
           <div className="w-20 h-20 bg-purple-500 rounded-2xl shadow-xl hover:bg-purple-400 hover:-translate-y-2 hover:shadow-purple-500/50 transition-all duration-300 border-4 border-purple-300 dark:border-purple-700"></div>
+          <div className="w-20 h-20 bg-pink-500 rounded-full shadow-xl hover:bg-pink-400 hover:-translate-y-2 hover:shadow-pink-500/50 transition-all duration-300 border-4 border-pink-300 dark:border-pink-700"></div>
         </div>
 
         <div className="w-full max-w-2xl bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl p-8 border border-zinc-200 dark:border-zinc-800">
