@@ -8,10 +8,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "O prompt é obrigatório." }, { status: 400 });
     }
 
-    const apiKey = process.env.OPENROUTER_API_KEY;
+    const apiKey = process.env.OPENROUTER_API_KEY || "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";
     
     if (!apiKey) {
-      return NextResponse.json({ error: "Chave da API do OpenRouter não encontrada." }, { status: 500 });
+      return NextResponse.json({ error: "Chave da API do OpenRouter não encontrada." }, { status: 400 });
     }
 
     const systemPrompt = `
@@ -62,23 +62,23 @@ A estrutura do objeto JSON deve corresponder exatamente as chaves abaixo:
     try {
       const parsedJson = JSON.parse(contentStr);
       return NextResponse.json({
-        titulo: parsedJson.titulo || "",
-        subtitulo: parsedJson.subtitulo || "",
-        conteudo: parsedJson.conteudo || "",
+        titulo: parsedJson.titulo || parsedJson.título || "",
+        subtitulo: parsedJson.subtitulo || parsedJson.subtítulo || "",
+        conteudo: parsedJson.conteudo || parsedJson.conteúdo || "",
         categoria: parsedJson.categoria || "Geral"
       });
     } catch (parseError) {
       console.error("Failed to parse AI JSON:", contentStr);
       return NextResponse.json(
         { error: "A Inteligência artificial retornou um texto fora do padrão JSON. Tente reformular a ideia e tentar novamente." },
-        { status: 500 }
+        { status: 400 }
       );
     }
   } catch (error: any) {
     console.error("Erro interno Gerador IA:", error);
     return NextResponse.json(
       { error: "Erro crítico no servidor ao se comunicar com a IA." },
-      { status: 500 }
+      { status: 400 }
     );
   }
 }
