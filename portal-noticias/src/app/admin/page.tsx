@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabase";
-import { Settings, Rss, Users, Sparkles, Send, Loader2, Save, LayoutDashboard, FileText, ExternalLink, LogOut, User } from "lucide-react";
+import { Settings, Rss, Users, Sparkles, Send, Loader2, Save, LayoutDashboard, FileText, ExternalLink, LogOut, User, Eye, X } from "lucide-react";
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -23,6 +23,9 @@ export default function AdminPage() {
   const [subtitulo, setSubtitulo] = useState("");
   const [conteudo, setConteudo] = useState("");
   const [categoria, setCategoria] = useState("");
+  const [slug, setSlug] = useState("");
+  const [imagemUrl, setImagemUrl] = useState("");
+  const [showPreview, setShowPreview] = useState(false);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,6 +104,14 @@ export default function AdminPage() {
       setSubtitulo(data.subtitulo || "");
       setConteudo(data.conteudo || "");
       setCategoria(data.categoria || "Geral");
+      
+      // Auto Generate Slug
+      if (data.titulo) {
+        setSlug(
+          data.titulo.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")
+        );
+      }
+
     } catch (err: any) {
       alert("⚠️ Robô Jornalista diz:\n\n" + err.message);
     } finally {
@@ -109,7 +120,7 @@ export default function AdminPage() {
   };
 
   const publishNews = () => {
-    alert(`Notícia pronta para ser inserida!\nTítulo: ${titulo}`);
+    alert(`Notícia pronta para ser inserida!\nTítulo: ${titulo}\nSlug: ${slug}`);
   };
 
   if (!isAuthenticated) {
@@ -145,7 +156,7 @@ export default function AdminPage() {
 
   const menuItems = [
     { id: "dashboard", label: "Dashboard Inicial", icon: <LayoutDashboard size={20} /> },
-    { id: "nova-noticia", label: "Nova Notícia (IA)", icon: <FileText size={20} /> },
+    { id: "nova-noticia", label: "Nova Notícia (Mesa)", icon: <FileText size={20} /> },
     { id: "transmissao", label: "Gerenciar Transmissão", icon: <Rss size={20} /> },
     { id: "config", label: "Configurações", icon: <Settings size={20} /> }
   ];
@@ -210,7 +221,7 @@ export default function AdminPage() {
 
         {/* CONTEÚDO ROLÁVEL CENTRALIZADO */}
         <main className="flex-1 overflow-y-auto p-4 sm:p-8">
-          <div className="max-w-4xl mx-auto space-y-6">
+          <div className="max-w-6xl mx-auto space-y-6"> {/* max-w-6xl pra dar mais espaço pro Grid */}
             
             {/* --- ABA DASHBOARD --- */}
             {activeTab === 'dashboard' && (
@@ -249,84 +260,155 @@ export default function AdminPage() {
 
             {/* --- ABA NOVA NOTÍCIA --- */}
             {activeTab === 'nova-noticia' && (
-              <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-300">
-                <div className="bg-blue-50/50 px-6 py-5 border-b border-gray-200 flex items-center gap-3">
-                  <div className="bg-blue-100 p-2 rounded-lg"><Sparkles className="text-blue-600" size={20} /></div>
-                  <h2 className="font-bold text-gray-900 text-lg">Gerador Mágico com IA</h2>
-                </div>
-                
-                <div className="p-6 md:p-8 space-y-6">
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Coloque um Link ou Ideia Inicial</label>
-                    <textarea 
-                      rows={3}
-                      placeholder="Exemplo: Acidente na Avenida Arapongas..."
-                      value={promptIA}
-                      onChange={(e) => setPromptIA(e.target.value)}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all resize-none text-gray-800"
-                    />
+              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                {/* Cabeçalho da IA Isolado no Topo */}
+                <section className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl shadow-sm border border-transparent overflow-hidden text-white">
+                  <div className="p-6 md:p-8 flex flex-col md:flex-row items-center gap-6">
+                    <div className="flex-1 w-full space-y-4">
+                      <h2 className="font-black text-2xl flex items-center gap-2 text-white">
+                        <Sparkles className="text-blue-300" size={24} /> Gerador Mágico
+                      </h2>
+                      <p className="text-blue-100 text-sm">Cole o link da fonte (Facebook/Jornal) ou digite sua ideia grosseira que o Robô Jornalista redige tudo nos moldes do jornal.</p>
+                      <div className="flex bg-white/10 rounded-xl border border-white/20 p-1 backdrop-blur-sm">
+                        <input 
+                          type="text" 
+                          placeholder="Exemplo: Fale sobre a feira de roupas em Arapongas amanhã..."
+                          value={promptIA}
+                          onChange={(e) => setPromptIA(e.target.value)}
+                          className="flex-1 bg-transparent px-4 py-2 focus:outline-none text-white placeholder-blue-200"
+                        />
+                      </div>
+                    </div>
+                    <div className="w-full md:w-auto shrink-0 flex items-center justify-center">
+                      <button 
+                        onClick={handleIA}
+                        disabled={isGenerating || !promptIA}
+                        className="w-full md:w-auto bg-white hover:bg-gray-50 disabled:opacity-75 text-blue-700 font-bold px-8 py-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-xl shadow-black/20"
+                      >
+                        {isGenerating ? <Loader2 className="animate-spin" size={20} /> : <Sparkles size={20} />}
+                        {isGenerating ? "Redigindo..." : "Escrever Notícia"}
+                      </button>
+                    </div>
                   </div>
-                  
-                  <button 
-                    onClick={handleIA}
-                    disabled={isGenerating || !promptIA}
-                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 shadow-sm"
-                  >
-                    {isGenerating ? <Loader2 className="animate-spin" size={20} /> : <Sparkles size={20} />}
-                    {isGenerating ? "Redigindo Notícia Oficial..." : "Gerar Notícia Completa"}
-                  </button>
+                </section>
 
-                  <div className="pt-6 mt-6 border-t border-gray-100 space-y-5">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                      <div className="md:col-span-2">
-                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Título Sugerido</label>
+                {/* Mesa de Redação (Grid 2 Colunas) */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  
+                  {/* COLUNA ESQUERDA - TEXTOS PRINCIPAIS */}
+                  <div className="lg:col-span-2 space-y-6">
+                    {/* Card Corpo */}
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 space-y-6">
+                      
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Título da Matéria</label>
                         <input 
                           type="text" 
                           value={titulo}
                           onChange={(e) => setTitulo(e.target.value)}
-                          className="w-full bg-white border border-gray-200 focus:border-blue-500 rounded-lg px-4 py-2.5 font-bold text-gray-900 transition-colors"
+                          placeholder="Digite o título atrativo"
+                          className="w-full bg-white border border-gray-200 focus:border-blue-500 rounded-xl px-4 py-3.5 font-black text-2xl text-gray-900 transition-colors placeholder-gray-300"
                         />
                       </div>
+
                       <div>
-                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Categoria Base</label>
+                        <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Subtítulo (Opcional)</label>
                         <input 
                           type="text" 
-                          value={categoria}
-                          onChange={(e) => setCategoria(e.target.value)}
-                          className="w-full bg-gray-50 border border-gray-200 text-blue-600 rounded-lg px-4 py-2.5 font-bold transition-colors"
+                          value={subtitulo}
+                          onChange={(e) => setSubtitulo(e.target.value)}
+                          placeholder="Linha fina que complementa o título"
+                          className="w-full bg-gray-50 border border-gray-200 focus:border-blue-500 focus:bg-white rounded-xl px-4 py-3 text-gray-600 transition-colors"
                         />
                       </div>
-                    </div>
-                    
-                    <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Resumo Secundário (Subtítulo)</label>
-                      <input 
-                        type="text" 
-                        value={subtitulo}
-                        onChange={(e) => setSubtitulo(e.target.value)}
-                        className="w-full bg-white border border-gray-200 focus:border-blue-500 rounded-lg px-4 py-2.5 text-gray-700 transition-colors"
-                      />
-                    </div>
 
-                    <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Redação Completa</label>
-                      <textarea 
-                        rows={8}
-                        value={conteudo}
-                        onChange={(e) => setConteudo(e.target.value)}
-                        className="w-full bg-white border border-gray-200 focus:border-blue-500 rounded-lg px-4 py-3 text-gray-800 resize-none transition-colors leading-relaxed"
-                      />
-                    </div>
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Conteúdo da Notícia</label>
+                        {/* Simulação de Rich Text: textarea luxuosa */}
+                        <textarea 
+                          rows={14}
+                          value={conteudo}
+                          onChange={(e) => setConteudo(e.target.value)}
+                          placeholder="Redija a notícia em linguagem jornalística aqui..."
+                          className="w-full bg-gray-50 border border-gray-200 focus:border-blue-500 focus:bg-white rounded-xl px-5 py-4 text-gray-800 transition-colors leading-relaxed font-serif text-lg resize-none shadow-inner"
+                        />
+                        <p className="text-xs text-gray-400 mt-2 text-right">Mínimo ideal: 3 parágrafos. Separe os parágrafos pulando linha dupla (Enter).</p>
+                      </div>
 
-                    <button 
-                      onClick={publishNews}
-                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20"
-                    >
-                      <Send size={18} /> Publicar Matéria no Portal
-                    </button>
+                    </div>
                   </div>
+
+                  {/* COLUNA DIREITA - PARÂMETROS DA NOTÍCIA */}
+                  <aside className="space-y-6">
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 space-y-5">
+                      
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Imagem de Capa (URL)</label>
+                        {imagemUrl && (
+                          <div className="w-full h-32 mb-3 bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
+                             <img src={imagemUrl} alt="Preview da capa" className="w-full h-full object-cover" onError={(e) => e.currentTarget.style.display = 'none'} />
+                          </div>
+                        )}
+                        <input 
+                          type="text" 
+                          value={imagemUrl}
+                          onChange={(e) => setImagemUrl(e.target.value)}
+                          placeholder="https://site.com/imagem.jpg"
+                          className="w-full bg-gray-50 border border-gray-200 focus:border-blue-500 rounded-lg px-3 py-2 text-sm text-gray-700 transition-colors"
+                        />
+                        <p className="text-[10px] text-gray-400 mt-1">Cole o link de uma foto ou do Facebook para a vitrine da matéria.</p>
+                      </div>
+
+                      <div className="border-t border-gray-100 pt-5">
+                        <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Categoria</label>
+                        <select 
+                          value={categoria}
+                          onChange={(e) => setCategoria(e.target.value)}
+                          className="w-full bg-gray-50 border border-gray-200 focus:border-blue-500 rounded-lg px-3 py-2 text-sm text-gray-900 font-bold transition-colors"
+                        >
+                          <option value="">Selecione...</option>
+                          <option value="Arapongas">Arapongas</option>
+                          <option value="Esportes">Esportes</option>
+                          <option value="Polícia">Polícia</option>
+                          <option value="Política">Política</option>
+                          <option value="Geral">Geral</option>
+                        </select>
+                      </div>
+
+                      <div className="border-t border-gray-100 pt-5">
+                        <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase tracking-wide">URL Limpa (Slug)</label>
+                        <input 
+                          type="text" 
+                          value={slug}
+                          onChange={(e) => setSlug(e.target.value)}
+                          placeholder="ex: acidente-na-avenida"
+                          className="w-full bg-gray-50 border border-gray-200 focus:border-blue-500 rounded-lg px-3 py-2 text-sm text-blue-600 font-mono transition-colors"
+                        />
+                        <p className="text-[10px] text-gray-400 mt-1">Endereço público da matéria. A IA preenche isso sozinho.</p>
+                      </div>
+
+                    </div>
+
+                    {/* ACTIONS CARD */}
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 space-y-3">
+                      <button 
+                        onClick={() => setShowPreview(true)}
+                        className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 border border-gray-300"
+                      >
+                        <Eye size={18} /> Ver Preview 👁️
+                      </button>
+
+                      <button 
+                        onClick={publishNews}
+                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20"
+                      >
+                        <Send size={18} /> Publicar Agora
+                      </button>
+                    </div>
+
+                  </aside>
                 </div>
-              </section>
+              </div>
             )}
 
             {/* --- ABA TRANSMISSÃO --- */}
@@ -414,6 +496,65 @@ export default function AdminPage() {
           </div>
         </main>
       </div>
+
+      {/* --- MODAL DE PREVIEW DA NOTÍCIA --- */}
+      {showPreview && (
+        <div className="fixed inset-0 z-50 flex flex-col bg-gray-50 overflow-y-auto w-full h-full animate-in fade-in zoom-in-95 duration-200">
+          
+          {/* Header Simulando o Site Público */}
+          <header className="bg-white border-b-[3px] border-red-600 shadow-sm w-full sticky top-0 z-50 shrink-0">
+            <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+              <div className="flex items-center">
+                 <span className="text-3xl font-extrabold text-red-600 tracking-tighter">NOSSA<span className="text-blue-800">WEB</span><span className="text-zinc-800 font-light text-2xl">TV</span></span>
+              </div>
+              <button onClick={() => setShowPreview(false)} className="flex items-center gap-2 text-sm font-bold bg-neutral-900 hover:bg-neutral-800 text-white px-4 py-2 rounded-full transition-colors shadow-lg shadow-black/20">
+                <X size={16} /> Fechar Preview
+              </button>
+            </div>
+          </header>
+
+          <main className="container mx-auto px-4 py-8 flex-grow">
+            <div className="w-full lg:w-[70%] mx-auto bg-white p-6 md:p-10 rounded-xl shadow-sm border border-zinc-200/60">
+              
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-4">
+                <span className="inline-block bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 uppercase tracking-widest rounded-sm self-start">
+                  {categoria || "Sua Categoria"}
+                </span>
+                <span className="text-sm text-zinc-500 flex items-center gap-1.5 font-medium">
+                  Publicado Agora Mesmo
+                </span>
+              </div>
+
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-zinc-900 leading-tight mb-4 tracking-tight">
+                {titulo || "Digite um Título Deslumbrante Acima"}
+              </h1>
+              
+              {subtitulo && (
+                <h2 className="text-lg md:text-xl text-zinc-600 font-normal leading-relaxed mb-8">
+                  {subtitulo}
+                </h2>
+              )}
+
+              {imagemUrl && (
+                <div className="relative w-full h-[300px] sm:h-[400px] lg:h-[450px] mb-10 rounded-lg overflow-hidden bg-zinc-100 border border-zinc-200">
+                  <img src={imagemUrl} alt="Preview Capa" className="absolute inset-0 w-full h-full object-cover" />
+                </div>
+              )}
+
+              <div className="prose prose-zinc prose-lg max-w-none text-zinc-800 mb-8">
+                {conteudo ? (
+                  conteudo.split('\n').map((paragraph, index) => (
+                    paragraph.trim() && <p key={index} className="mb-5 leading-relaxed">{paragraph}</p>
+                  ))
+                ) : (
+                  <p className="italic text-zinc-500">Escreva algo incrível no painel de redação...</p>
+                )}
+              </div>
+            </div>
+          </main>
+        </div>
+      )}
+
     </div>
   );
 }
