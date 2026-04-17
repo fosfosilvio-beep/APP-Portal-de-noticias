@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import SmartPlayer from "../components/SmartPlayer";
+import AutomatedNewsFeed from "../components/AutomatedNewsFeed";
 import { supabase } from "../lib/supabase";
 
 export default function Home() {
@@ -174,6 +175,8 @@ export default function Home() {
                   </div>
                )}
             </section>
+            
+            <AutomatedNewsFeed />
           </div>
 
           {/* Lado Direito - 30% (Barra Lateral) */}
