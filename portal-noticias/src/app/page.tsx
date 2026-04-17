@@ -49,7 +49,7 @@ export default function Home() {
             {/* O evento onError vai injetar um texto alternativo caso o arquivo Logo web.png ainda não esteja na pasta public */}
             <div className="relative group cursor-pointer inline-block">
               <img 
-                src="/Logo web.png" 
+                src="/Logo%20web.png" 
                 alt="Logo Portal Nossa Web TV" 
                 className="h-14 w-auto object-contain"
                 onError={(e) => {

@@ -10,6 +10,33 @@ interface ConfiguracaoPortal {
   fake_viewers_boost: number;
 }
 
+const convertEmbedUrl = (rawUrl: string | null): string => {
+  if (!rawUrl) return "";
+  
+  // Tratamento YouTube
+  if (rawUrl.includes("youtube.com") || rawUrl.includes("youtu.be")) {
+    let videoId = "";
+    if (rawUrl.includes("watch?v=")) {
+      videoId = rawUrl.split("watch?v=")[1]?.split("&")[0];
+    } else if (rawUrl.includes("youtu.be/")) {
+      videoId = rawUrl.split("youtu.be/")[1]?.split("?")[0];
+    }
+    
+    if (videoId) {
+      return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0`;
+    }
+  }
+
+  // Tratamento Facebook
+  if (rawUrl.includes("facebook.com")) {
+    if (!rawUrl.includes("plugins/video.php")) {
+      return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(rawUrl)}&show_text=false&width=auto`;
+    }
+  }
+
+  return rawUrl;
+};
+
 export default function SmartPlayer() {
   const [config, setConfig] = useState<ConfiguracaoPortal | null>(null);
   const [loading, setLoading] = useState(true);
@@ -108,7 +135,7 @@ export default function SmartPlayer() {
       <div className="relative w-full overflow-hidden rounded-md shadow-lg bg-black group" style={{ paddingTop: "56.25%" }}>
         {config.is_live && config.url_live_facebook ? (
           <iframe
-            src={config.url_live_facebook}
+            src={convertEmbedUrl(config.url_live_facebook)}
             className="absolute top-0 left-0 w-full h-full border-0"
             allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
             allowFullScreen
