@@ -14,12 +14,12 @@ export default function AdminPage() {
   const [viewersBoost, setViewersBoost] = useState(0);
   const [savingConfig, setSavingConfig] = useState(false);
 
-  // Estados da IA
   const [promptIA, setPromptIA] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [titulo, setTitulo] = useState("");
   const [subtitulo, setSubtitulo] = useState("");
   const [conteudo, setConteudo] = useState("");
+  const [categoria, setCategoria] = useState("");
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,7 +77,7 @@ export default function AdminPage() {
     if (!promptIA.trim()) return;
     setIsGenerating(true);
     try {
-      const res = await fetch("/api/gerar-noticia", {
+      const res = await fetch("/api/generate-news", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt: promptIA })
@@ -85,13 +85,16 @@ export default function AdminPage() {
       
       const data = await res.json();
       
+      if (!res.ok) throw new Error(data.error || "A API de Inteligência Artificial falhou ou está sobrecarregada no momento.");
+      
       if (data.error) throw new Error(data.error);
       
       setTitulo(data.titulo || "");
       setSubtitulo(data.subtitulo || "");
       setConteudo(data.conteudo || "");
+      setCategoria(data.categoria || "Geral");
     } catch (err: any) {
-      alert("Erro ao gerar notícia: " + err.message);
+      alert("⚠️ Robô Jornalista diz:\n\n" + err.message);
     } finally {
       setIsGenerating(false);
     }
@@ -266,6 +269,17 @@ export default function AdminPage() {
                   onChange={(e) => setTitulo(e.target.value)}
                   placeholder="Título automático entrará aqui"
                   className="w-full bg-white border border-zinc-200 rounded-lg px-4 py-2 font-bold text-zinc-800"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1">Categoria Prevista na Lógica IA</label>
+                <input 
+                  type="text" 
+                  value={categoria}
+                  onChange={(e) => setCategoria(e.target.value)}
+                  placeholder="Ex: Arapongas, Esporte..."
+                  className="w-full bg-blue-50 border border-blue-200 rounded-lg px-4 py-2 font-bold text-blue-900 shadow-inner"
                 />
               </div>
               
