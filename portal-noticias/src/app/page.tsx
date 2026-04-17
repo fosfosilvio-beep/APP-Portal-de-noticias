@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import SmartPlayer from "../components/SmartPlayer";
+import LiveChat from "../components/LiveChat";
 import AutomatedNewsFeed from "../components/AutomatedNewsFeed";
 import { supabase } from "../lib/supabase";
 import { Play } from "lucide-react";
@@ -12,10 +13,11 @@ export default function Home() {
   const [todasNoticias, setTodasNoticias] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isLive, setIsLive] = useState(false);
   
   const [categoriaAtiva, setCategoriaAtiva] = useState("Início");
 
-  // Single Fetch com Fallback de Segurança
+  // Single Fetch com Fallback de Segurança + Configuração do Portal
   useEffect(() => {
     async function carregarTudo() {
       setLoading(true);
@@ -23,7 +25,16 @@ export default function Home() {
       try {
         if (!supabase) throw new Error("Supabase não conectado.");
         
-        // Tenta puxar incluindo a ordem_prioridade
+        // 1. Buscar Configuração (Live Status)
+        const { data: configData } = await supabase
+          .from("configuracao_portal")
+          .select("is_live")
+          .limit(1)
+          .single();
+        
+        if (configData) setIsLive(configData.is_live);
+
+        // 2. Buscar Notícias
         let result = await supabase
           .from('noticias')
           .select('*')
@@ -31,10 +42,8 @@ export default function Home() {
           .order('created_at', { ascending: false })
           .limit(80);
           
-        // Prevenção de Crash (Status 400): Se o usuário ainda não adicionou a coluna ordem_prioridade
-        // no Supabase, a query acima falha. Então fazemos fallback para a data padrão.
         if (result.error) {
-           console.warn("Fallback acionado: Buscando sem 'ordem_prioridade' porque a coluna parece não existir no BD.", result.error);
+           console.warn("Fallback acionado: Buscando sem 'ordem_prioridade'", result.error);
            result = await supabase
              .from('noticias')
              .select('*')
@@ -54,6 +63,22 @@ export default function Home() {
     }
     
     carregarTudo();
+
+    // Inscrição para mudanças na configuração (Live ON/OFF)
+    const configChannel = supabase
+      .channel("home_config_changes")
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "configuracao_portal" },
+        (payload) => {
+          setIsLive(payload.new.is_live);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(configChannel);
+    };
   }, []);
 
   // Divisores de Categoria
@@ -104,7 +129,7 @@ export default function Home() {
         </div>
       </header>
 
-      {/* MARQUEE AZUL CIANO (Tema do Logo Redondo) */}
+      {/* MARQUEE AZUL CIANO */}
       <div className="bg-gradient-to-r from-[#005a78] to-[#00AEE0] text-white border-b border-cyan-800 w-full overflow-hidden flex items-center h-10 shadow-sm">
          <div className="container mx-auto px-4 lg:px-8 flex items-center">
             <span className="font-black text-xs uppercase tracking-widest bg-cyan-900/40 border border-cyan-400/30 px-3 py-1 rounded shadow-inner z-10 shrink-0">Radar Regional</span>
@@ -133,7 +158,7 @@ export default function Home() {
            <div className="bg-red-50 border border-red-200 rounded-2xl p-8 text-center max-w-lg mx-auto mt-20 shadow-sm">
              <h2 className="text-red-600 font-black text-xl mb-2 flex items-center justify-center gap-2">⚠️ Atenção Necessária</h2>
              <p className="text-red-700 font-medium mb-4">{error}</p>
-             <p className="text-xs text-red-500/80 italic rounded bg-red-100/50 p-3">Verifique se você inseriu as chaves de API do Supabase corretamente no painel da Vercel (NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY).</p>
+             <p className="text-xs text-red-500/80 italic rounded bg-red-100/50 p-3">Verifique suas chaves de API do Supabase na Vercel.</p>
            </div>
         ) : (
           <div className="flex flex-col lg:flex-row gap-8 lg:gap-10">
@@ -161,18 +186,24 @@ export default function Home() {
                         )}
                      </div>
 
-                     {/* Bloco Lateral Menor (Sub-Destaques) */}
+                     {/* Bloco Lateral (Chat ou Sub-Destaques) */}
                      <div className="md:col-span-4 flex flex-col gap-5">
-                       {masterHighlights.slice(1, 4).map((noticia, i) => (
-                          <Link key={noticia.id} href={`/noticia/${noticia.slug || noticia.id}`} className="group relative w-full flex-1 min-h-[140px] sm:min-h-0 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 bg-slate-900 border border-transparent hover:border-cyan-500/50">
-                            <img src={noticia.imagem_capa || `https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=400&q=80&random=${i}`} alt="Destaque Lateral" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out opacity-80 group-hover:opacity-100" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent"></div>
-                            <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
-                               <span className="text-cyan-400 font-bold text-[10px] uppercase tracking-widest block mb-1 drop-shadow-md">{noticia.categoria || "Geral"}</span>
-                               <h3 className="text-sm sm:text-base font-bold text-white leading-snug drop-shadow-lg group-hover:text-cyan-300 transition-colors line-clamp-3">{noticia.titulo}</h3>
-                            </div>
-                          </Link>
-                       ))}
+                       {isLive ? (
+                         <div className="h-full min-h-[500px] md:min-h-0">
+                           <LiveChat />
+                         </div>
+                       ) : (
+                         masterHighlights.slice(1, 4).map((noticia, i) => (
+                            <Link key={noticia.id} href={`/noticia/${noticia.slug || noticia.id}`} className="group relative w-full flex-1 min-h-[140px] sm:min-h-0 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 bg-slate-900 border border-transparent hover:border-cyan-500/50">
+                              <img src={noticia.imagem_capa || `https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=400&q=80&random=${i}`} alt="Destaque Lateral" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out opacity-80 group-hover:opacity-100" />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent"></div>
+                              <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
+                                 <span className="text-cyan-400 font-bold text-[10px] uppercase tracking-widest block mb-1 drop-shadow-md">{noticia.categoria || "Geral"}</span>
+                                 <h3 className="text-sm sm:text-base font-bold text-white leading-snug drop-shadow-lg group-hover:text-cyan-300 transition-colors line-clamp-3">{noticia.titulo}</h3>
+                              </div>
+                            </Link>
+                         ))
+                       )}
                      </div>
                   </section>
 
@@ -275,7 +306,7 @@ export default function Home() {
             {/* LADO DIREITO (30% - BARRA LATERAL) */}
             <aside className="w-full lg:w-[30%] flex flex-col space-y-8">
               
-              {/* CLIMA ARAPONGAS - WIDGET PREMIUM */}
+              {/* CLIMA ARAPONGAS */}
               <div className="bg-gradient-to-br from-[#005a78] to-[#00344d] rounded-2xl p-7 text-white shadow-lg relative overflow-hidden group border border-[#00AEE0]/20">
                  <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#00AEE0] rounded-full blur-3xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
                  <div className="relative z-10">
@@ -299,7 +330,7 @@ export default function Home() {
                   <p className="text-slate-500 font-bold max-w-[200px]">Anuncie sua marca para milhares de leitores.</p>
                </div>
 
-              {/* GIRO LATERAL (Últimas 5) */}
+              {/* GIRO LATERAL */}
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100/50">
                 <div className="flex items-center space-x-2 mb-6 border-b border-slate-100 pb-4">
                   <span className="w-2.5 h-2.5 bg-cyan-600 rounded-full animate-pulse"></span>
@@ -333,16 +364,15 @@ export default function Home() {
         )}
       </main>
       
-      {/* RODAPÉ PREMIUM (Azul profundo) */}
+      {/* RODAPÉ */}
       <footer className="bg-[#0f172a] text-slate-400 py-12 mt-auto border-t-[5px] border-[#00AEE0] rounded-t-3xl">
         <div className="container mx-auto px-4 lg:px-8 flex flex-col md:flex-row justify-between items-center text-sm gap-6">
           <div className="flex flex-col items-center md:items-start">
             <span className="font-black text-2xl text-white tracking-tighter leading-none mb-2">NOSSA<span className="text-[#00AEE0]">WEB</span><span className="text-slate-500 font-light">TV</span></span>
-            <p className="font-medium text-slate-500 text-xs text-center md:text-left max-w-xs">A maior fonte regional de notícias com a credibilidade e agilidade que você assina embaixo.</p>
+            <p className="font-medium text-slate-500 text-xs text-center md:text-left max-w-xs">A maior fonte regional de notícias.</p>
           </div>
           <div className="flex flex-col items-center md:items-end">
             <p className="font-bold text-slate-300">© {new Date().getFullYear()} Portal Nossa Web TV.</p>
-            <p className="text-xs text-slate-500 mt-1">Todos os direitos reservados.</p>
           </div>
         </div>
       </footer>
