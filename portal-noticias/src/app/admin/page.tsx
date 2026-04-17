@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "../../lib/supabase";
-import { Settings, Rss, Users, Sparkles, Send, Loader2, Save, LayoutDashboard, FileText, ExternalLink, LogOut, User, Eye, X, List, Trash2 } from "lucide-react";
+import { Settings, Rss, Users, Sparkles, Send, Loader2, Save, LayoutDashboard, FileText, ExternalLink, LogOut, User, Eye, X, List, Trash2, ChevronUp, ChevronDown } from "lucide-react";
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -30,6 +30,7 @@ export default function AdminPage() {
   // Estados da Lista de Notícias
   const [listaNoticias, setListaNoticias] = useState<any[]>([]);
   const [loadingNoticias, setLoadingNoticias] = useState(false);
+  const debounceTimerInfo = useRef<NodeJS.Timeout | null>(null);
 
   // Efeito disparado quando aba lista carrega
   useEffect(() => {
@@ -44,7 +45,8 @@ export default function AdminPage() {
       if (!supabase) return;
       const { data, error } = await supabase
         .from("noticias")
-        .select("id, titulo, categoria, created_at, slug")
+        .select("id, titulo, categoria, created_at, slug, ordem_prioridade")
+        .order("ordem_prioridade", { ascending: false })
         .order("created_at", { ascending: false });
       if (!error && data) {
         setListaNoticias(data);
@@ -67,6 +69,39 @@ export default function AdminPage() {
     } catch (err: any) {
       alert("Erro ao apagar: " + err.message);
     }
+  };
+
+  const updatePrioridade = async (id: string, valor: number) => {
+    const valorTratado = Number.isNaN(valor) ? 0 : valor;
+    
+    // Optimistic UI Update (Atualiza visualmente primeiro e reordena)
+    setListaNoticias((prev) => {
+      const novalista = prev.map(n => n.id === id ? { ...n, ordem_prioridade: valorTratado } : n);
+      return novalista.sort((a, b) => {
+        if ((b.ordem_prioridade || 0) === (a.ordem_prioridade || 0)) {
+           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        }
+        return (b.ordem_prioridade || 0) - (a.ordem_prioridade || 0);
+      });
+    });
+
+    // Debounce pra não enlouquecer o Supabase se o cara clicar rapidao 10 vezes na seta
+    if (debounceTimerInfo.current) clearTimeout(debounceTimerInfo.current);
+    debounceTimerInfo.current = setTimeout(async () => {
+      try {
+        if (!supabase) return;
+        const { error } = await supabase
+          .from("noticias")
+          .update({ ordem_prioridade: valorTratado })
+          .eq("id", id);
+          
+        if (error) {
+           console.error("Erro ao salvar prioridade. Voltando.", error);
+        }
+      } catch (err: any) {
+        console.error("Erro banco prioridade", err);
+      }
+    }, 500); // aguarda parar de clicar por meio segundo pra injetar no banco
   };
 
   const handleLogin = (e: React.FormEvent) => {
@@ -543,6 +578,7 @@ export default function AdminPage() {
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="bg-slate-50 text-xs uppercase tracking-widest text-slate-500 border-b border-slate-200">
+                        <th className="px-6 py-4 font-bold text-center w-24">Rank</th>
                         <th className="px-6 py-4 font-bold">Título da Notícia</th>
                         <th className="px-6 py-4 font-bold hidden sm:table-cell">Categoria</th>
                         <th className="px-6 py-4 font-bold hidden md:table-cell">Data Original</th>
@@ -551,12 +587,31 @@ export default function AdminPage() {
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {loadingNoticias ? (
-                        <tr><td colSpan={4} className="p-12 text-center text-slate-400"><Loader2 className="mx-auto animate-spin mb-3" size={28}/>Carregando banco de dados...</td></tr>
+                        <tr><td colSpan={5} className="p-12 text-center text-slate-400"><Loader2 className="mx-auto animate-spin mb-3" size={28}/>Carregando banco de dados...</td></tr>
                       ) : listaNoticias.length === 0 ? (
-                        <tr><td colSpan={4} className="p-8 text-center text-slate-500 font-medium">Nenhuma notícia registrada na base.</td></tr>
+                        <tr><td colSpan={5} className="p-8 text-center text-slate-500 font-medium">Nenhuma notícia registrada na base.</td></tr>
                       ) : (
                         listaNoticias.map((noticia) => (
                           <tr key={noticia.id} className="hover:bg-slate-50/80 transition-colors group">
+                            
+                            {/* CÉLULA DE RANKING / PRIORIDADE */}
+                            <td className="px-6 py-4 min-w-28 text-center">
+                               <div className="flex flex-col items-center justify-center bg-slate-100 rounded-xl border border-slate-200 shadow-inner w-14 mx-auto overflow-hidden">
+                                 <button onClick={() => updatePrioridade(noticia.id, (noticia.ordem_prioridade || 0) + 1)} className="w-full text-slate-400 bg-white/50 hover:bg-slate-200 hover:text-blue-600 transition-colors flex items-center justify-center py-1">
+                                   <ChevronUp size={16} strokeWidth={3} />
+                                 </button>
+                                 <input 
+                                   type="number"
+                                   value={noticia.ordem_prioridade || 0}
+                                   onChange={(e) => updatePrioridade(noticia.id, parseInt(e.target.value) || 0)}
+                                   className="text-center font-black text-slate-900 bg-transparent outline-none w-full text-base py-1 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                 />
+                                 <button onClick={() => updatePrioridade(noticia.id, (noticia.ordem_prioridade || 0) - 1)} className="w-full text-slate-400 bg-white/50 hover:bg-slate-200 hover:text-red-600 transition-colors flex items-center justify-center py-1">
+                                   <ChevronDown size={16} strokeWidth={3} />
+                                 </button>
+                               </div>
+                            </td>
+
                             <td className="px-6 py-4">
                               <p className="font-bold text-slate-800 text-sm md:text-base leading-snug line-clamp-2 max-w-md group-hover:text-blue-600 transition-colors">{noticia.titulo}</p>
                               <span className="sm:hidden text-xs text-blue-600 font-bold mt-2 block uppercase">{noticia.categoria || "Geral"}</span>
