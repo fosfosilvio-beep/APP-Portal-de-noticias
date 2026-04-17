@@ -48,7 +48,7 @@ export default function NoticiaDetalhe() {
 
       } catch (err: any) {
         console.error("Erro ao carregar notícia:", err);
-        if (err.message.includes("multiple") || err.message.includes("no rows") || err.message.includes("notícia não encontrada"i)) {
+        if (err.message.includes("multiple") || err.message.includes("no rows") || err.message.toLowerCase().includes("notícia não encontrada")) {
           setError("404");
         } else {
           setError(err.message || "Erro ao carregar matéria.");
