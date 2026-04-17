@@ -16,6 +16,10 @@ export default function SmartPlayer() {
 
   const fetchConfig = async () => {
     try {
+      if (!supabase) {
+        throw new Error("Client Supabase não encontrado.");
+      }
+
       const { data, error } = await supabase
         .from("configuracao_portal")
         .select("*")
@@ -28,7 +32,7 @@ export default function SmartPlayer() {
         setConfig(data);
       }
     } catch (err) {
-      console.error("Erro inesperado:", err);
+      console.error("Erro inesperado no SmartPlayer:", err);
     } finally {
       setLoading(false);
     }
@@ -36,6 +40,8 @@ export default function SmartPlayer() {
 
   useEffect(() => {
     fetchConfig();
+
+    if (!supabase) return;
 
     // Inscrição para atualizações em tempo real
     const channel = supabase
@@ -61,23 +67,30 @@ export default function SmartPlayer() {
 
   if (loading) {
     return (
-      <div className="w-full flex justify-center py-10">
-        <div className="animate-pulse flex flex-col space-y-4 w-full max-w-4xl">
-          <div className="h-64 bg-gray-200 rounded-md"></div>
+      <div className="w-full flex justify-center my-6">
+        <div className="animate-pulse w-full max-w-5xl rounded-md shadow-md bg-zinc-200" style={{ paddingTop: "56.25%" }}></div>
+      </div>
+    );
+  }
+
+  // Fallback caso não carregue a configuração
+  if (!config) {
+    return (
+      <div className="w-full max-w-5xl mx-auto my-6 font-sans">
+        <div className="relative w-full overflow-hidden rounded-md shadow-lg bg-zinc-900" style={{ paddingTop: "56.25%" }}>
+          <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
+            <h3 className="text-zinc-600 text-xl font-medium">Player indisponível no momento.</h3>
+            <p className="text-zinc-700 text-sm mt-2">Nossas transmissões retornam em breve.</p>
+          </div>
         </div>
       </div>
     );
   }
 
-  // Falha de carregamento ou sem configuração
-  if (!config) {
-    return null;
-  }
-
   return (
     <div className="w-full max-w-5xl mx-auto my-6 font-sans">
       {/* Cabeçalho do Player */}
-      <div className="flex justify-end mb-2">
+      <div className="flex justify-end mb-2 h-6">
         {config.is_live && (
           <div className="flex items-center space-x-2 bg-red-600 px-3 py-1 rounded-sm shadow-sm animate-pulse">
             <span className="relative flex h-3 w-3">
@@ -104,7 +117,7 @@ export default function SmartPlayer() {
         ) : (
           <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center bg-zinc-900 overflow-hidden">
             {/* Imagem de Capa Elegante (Fallback) */}
-            <div className="absolute inset-0 opacity-50">
+            <div className="absolute inset-0 opacity-50 bg-zinc-800">
                <img 
                  src="https://images.unsplash.com/photo-1585829365295-ab7cd400c167?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80" 
                  alt="Capa de notícias" 
@@ -119,9 +132,9 @@ export default function SmartPlayer() {
                   <path d="M8 5v14l11-7z" />
                 </svg>
               </div>
-              <h3 className="text-white text-2xl md:text-3xl font-bold mb-2 tracking-tight">Portal de Notícias</h3>
+              <h3 className="text-white text-2xl md:text-3xl font-bold mb-2 tracking-tight">Portal Nossa Web TV</h3>
               <p className="text-gray-300 text-sm md:text-base max-w-md">
-                No momento não há nenhuma transmissão ao vivo. Acompanhe nossas últimas atualizações e reportagens pelo site.
+                Nenhuma transmissão ao vivo iniciada. Acompanhe nossas atualizações nas notícias abaixo.
               </p>
             </div>
           </div>

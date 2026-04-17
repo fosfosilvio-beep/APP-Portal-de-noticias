@@ -1,11 +1,44 @@
+"use client";
+
 import Image from "next/image";
+import { useEffect, useState } from "react";
 import SmartPlayer from "../components/SmartPlayer";
 import { supabase } from "../lib/supabase";
 
-export const revalidate = 0;
+export default function Home() {
+  const [categorias, setCategorias] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-export default async function Home() {
-  const { data: categorias, error } = await supabase.from('categorias').select('*').limit(4);
+  useEffect(() => {
+    async function loadData() {
+      try {
+        if (!supabase) {
+          throw new Error("Cliente Supabase não inicializado corretamente.");
+        }
+        
+        const { data, error: fetchError } = await supabase
+          .from('categorias')
+          .select('*')
+          .limit(4);
+          
+        if (fetchError) {
+          throw fetchError;
+        }
+        
+        if (data) {
+          setCategorias(data);
+        }
+      } catch (err: any) {
+        console.error("Erro ao carregar categorias:", err);
+        setError(err.message || "Erro desconhecido ao carregar destaques.");
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    loadData();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
@@ -61,21 +94,28 @@ export default async function Home() {
                  </h2>
                </div>
                
-               {error ? (
-                  <p className="text-red-500">Erro: {error.message}</p>
+               {loading ? (
+                 <div className="flex justify-center p-8">
+                   <div className="w-8 h-8 rounded-full border-4 border-zinc-200 border-t-red-600 animate-spin"></div>
+                 </div>
+               ) : error ? (
+                  <div className="bg-red-50 text-red-600 p-4 rounded-lg flex items-center gap-3">
+                    <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
+                    <p className="text-sm font-medium">{error}</p>
+                  </div>
                ) : !categorias?.length ? (
-                  <p className="text-zinc-500">Nenhuma categoria encontrada.</p>
+                  <p className="text-zinc-500 py-4">Nenhum destaque encontrado no momento.</p>
                ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     {categorias.map((cat: any, i: number) => (
                       <div key={cat.id || i} className="group cursor-pointer flex flex-col h-full">
                         <div className="h-48 bg-zinc-200 rounded-lg mb-4 flex items-center justify-center overflow-hidden">
                            <img 
-                             src={`https://images.unsplash.com/photo-[placeholder_id]?w=600&q=80&random=${i}`} 
+                             src={`https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=600&q=80&random=${i}`} 
                              alt="Capa" 
                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-in-out"
                              onError={(e) => {
-                               // Mock temporário caso unsplash falhe ou pra variar
+                               // Fallback inline simples para imagens quebradas
                                e.currentTarget.src = 'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=600&q=80';
                              }}
                            />
