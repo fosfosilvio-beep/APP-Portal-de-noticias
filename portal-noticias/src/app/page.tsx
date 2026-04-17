@@ -1,44 +1,65 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import SmartPlayer from "../components/SmartPlayer";
 import { supabase } from "../lib/supabase";
 
 export default function Home() {
-  const [categorias, setCategorias] = useState<any[]>([]);
+  const [noticias, setNoticias] = useState<any[]>([]);
+  const [ultimasNoticias, setUltimasNoticias] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  const [categoriaAtiva, setCategoriaAtiva] = useState("Início");
 
+  // Carrega as últimas notícias para a barra lateral independentemente do filtro inicial
+  useEffect(() => {
+    async function fetchSidebar() {
+      if (!supabase) return;
+      const { data } = await supabase
+        .from('noticias')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(5);
+      if (data) setUltimasNoticias(data);
+    }
+    fetchSidebar();
+  }, []);
+
+  // Recarrega o Feed Principal do meio da tela de acordo com a categoria
   useEffect(() => {
     async function loadData() {
+      setLoading(true);
+      setError(null);
       try {
-        if (!supabase) {
-          throw new Error("Cliente Supabase não inicializado corretamente.");
-        }
+        if (!supabase) throw new Error("Cliente Supabase não inicializado.");
         
-        const { data, error: fetchError } = await supabase
-          .from('categorias')
+        let query = supabase
+          .from('noticias')
           .select('*')
-          .limit(4);
+          .order('created_at', { ascending: false });
+
+        if (categoriaAtiva && categoriaAtiva !== "Início") {
+          query = query.ilike('categoria', `%${categoriaAtiva}%`);
+        }
           
-        if (fetchError) {
-          throw fetchError;
-        }
+        const { data, error: fetchError } = await query;
+          
+        if (fetchError) throw fetchError;
         
-        if (data) {
-          setCategorias(data);
-        }
+        if (data) setNoticias(data);
       } catch (err: any) {
-        console.error("Erro ao carregar categorias:", err);
-        setError(err.message || "Erro desconhecido ao carregar destaques.");
+        console.error("Erro ao carregar noticias:", err);
+        setError(err.message || "Erro desconhecido ao carregar notícias.");
       } finally {
         setLoading(false);
       }
     }
     
     loadData();
-  }, []);
+  }, [categoriaAtiva]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
@@ -46,8 +67,7 @@ export default function Home() {
       <header className="bg-white border-b-[3px] border-red-600 shadow-sm w-full sticky top-0 z-50">
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
           <div className="flex items-center">
-            {/* O evento onError vai injetar um texto alternativo caso o arquivo Logo web.png ainda não esteja na pasta public */}
-            <div className="relative group cursor-pointer inline-block">
+            <Link href="/" className="relative group cursor-pointer inline-block outline-none rounded-lg focus-visible:ring-2 focus-visible:ring-blue-500">
               <img 
                 src="/Logo%20web.png" 
                 alt="Logo Portal Nossa Web TV" 
@@ -57,20 +77,39 @@ export default function Home() {
                   e.currentTarget.parentElement!.innerHTML = '<span class="text-3xl font-extrabold text-red-600 tracking-tighter">NOSSA<span class="text-blue-800">WEB</span><span class="text-zinc-800 font-light text-2xl">TV</span></span>';
                 }}
               />
-            </div>
+            </Link>
           </div>
           
           <nav className="hidden md:flex space-x-6 shrink-0 items-center">
-            <a href="#" className="text-zinc-700 hover:text-blue-600 font-semibold transition-colors text-sm uppercase tracking-wide">Início</a>
-            <a href="#" className="text-zinc-700 hover:text-blue-600 font-semibold transition-colors text-sm uppercase tracking-wide">Arapongas</a>
-            <a href="#" className="text-zinc-700 hover:text-blue-600 font-semibold transition-colors text-sm uppercase tracking-wide">Esportes</a>
-            <a href="#" className="text-red-600 hover:text-red-800 font-bold transition-colors text-sm uppercase tracking-wide flex items-center gap-2 bg-red-50 px-3 py-1.5 rounded-full border border-red-100">
+            <a 
+              href="#" 
+              onClick={(e) => { e.preventDefault(); setCategoriaAtiva('Início'); }} 
+              className={`cursor-pointer text-sm font-semibold transition-colors uppercase tracking-wide outline-none focus-visible:text-blue-700 ${categoriaAtiva === 'Início' ? 'text-blue-700 border-b-2 border-blue-700 pb-1' : 'text-zinc-700 hover:text-blue-600 pb-1'}`}
+            >
+              Início
+            </a>
+            <a 
+              href="#" 
+              onClick={(e) => { e.preventDefault(); setCategoriaAtiva('Arapongas'); }} 
+              className={`cursor-pointer text-sm font-semibold transition-colors uppercase tracking-wide outline-none focus-visible:text-blue-700 ${categoriaAtiva === 'Arapongas' ? 'text-blue-700 border-b-2 border-blue-700 pb-1' : 'text-zinc-700 hover:text-blue-600 pb-1'}`}
+            >
+              Arapongas
+            </a>
+            <a 
+              href="#" 
+              onClick={(e) => { e.preventDefault(); setCategoriaAtiva('Esportes'); }} 
+              className={`cursor-pointer text-sm font-semibold transition-colors uppercase tracking-wide outline-none focus-visible:text-blue-700 ${categoriaAtiva === 'Esportes' ? 'text-blue-700 border-b-2 border-blue-700 pb-1' : 'text-zinc-700 hover:text-blue-600 pb-1'}`}
+            >
+              Esportes
+            </a>
+
+            <div className="text-red-600 font-bold transition-colors text-sm uppercase tracking-wide flex items-center gap-2 bg-red-50 px-3 py-1.5 rounded-full border border-red-100 ml-4">
               <span className="relative flex h-2.5 w-2.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-600"></span>
               </span>
               TV Ao Vivo
-            </a>
+            </div>
           </nav>
         </div>
       </header>
@@ -82,15 +121,14 @@ export default function Home() {
           {/* Lado Esquerdo - 70% */}
           <div className="w-full lg:w-[70%] flex flex-col space-y-8">
             <section>
-              {/* O SmartPlayer já tem sua própria estética 16:9 elegante e os badges real-time */}
               <SmartPlayer />
             </section>
             
-            {/* Feed Secundário de Notícias */}
+            {/* Feed Dinâmico de Notícias */}
             <section className="bg-white p-6 md:p-8 rounded-xl shadow-sm border border-zinc-200/60">
                <div className="flex justify-between items-center mb-6 border-b border-zinc-100 pb-3">
                  <h2 className="text-xl md:text-2xl font-bold text-zinc-800 border-l-4 border-blue-600 pl-3">
-                   Em Destaque
+                   {categoriaAtiva === "Início" ? "Últimas Atualizações" : `Últimas de ${categoriaAtiva}`}
                  </h2>
                </div>
                
@@ -103,30 +141,35 @@ export default function Home() {
                     <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
                     <p className="text-sm font-medium">{error}</p>
                   </div>
-               ) : !categorias?.length ? (
-                  <p className="text-zinc-500 py-4">Nenhum destaque encontrado no momento.</p>
+               ) : !noticias?.length ? (
+                  <p className="text-zinc-500 py-4 font-medium italic">Nenhuma notícia encontrada para a categoria selecionada.</p>
                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    {categorias.map((cat: any, i: number) => (
-                      <div key={cat.id || i} className="group cursor-pointer flex flex-col h-full">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                    {noticias.map((noticia: any, i: number) => (
+                      <Link 
+                        href={`/noticia/${noticia.slug || noticia.id}`} 
+                        key={noticia.id || i} 
+                        className="group flex flex-col h-full outline-none focus-visible:ring-4 focus-visible:ring-blue-500 rounded-lg"
+                      >
                         <div className="h-48 bg-zinc-200 rounded-lg mb-4 flex items-center justify-center overflow-hidden">
                            <img 
-                             src={`https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=600&q=80&random=${i}`} 
-                             alt="Capa" 
+                             src={noticia.imagem_capa || `https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=600&q=80&random=${i}`} 
+                             alt={noticia.titulo || "Capa da Matéria"} 
                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-in-out"
                              onError={(e) => {
-                               // Fallback inline simples para imagens quebradas
                                e.currentTarget.src = 'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=600&q=80';
                              }}
                            />
                         </div>
-                        <div className="flex flex-col flex-grow">
-                          <span className="text-[11px] font-bold text-red-600 uppercase tracking-widest mb-2">Arapongas</span>
-                          <h3 className="font-bold text-zinc-900 leading-snug text-lg group-hover:text-blue-600 transition-colors line-clamp-3">
-                            {cat.nome || cat.titulo || cat.title || "Portal Nossa Web TV - Acompanhe as principais informações da região em tempo real"}
+                        <div className="flex flex-col flex-grow px-1">
+                          <span className="text-[11px] font-bold text-red-600 uppercase tracking-widest mb-2">
+                            {noticia.categoria || "Portal"}
+                          </span>
+                          <h3 className="font-bold text-zinc-900 leading-snug text-lg group-hover:text-blue-600 transition-colors">
+                            {noticia.titulo || "Matéria especial em andamento"}
                           </h3>
                         </div>
-                      </div>
+                      </Link>
                     ))}
                   </div>
                )}
@@ -158,35 +201,40 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Widget: Últimas Notícias */}
+            {/* Widget: Últimas Notícias (Sidebar) */}
             <div className="bg-white rounded-xl p-6 shadow-sm border border-zinc-200/60 sticky top-24">
               <div className="flex items-center space-x-2 mb-6 border-b border-zinc-100 pb-3">
                 <div className="w-3 h-3 bg-red-600 rounded-full animate-pulse"></div>
-                <h3 className="font-bold text-zinc-900 text-lg">Últimas Notícias</h3>
+                <h3 className="font-bold text-zinc-900 text-lg">Giro de Notícias</h3>
               </div>
               
-              <div className="flex flex-col space-y-4">
-                {[
-                  "Nova escola municipal é inaugurada na Zona Sul",
-                  "Polícia Civil recupera veículos roubados na região",
-                  "ExpoArapongas 2026: Definida grade de shows",
-                  "Vagas de emprego: 250 oportunidades abertas",
-                  "Acidente na BR-369 causa congestionamento"
-                ].map((news, idx) => (
-                  <div key={idx} className="flex gap-4 group cursor-pointer border-b border-zinc-50 pb-4 last:border-0 last:pb-0">
-                    <div className="flex flex-col items-center justify-start pt-1">
-                      <span className="text-zinc-300 font-black text-xl leading-none group-hover:text-red-500 transition-colors">{(idx + 1).toString().padStart(2, '0')}</span>
-                    </div>
-                    <p className="text-sm font-medium text-zinc-700 leading-snug group-hover:text-blue-700 transition-colors">
-                      {news}
-                    </p>
-                  </div>
-                ))}
-              </div>
-              
-              <button className="w-full mt-6 py-2.5 text-sm font-bold text-blue-700 bg-blue-50 hover:bg-blue-600 hover:text-white rounded-lg transition-all duration-300">
-                Ver todas as notícias
-              </button>
+              {ultimasNoticias.length === 0 ? (
+                <div className="flex justify-center py-4">
+                  <span className="text-zinc-400 text-sm italic">Carregando giro...</span>
+                </div>
+              ) : (
+                <div className="flex flex-col space-y-4">
+                  {ultimasNoticias.map((news, idx) => (
+                    <Link 
+                      href={`/noticia/${news.slug || news.id}`} 
+                      key={news.id || idx} 
+                      className="flex gap-4 group border-b border-zinc-50 pb-4 last:border-0 last:pb-0 outline-none rounded focus-visible:ring-2 focus-visible:ring-blue-500"
+                    >
+                      <div className="flex flex-col items-center justify-start pt-1">
+                        <span className="text-zinc-300 font-black text-xl leading-none group-hover:text-red-500 transition-colors">
+                          {(idx + 1).toString().padStart(2, '0')}
+                        </span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[10px] text-red-500 font-bold uppercase tracking-widest mb-1">{news.categoria || "Geral"}</span>
+                        <p className="text-sm font-medium text-zinc-700 leading-snug group-hover:text-blue-700 transition-colors line-clamp-2">
+                          {news.titulo}
+                        </p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
 
           </aside>
