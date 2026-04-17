@@ -14,6 +14,7 @@ export default function AdminPage() {
   const [urlLive, setUrlLive] = useState("");
   const [viewersBoost, setViewersBoost] = useState(0);
   const [savingConfig, setSavingConfig] = useState(false);
+  const [totalNoticias, setTotalNoticias] = useState(0);
 
   // Estados Gerador IA
   const [promptIA, setPromptIA] = useState("");
@@ -47,6 +48,13 @@ export default function AdminPage() {
         setUrlLive(data.url_live_facebook || "");
         setViewersBoost(data.fake_viewers_boost || 0);
       }
+      
+      const { count } = await supabase
+        .from("noticias")
+        .select('*', { count: 'exact', head: true });
+        
+      if (count !== null) setTotalNoticias(count);
+      
     } catch (err) {
       console.error("Erro ao buscar config", err);
     }
@@ -206,20 +214,35 @@ export default function AdminPage() {
             
             {/* --- ABA DASHBOARD --- */}
             {activeTab === 'dashboard' && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-                  <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                {/* CARD 1: Status Live */}
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 flex flex-col justify-center items-center text-center">
+                  <div className="h-10 flex items-center justify-center mb-2">
+                     <span className="relative flex h-5 w-5">
+                       {isLive && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>}
+                       <span className={`relative inline-flex rounded-full h-5 w-5 ${isLive ? 'bg-emerald-500' : 'bg-gray-300'}`}></span>
+                     </span>
+                  </div>
+                  <h3 className="text-xl font-black text-gray-900">{isLive ? "Transmitindo" : "Offline"}</h3>
+                  <p className="text-gray-500 text-sm font-medium mt-1">Status da Live</p>
+                </div>
+
+                {/* CARD 2: Total Notícias */}
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 flex flex-col justify-center items-center text-center">
+                  <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-2">
                     <FileText size={20} />
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900">42</h3>
-                  <p className="text-gray-500 text-sm">Notícias Publicadas</p>
+                  <h3 className="text-3xl font-black text-gray-900">{totalNoticias}</h3>
+                  <p className="text-gray-500 text-sm font-medium mt-1">Notícias Publicadas</p>
                 </div>
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-                   <div className="w-10 h-10 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-4">
+
+                {/* CARD 3: Boost de Audiência */}
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 flex flex-col justify-center items-center text-center">
+                   <div className="w-10 h-10 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-2">
                     <Users size={20} />
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900">{viewersBoost}</h3>
-                  <p className="text-gray-500 text-sm">Visões (Fake Boost Atual)</p>
+                  <h3 className="text-3xl font-black text-gray-900">{viewersBoost}</h3>
+                  <p className="text-gray-500 text-sm font-medium mt-1">Audiência Atual</p>
                 </div>
               </div>
             )}
