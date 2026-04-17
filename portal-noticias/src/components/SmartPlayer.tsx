@@ -94,8 +94,8 @@ export default function SmartPlayer() {
 
   if (loading) {
     return (
-      <div className="w-full flex justify-center my-6">
-        <div className="animate-pulse w-full max-w-5xl rounded-md shadow-md bg-zinc-200" style={{ paddingTop: "56.25%" }}></div>
+      <div className="w-full flex justify-center">
+        <div className="animate-pulse w-full rounded-2xl shadow-md bg-zinc-200" style={{ paddingTop: "56.25%" }}></div>
       </div>
     );
   }
@@ -103,8 +103,8 @@ export default function SmartPlayer() {
   // Fallback caso não carregue a configuração
   if (!config) {
     return (
-      <div className="w-full max-w-5xl mx-auto my-6 font-sans">
-        <div className="relative w-full overflow-hidden rounded-md shadow-lg bg-zinc-900" style={{ paddingTop: "56.25%" }}>
+      <div className="w-full mx-auto font-sans">
+        <div className="relative w-full overflow-hidden rounded-2xl shadow-md bg-zinc-900" style={{ paddingTop: "56.25%" }}>
           <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
             <h3 className="text-zinc-600 text-xl font-medium">Player indisponível no momento.</h3>
             <p className="text-zinc-700 text-sm mt-2">Nossas transmissões retornam em breve.</p>
@@ -115,16 +115,16 @@ export default function SmartPlayer() {
   }
 
   return (
-    <div className="w-full max-w-5xl mx-auto my-6 font-sans">
+    <div className="w-full mx-auto font-sans">
       {/* Cabeçalho do Player */}
-      <div className="flex justify-end mb-2 h-6">
+      <div className="flex justify-end mb-3 h-6 absolute top-4 left-4 z-20">
         {config.is_live && (
-          <div className="flex items-center space-x-2 bg-red-600 px-3 py-1 rounded-sm shadow-sm animate-pulse">
-            <span className="relative flex h-3 w-3">
+          <div className="flex items-center space-x-2 bg-red-600 px-3 py-1 rounded-full shadow-md animate-pulse">
+            <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-300 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
             </span>
-            <span className="text-white font-bold text-sm tracking-wide">
+            <span className="text-white font-black text-xs tracking-wider uppercase">
               AO VIVO: {config.fake_viewers_boost?.toLocaleString() || 0}
             </span>
           </div>
@@ -132,7 +132,7 @@ export default function SmartPlayer() {
       </div>
 
       {/* Área do Player (Proporção 16:9) */}
-      <div className="relative w-full overflow-hidden rounded-md shadow-lg bg-black group" style={{ paddingTop: "56.25%" }}>
+      <div className="relative w-full overflow-hidden rounded-2xl shadow-md bg-black group" style={{ paddingTop: "56.25%" }}>
         {config.is_live && config.url_live_facebook ? (
           <iframe
             src={convertEmbedUrl(config.url_live_facebook)}
