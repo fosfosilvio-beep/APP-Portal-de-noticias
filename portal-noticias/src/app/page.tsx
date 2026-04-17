@@ -1,60 +1,167 @@
-import { supabase } from "@/src/lib/supabase";
+import Image from "next/image";
+import SmartPlayer from "../components/SmartPlayer";
+import { supabase } from "../lib/supabase";
 
 export const revalidate = 0;
 
 export default async function Home() {
-  const { data: categorias, error } = await supabase.from('categorias').select('*');
+  const { data: categorias, error } = await supabase.from('categorias').select('*').limit(4);
 
   return (
-    <div className="flex flex-col min-h-screen items-center bg-zinc-50 font-sans dark:bg-zinc-950">
-      <main className="flex w-full flex-col items-center py-24 px-4 sm:px-16">
-        <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 mb-8 text-center pb-2 transition-all hover:scale-105 duration-300">
-          Portal Arapongas
-        </h1>
-
-        {/* Formas geométricas de teste visual */}
-        <div className="flex flex-row justify-center items-center gap-6 mb-10 w-full flex-wrap">
-          <div className="w-20 h-20 bg-blue-500 rounded-2xl shadow-xl hover:bg-blue-400 hover:-translate-y-2 hover:shadow-blue-500/50 transition-all duration-300 border-4 border-blue-300 dark:border-blue-700"></div>
-          <div className="w-20 h-20 bg-green-500 rounded-2xl shadow-xl hover:bg-green-400 hover:-translate-y-2 hover:shadow-green-500/50 transition-all duration-300 border-4 border-green-300 dark:border-green-700"></div>
-          <div className="w-20 h-20 bg-purple-500 rounded-2xl shadow-xl hover:bg-purple-400 hover:-translate-y-2 hover:shadow-purple-500/50 transition-all duration-300 border-4 border-purple-300 dark:border-purple-700"></div>
-          <div className="w-20 h-20 bg-pink-500 rounded-full shadow-xl hover:bg-pink-400 hover:-translate-y-2 hover:shadow-pink-500/50 transition-all duration-300 border-4 border-pink-300 dark:border-pink-700"></div>
-          <div className="w-20 h-20 bg-orange-500 rounded-2xl shadow-xl hover:bg-orange-400 hover:-translate-y-2 hover:shadow-orange-500/50 transition-all duration-300 border-4 border-orange-300 dark:border-orange-700"></div>
-        </div>
-
-        <div className="w-full max-w-2xl bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl p-8 border border-zinc-200 dark:border-zinc-800">
-          <h2 className="text-2xl font-bold mb-6 text-zinc-800 dark:text-zinc-100 border-b pb-4 dark:border-zinc-800">
-            Categorias
-          </h2>
+    <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
+      {/* Header Principal */}
+      <header className="bg-white border-b-[3px] border-red-600 shadow-sm w-full sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+          <div className="flex items-center">
+            {/* O evento onError vai injetar um texto alternativo caso o arquivo Logo web.png ainda não esteja na pasta public */}
+            <div className="relative group cursor-pointer inline-block">
+              <img 
+                src="/Logo web.png" 
+                alt="Logo Portal Nossa Web TV" 
+                className="h-14 w-auto object-contain"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.parentElement!.innerHTML = '<span class="text-3xl font-extrabold text-red-600 tracking-tighter">NOSSA<span class="text-blue-800">WEB</span><span class="text-zinc-800 font-light text-2xl">TV</span></span>';
+                }}
+              />
+            </div>
+          </div>
           
-          {error ? (
-            <p className="text-red-500 bg-red-50 dark:bg-red-900/20 p-4 rounded-xl border border-red-100 dark:border-red-900/30">
-              Erro ao carregar categorias: {error.message}
-            </p>
-          ) : !categorias || categorias.length === 0 ? (
-            <p className="text-zinc-500 dark:text-zinc-400 italic text-center py-8">
-              Nenhuma categoria encontrada no momento.
-            </p>
-          ) : (
-            <ul className="space-y-4">
-              {categorias.map((cat: any, index: number) => (
-                <li 
-                  key={cat.id || index} 
-                  className="p-5 rounded-2xl border border-zinc-100 dark:border-zinc-800/50 bg-zinc-50 dark:bg-zinc-800/30 hover:bg-blue-50 dark:hover:bg-indigo-900/10 hover:border-blue-200 dark:hover:border-indigo-800/50 hover:shadow-md transition-all duration-300 cursor-pointer group flex items-center justify-between"
-                >
-                  <span className="font-semibold text-zinc-700 dark:text-zinc-300 group-hover:text-blue-700 dark:group-hover:text-indigo-400 transition-colors text-lg">
-                    {cat.nome || cat.name || cat.titulo || cat.title || JSON.stringify(cat)}
-                  </span>
-                  <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-indigo-900/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-blue-600 dark:text-indigo-400" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                    </svg>
+          <nav className="hidden md:flex space-x-6 shrink-0 items-center">
+            <a href="#" className="text-zinc-700 hover:text-blue-600 font-semibold transition-colors text-sm uppercase tracking-wide">Início</a>
+            <a href="#" className="text-zinc-700 hover:text-blue-600 font-semibold transition-colors text-sm uppercase tracking-wide">Arapongas</a>
+            <a href="#" className="text-zinc-700 hover:text-blue-600 font-semibold transition-colors text-sm uppercase tracking-wide">Esportes</a>
+            <a href="#" className="text-red-600 hover:text-red-800 font-bold transition-colors text-sm uppercase tracking-wide flex items-center gap-2 bg-red-50 px-3 py-1.5 rounded-full border border-red-100">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-600"></span>
+              </span>
+              TV Ao Vivo
+            </a>
+          </nav>
+        </div>
+      </header>
+
+      {/* Main Content Layout */}
+      <main className="container mx-auto px-4 py-8 flex-grow">
+        <div className="flex flex-col lg:flex-row gap-8">
+          
+          {/* Lado Esquerdo - 70% */}
+          <div className="w-full lg:w-[70%] flex flex-col space-y-8">
+            <section>
+              {/* O SmartPlayer já tem sua própria estética 16:9 elegante e os badges real-time */}
+              <SmartPlayer />
+            </section>
+            
+            {/* Feed Secundário de Notícias */}
+            <section className="bg-white p-6 md:p-8 rounded-xl shadow-sm border border-zinc-200/60">
+               <div className="flex justify-between items-center mb-6 border-b border-zinc-100 pb-3">
+                 <h2 className="text-xl md:text-2xl font-bold text-zinc-800 border-l-4 border-blue-600 pl-3">
+                   Em Destaque
+                 </h2>
+               </div>
+               
+               {error ? (
+                  <p className="text-red-500">Erro: {error.message}</p>
+               ) : !categorias?.length ? (
+                  <p className="text-zinc-500">Nenhuma categoria encontrada.</p>
+               ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    {categorias.map((cat: any, i: number) => (
+                      <div key={cat.id || i} className="group cursor-pointer flex flex-col h-full">
+                        <div className="h-48 bg-zinc-200 rounded-lg mb-4 flex items-center justify-center overflow-hidden">
+                           <img 
+                             src={`https://images.unsplash.com/photo-[placeholder_id]?w=600&q=80&random=${i}`} 
+                             alt="Capa" 
+                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-in-out"
+                             onError={(e) => {
+                               // Mock temporário caso unsplash falhe ou pra variar
+                               e.currentTarget.src = 'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=600&q=80';
+                             }}
+                           />
+                        </div>
+                        <div className="flex flex-col flex-grow">
+                          <span className="text-[11px] font-bold text-red-600 uppercase tracking-widest mb-2">Arapongas</span>
+                          <h3 className="font-bold text-zinc-900 leading-snug text-lg group-hover:text-blue-600 transition-colors line-clamp-3">
+                            {cat.nome || cat.titulo || cat.title || "Portal Nossa Web TV - Acompanhe as principais informações da região em tempo real"}
+                          </h3>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </li>
-              ))}
-            </ul>
-          )}
+               )}
+            </section>
+          </div>
+
+          {/* Lado Direito - 30% (Barra Lateral) */}
+          <aside className="w-full lg:w-[30%] flex flex-col space-y-6">
+            
+            {/* Widget: Previsão do Tempo */}
+            <div className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl p-6 text-white shadow-md relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:scale-110 transition-transform duration-700">
+                <svg className="w-24 h-24 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+              </div>
+              <div className="relative z-10">
+                <h3 className="font-bold text-xs mb-5 uppercase tracking-widest text-blue-100 flex items-center gap-2">
+                  <svg className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zM12 18a6 6 0 110-12 6 6 0 010 12z"/></svg>
+                  Tempo em Arapongas
+                </h3>
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-3">
+                    <p className="text-5xl font-extrabold tracking-tighter">26°</p>
+                    <div className="flex flex-col text-sm border-l border-blue-400/30 pl-3">
+                      <span className="font-medium">Ensolarado</span>
+                      <span className="text-blue-200">Max: 31° / Min: 18°</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Widget: Últimas Notícias */}
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-zinc-200/60 sticky top-24">
+              <div className="flex items-center space-x-2 mb-6 border-b border-zinc-100 pb-3">
+                <div className="w-3 h-3 bg-red-600 rounded-full animate-pulse"></div>
+                <h3 className="font-bold text-zinc-900 text-lg">Últimas Notícias</h3>
+              </div>
+              
+              <div className="flex flex-col space-y-4">
+                {[
+                  "Nova escola municipal é inaugurada na Zona Sul",
+                  "Polícia Civil recupera veículos roubados na região",
+                  "ExpoArapongas 2026: Definida grade de shows",
+                  "Vagas de emprego: 250 oportunidades abertas",
+                  "Acidente na BR-369 causa congestionamento"
+                ].map((news, idx) => (
+                  <div key={idx} className="flex gap-4 group cursor-pointer border-b border-zinc-50 pb-4 last:border-0 last:pb-0">
+                    <div className="flex flex-col items-center justify-start pt-1">
+                      <span className="text-zinc-300 font-black text-xl leading-none group-hover:text-red-500 transition-colors">{(idx + 1).toString().padStart(2, '0')}</span>
+                    </div>
+                    <p className="text-sm font-medium text-zinc-700 leading-snug group-hover:text-blue-700 transition-colors">
+                      {news}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              
+              <button className="w-full mt-6 py-2.5 text-sm font-bold text-blue-700 bg-blue-50 hover:bg-blue-600 hover:text-white rounded-lg transition-all duration-300">
+                Ver todas as notícias
+              </button>
+            </div>
+
+          </aside>
         </div>
       </main>
+      
+      {/* Footer (Rodapé) */}
+      <footer className="bg-zinc-950 text-zinc-400 py-10 mt-auto border-t-[4px] border-blue-700">
+        <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center text-sm gap-4">
+          <div className="flex items-center gap-2">
+            <span className="font-extrabold text-white text-lg tracking-tighter">NOSSA<span className="text-blue-500">WEB</span><span className="text-zinc-600">TV</span></span>
+          </div>
+          <p>© {new Date().getFullYear()} Portal Nossa Web TV. Todos os direitos reservados.</p>
+        </div>
+      </footer>
     </div>
   );
 }
