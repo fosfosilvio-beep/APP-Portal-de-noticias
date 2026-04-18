@@ -13,6 +13,7 @@ export default function NoticiaDetalhe() {
 
   const [noticia, setNoticia] = useState<any>(null);
   const [ultimasNoticias, setUltimasNoticias] = useState<any[]>([]);
+  const [config, setConfig] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,12 +26,28 @@ export default function NoticiaDetalhe() {
       try {
         if (!supabase) throw new Error("Supabase indisponível.");
 
-        // Busca a notícia pelo slug ou ID (fallback)
-        const { data, error: fetchError } = await supabase
-          .from("noticias")
+        // 1. Buscar Configuração do Portal (Identidade e Live)
+        const { data: configData } = await supabase
+          .from("configuracao_portal")
           .select("*")
-          .or(`slug.eq.${slug},id.eq.${slug}`)
+          .limit(1)
           .single();
+        
+        if (configData) setConfig(configData);
+
+        // 2. Busca a notícia especificamente pelo slug (ou ID se for UUID)
+        let query = supabase.from("noticias").select("*");
+        
+        // Se parece um UUID, tenta buscar por ID também, senão apenas por slug para evitar erro de sintaxe
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
+        
+        if (isUUID) {
+          query = query.or(`slug.eq.${slug},id.eq.${slug}`);
+        } else {
+          query = query.eq('slug', slug);
+        }
+
+        const { data, error: fetchError } = await query.single();
 
         if (fetchError) throw fetchError;
         if (!data) throw new Error("Notícia não encontrada.");
@@ -98,12 +115,16 @@ export default function NoticiaDetalhe() {
             <Link href="/" className="text-zinc-700 hover:text-blue-600 font-semibold transition-colors text-sm uppercase tracking-wide outline-none pb-1">
               Voltar ao Início
             </Link>
-            <div className="text-red-600 font-bold transition-colors text-sm uppercase tracking-wide flex items-center gap-2 bg-red-50 px-3 py-1.5 rounded-full border border-red-100 ml-4">
+            <div className={`text-sm uppercase tracking-wide flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all duration-300 ml-4 ${
+              config?.is_live 
+              ? 'bg-red-50 text-red-600 border-red-100 font-bold' 
+              : 'bg-zinc-100 text-zinc-400 border-zinc-200 opacity-50'
+            }`}>
               <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-600"></span>
+                {config?.is_live && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>}
+                <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${config?.is_live ? 'bg-red-600' : 'bg-zinc-400'}`}></span>
               </span>
-              TV Ao Vivo
+              {config?.is_live ? "TV Ao Vivo" : "TV Offline"}
             </div>
           </nav>
         </div>
@@ -119,7 +140,7 @@ export default function NoticiaDetalhe() {
             {/* Opcional incluir o SmartPlayer no topo das postagens para dar engajamento, 
                 ou o usuário pode ignorar e focar na leitura. Manterei minimizado ou na sidebar dependendo da visão. 
                 Neste caso colocarei no topo conforme a linha "Use o layout que já aprovamos... SmartPlayer à esquerda, feed abaixo" */}
-            <SmartPlayer />
+            <SmartPlayer customVideoUrl={noticia?.video_url} />
 
             {loading ? (
               <div className="animate-pulse space-y-6 bg-white p-8 rounded-xl border border-zinc-200/60">

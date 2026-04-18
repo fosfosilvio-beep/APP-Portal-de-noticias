@@ -258,12 +258,18 @@ export default function AdminPage() {
       }
 
       // 2. Inserir no Banco
+      const cleanSlug = slug.trim()
+        .replace(/^https?:\/\//, '') // Remove http:// or https://
+        .split('/') // Split by slashes
+        .filter(Boolean) // Remove empty parts
+        .pop() || slug; // Get last part (the actual slug) or fallback to original
+
       const { error } = await supabase.from("noticias").insert([{
         titulo,
         subtitulo,
         conteudo,
         categoria,
-        slug,
+        slug: cleanSlug,
         imagem_capa: imagemUrl,
         video_url: finalVideoUrl,
         mostrar_no_player: mostrarNoPlayer,

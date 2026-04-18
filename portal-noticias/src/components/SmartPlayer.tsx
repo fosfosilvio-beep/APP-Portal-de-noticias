@@ -38,7 +38,7 @@ const convertEmbedUrl = (rawUrl: string | null): string => {
   return rawUrl;
 };
 
-export default function SmartPlayer() {
+export default function SmartPlayer({ customVideoUrl }: { customVideoUrl?: string }) {
   const [config, setConfig] = useState<ConfiguracaoPortal | null>(null);
   const [loading, setLoading] = useState(true);
   const [videoAutomatico, setVideoAutomatico] = useState<string | null>(null);
@@ -175,9 +175,9 @@ export default function SmartPlayer() {
             allowFullScreen
             title="Transmissão ao vivo"
           ></iframe>
-        ) : videoAutomatico ? (
+        ) : (customVideoUrl || videoAutomatico) ? (
           <video
-            src={videoAutomatico}
+            src={customVideoUrl || videoAutomatico || ""}
             className="absolute top-0 left-0 w-full h-full object-contain"
             controls
             autoPlay
