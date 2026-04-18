@@ -751,87 +751,13 @@ export default function AdminPage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6 border-t border-slate-100">
-                    {/* Publicidade 1: Home */}
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center">
-                          <Eye size={18} />
-                        </div>
-                        <h4 className="font-bold text-slate-800">Banner Home (Horizontal)</h4>
-                      </div>
-                      
-                      <div className="relative border-2 border-dashed border-slate-200 rounded-xl p-4 bg-slate-50 min-h-[120px] flex flex-col items-center justify-center group overflow-hidden">
-                        {(bannerHomeFile || bannerHomeUrl) ? (
-                          <img 
-                            src={bannerHomeFile ? URL.createObjectURL(bannerHomeFile) : bannerHomeUrl} 
-                            className="max-h-24 object-contain rounded-lg shadow-sm"
-                            alt="Preview"
-                          />
-                        ) : (
-                          <p className="text-xs text-slate-400 font-medium tracking-tight">Formato Retangular (Ex: 1200x250)</p>
-                        )}
-                        <input 
-                          type="file" 
-                          accept="image/*"
-                          onChange={(e) => setBannerHomeFile(e.target.files?.[0] || null)}
-                          className="absolute inset-0 opacity-0 cursor-pointer"
-                        />
-                      </div>
-                      
-                      <input 
-                        type="text"
-                        placeholder="Link de redirecionamento (Página, WhatsApp, Site)"
-                        value={linkAnuncioHome}
-                        onChange={(e) => setLinkAnuncioHome(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-blue-500 font-medium"
-                      />
-                    </div>
-
-                    {/* Publicidade 2: Vertical Notícias */}
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center">
-                          <FileText size={18} />
-                        </div>
-                        <h4 className="font-bold text-slate-800">Banner Sidebar (Vertical)</h4>
-                      </div>
-                      
-                      <div className="relative border-2 border-dashed border-slate-200 rounded-xl p-4 bg-slate-50 min-h-[120px] flex flex-col items-center justify-center group overflow-hidden">
-                        {(bannerVerticalFile || bannerVerticalUrl) ? (
-                          <img 
-                            src={bannerVerticalFile ? URL.createObjectURL(bannerVerticalFile) : bannerVerticalUrl} 
-                            className="max-h-24 object-contain rounded-lg shadow-sm"
-                            alt="Preview"
-                          />
-                        ) : (
-                          <p className="text-xs text-slate-400 font-medium tracking-tight">Formato Vertical (Ex: 300x600)</p>
-                        )}
-                        <input 
-                          type="file" 
-                          accept="image/*"
-                          onChange={(e) => setBannerVerticalFile(e.target.files?.[0] || null)}
-                          className="absolute inset-0 opacity-0 cursor-pointer"
-                        />
-                      </div>
-                      
-                      <input 
-                        type="text"
-                        placeholder="Link de redirecionamento (Página, WhatsApp, Site)"
-                        value={linkVerticalNoticia}
-                        onChange={(e) => setLinkVerticalNoticia(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-blue-500 font-medium"
-                      />
-                    </div>
-                  </div>
-
                   <button 
                     onClick={saveLiveConfig}
                     disabled={savingConfig}
                     className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold py-4 rounded-xl transition-all duration-200 hover:shadow-md flex items-center justify-center gap-2 shadow-sm mt-4"
                   >
                     {savingConfig ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
-                    {savingConfig ? "Salvando Nuvem..." : "Salvar Configurações do Portal"}
+                    {savingConfig ? "Salvando Nuvem..." : "Salvar Configurações da Live"}
                   </button>
                 </div>
               </section>
@@ -919,10 +845,111 @@ export default function AdminPage() {
 
             {/* --- ABA CONFIGURAÇÕES GERAIS --- */}
             {activeTab === 'config' && (
-               <section className="bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center animate-in fade-in slide-in-from-bottom-2 transition-all duration-200 hover:shadow-md">
-                 <Settings size={56} className="mx-auto text-slate-300 mb-6" />
-                 <h2 className="text-xl font-bold text-slate-900">Configurações Gerais do Módulo</h2>
-                 <p className="text-slate-500 mt-2 max-w-md mx-auto">Esta aba de engrenagens está reservada para atualizações futuras pesadas (como o gerenciamento de Chaves de API de terceiros, logotipos rotativos e usuários convidados).</p>
+               <section className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden animate-in fade-in slide-in-from-bottom-2 transition-all duration-200">
+                  <div className="bg-slate-50/50 px-6 py-5 border-b border-slate-200 flex items-center gap-3">
+                    <div className="bg-blue-100 p-2 rounded-xl"><Settings className="text-blue-600" size={20} /></div>
+                    <h2 className="font-bold text-slate-900 text-lg">Configurações de Publicidade</h2>
+                  </div>
+
+                  <div className="p-6 md:p-8 space-y-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      {/* Publicidade 1: Home */}
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center">
+                            <Eye size={18} />
+                          </div>
+                          <h4 className="font-bold text-slate-800">Banner Home (Horizontal)</h4>
+                        </div>
+                        
+                        <div className="relative border-2 border-dashed border-slate-200 rounded-xl p-4 bg-slate-50 min-h-[160px] flex flex-col items-center justify-center group overflow-hidden transition-all hover:bg-slate-100/50">
+                          {(bannerHomeFile || bannerHomeUrl) ? (
+                            <img 
+                              src={bannerHomeFile ? URL.createObjectURL(bannerHomeFile) : bannerHomeUrl} 
+                              className="max-h-32 object-contain rounded-lg shadow-sm"
+                              alt="Preview Home"
+                            />
+                          ) : (
+                            <div className="text-center">
+                              <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Banner Retangular</p>
+                              <p className="text-[10px] text-slate-400">Dimensões sugeridas: 1200x250px</p>
+                            </div>
+                          )}
+                          <input 
+                            type="file" 
+                            accept="image/*"
+                            onChange={(e) => setBannerHomeFile(e.target.files?.[0] || null)}
+                            className="absolute inset-0 opacity-0 cursor-pointer"
+                          />
+                        </div>
+                        
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-bold text-slate-500 uppercase px-1">Link de Destino</label>
+                          <input 
+                            type="text"
+                            placeholder="Ex: https://wa.me/554399999999"
+                            value={linkAnuncioHome}
+                            onChange={(e) => setLinkAnuncioHome(e.target.value)}
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:bg-white font-medium transition-all"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Publicidade 2: Vertical Notícias */}
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center">
+                            <FileText size={18} />
+                          </div>
+                          <h4 className="font-bold text-slate-800">Banner Sidebar (Vertical)</h4>
+                        </div>
+                        
+                        <div className="relative border-2 border-dashed border-slate-200 rounded-xl p-4 bg-slate-50 min-h-[160px] flex flex-col items-center justify-center group overflow-hidden transition-all hover:bg-slate-100/50">
+                          {(bannerVerticalFile || bannerVerticalUrl) ? (
+                            <img 
+                              src={bannerVerticalFile ? URL.createObjectURL(bannerVerticalFile) : bannerVerticalUrl} 
+                              className="max-h-32 object-contain rounded-lg shadow-sm"
+                              alt="Preview Sidebar"
+                            />
+                          ) : (
+                            <div className="text-center">
+                              <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Banner em Pé</p>
+                              <p className="text-[10px] text-slate-400">Dimensões sugeridas: 300x600px</p>
+                            </div>
+                          )}
+                          <input 
+                            type="file" 
+                            accept="image/*"
+                            onChange={(e) => setBannerVerticalFile(e.target.files?.[0] || null)}
+                            className="absolute inset-0 opacity-0 cursor-pointer"
+                          />
+                        </div>
+                        
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-bold text-slate-500 uppercase px-1">Link de Destino</label>
+                          <input 
+                            type="text"
+                            placeholder="Ex: https://seusite.com.br"
+                            value={linkVerticalNoticia}
+                            onChange={(e) => setLinkVerticalNoticia(e.target.value)}
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:bg-white font-medium transition-all"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-6 border-t border-slate-100">
+                      <button 
+                        onClick={saveLiveConfig}
+                        disabled={savingConfig}
+                        className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold py-4 rounded-xl transition-all duration-200 hover:shadow-lg flex items-center justify-center gap-2 shadow-sm"
+                      >
+                        {savingConfig ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
+                        {savingConfig ? "Salvando Nuvem..." : "Salvar Configurações do Portal"}
+                      </button>
+                      <p className="text-[10px] text-slate-400 text-center mt-3 font-medium tracking-tight uppercase">Os banners aparecem na Home e na lateral das matérias.</p>
+                    </div>
+                  </div>
                </section>
             )}
             
