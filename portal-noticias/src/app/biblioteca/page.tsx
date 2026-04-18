@@ -11,12 +11,19 @@ export default function BibliotecaPublica() {
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState("Todas");
   const [selectedVideo, setSelectedVideo] = useState<any>(null);
+  const [config, setConfig] = useState<any>(null);
 
   const categorias = ["Todas", "Geral", "Esportes", "Polícia", "Política", "Entretenimento"];
 
   useEffect(() => {
+    fetchConfig();
     fetchVideos();
   }, []);
+
+  const fetchConfig = async () => {
+    const { data } = await supabase.from("configuracao_portal").select("*").single();
+    if (data) setConfig(data);
+  };
 
   const fetchVideos = async () => {
     setLoading(true);
@@ -47,7 +54,11 @@ export default function BibliotecaPublica() {
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white font-[family-name:var(--font-geist-sans)]">
-      <Header />
+      <Header 
+        isLive={config?.is_live || false} 
+        config={config} 
+        categoriaAtiva="Biblioteca"
+      />
 
       <main className="max-w-7xl mx-auto px-4 py-12">
         {/* HERO SECTION */}
