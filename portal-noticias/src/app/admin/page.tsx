@@ -15,6 +15,12 @@ export default function AdminPage() {
   const [viewersBoost, setViewersBoost] = useState(0);
   const [savingConfig, setSavingConfig] = useState(false);
   const [totalNoticias, setTotalNoticias] = useState(0);
+  const [bannerHomeUrl, setBannerHomeUrl] = useState("");
+  const [bannerHomeFile, setBannerHomeFile] = useState<File | null>(null);
+  const [linkAnuncioHome, setLinkAnuncioHome] = useState("");
+  const [bannerVerticalUrl, setBannerVerticalUrl] = useState("");
+  const [bannerVerticalFile, setBannerVerticalFile] = useState<File | null>(null);
+  const [linkVerticalNoticia, setLinkVerticalNoticia] = useState("");
 
   // Estados Gerador IA
   const [promptIA, setPromptIA] = useState("");
@@ -131,6 +137,10 @@ export default function AdminPage() {
         setIsLive(data.is_live);
         setUrlLive(data.url_live_facebook || "");
         setViewersBoost(data.fake_viewers_boost || 0);
+        setBannerHomeUrl(data.banner_anuncio_home || "");
+        setLinkAnuncioHome(data.link_anuncio_home || "");
+        setBannerVerticalUrl(data.banner_vertical_noticia || "");
+        setLinkVerticalNoticia(data.link_vertical_noticia || "");
       }
       
       const { count } = await supabase
@@ -161,8 +171,48 @@ export default function AdminPage() {
       const updateData: any = {
         is_live: isLive,
         url_live_facebook: urlLive,
-        fake_viewers_boost: viewersBoost
+        fake_viewers_boost: viewersBoost,
+        link_anuncio_home: linkAnuncioHome,
+        link_vertical_noticia: linkVerticalNoticia
       };
+
+      // Upload Banner Home
+      if (bannerHomeFile) {
+        const fileExt = bannerHomeFile.name.split('.').pop();
+        const fileName = `banner_home_${Date.now()}.${fileExt}`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('videos')
+          .upload(fileName, bannerHomeFile);
+        
+        if (uploadError) throw uploadError;
+        
+        const { data: { publicUrl } } = supabase.storage
+          .from('videos')
+          .getPublicUrl(fileName);
+          
+        updateData.banner_anuncio_home = publicUrl;
+        setBannerHomeUrl(publicUrl);
+        setBannerHomeFile(null);
+      }
+
+      // Upload Banner Vertical
+      if (bannerVerticalFile) {
+        const fileExt = bannerVerticalFile.name.split('.').pop();
+        const fileName = `banner_vertical_${Date.now()}.${fileExt}`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('videos')
+          .upload(fileName, bannerVerticalFile);
+        
+        if (uploadError) throw uploadError;
+        
+        const { data: { publicUrl } } = supabase.storage
+          .from('videos')
+          .getPublicUrl(fileName);
+          
+        updateData.banner_vertical_noticia = publicUrl;
+        setBannerVerticalUrl(publicUrl);
+        setBannerVerticalFile(null);
+      }
 
       if (lastEndedAt) {
         updateData.live_last_ended_at = lastEndedAt;
@@ -172,7 +222,7 @@ export default function AdminPage() {
           titulo: `Live de ${new Date().toLocaleDateString('pt-BR')}`,
           url: urlLive,
           tema: "Live Stream",
-          thumbnail: "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=400" // Fallback ou extrair do YT/FB no futuro
+          thumbnail: "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=400" 
         }]);
       }
 
@@ -182,7 +232,7 @@ export default function AdminPage() {
         .eq("id", 1);
         
       if (error) throw error;
-      alert("Configurações da Live salvas com sucesso!");
+      alert("Configurações do Portal salvas com sucesso!");
     } catch (err: any) {
       alert("Erro ao salvar: " + err.message);
     } finally {
@@ -701,13 +751,87 @@ export default function AdminPage() {
                     </div>
                   </div>
 
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6 border-t border-slate-100">
+                    {/* Publicidade 1: Home */}
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center">
+                          <Eye size={18} />
+                        </div>
+                        <h4 className="font-bold text-slate-800">Banner Home (Horizontal)</h4>
+                      </div>
+                      
+                      <div className="relative border-2 border-dashed border-slate-200 rounded-xl p-4 bg-slate-50 min-h-[120px] flex flex-col items-center justify-center group overflow-hidden">
+                        {(bannerHomeFile || bannerHomeUrl) ? (
+                          <img 
+                            src={bannerHomeFile ? URL.createObjectURL(bannerHomeFile) : bannerHomeUrl} 
+                            className="max-h-24 object-contain rounded-lg shadow-sm"
+                            alt="Preview"
+                          />
+                        ) : (
+                          <p className="text-xs text-slate-400 font-medium tracking-tight">Formato Retangular (Ex: 1200x250)</p>
+                        )}
+                        <input 
+                          type="file" 
+                          accept="image/*"
+                          onChange={(e) => setBannerHomeFile(e.target.files?.[0] || null)}
+                          className="absolute inset-0 opacity-0 cursor-pointer"
+                        />
+                      </div>
+                      
+                      <input 
+                        type="text"
+                        placeholder="Link de redirecionamento (Página, WhatsApp, Site)"
+                        value={linkAnuncioHome}
+                        onChange={(e) => setLinkAnuncioHome(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-blue-500 font-medium"
+                      />
+                    </div>
+
+                    {/* Publicidade 2: Vertical Notícias */}
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center">
+                          <FileText size={18} />
+                        </div>
+                        <h4 className="font-bold text-slate-800">Banner Sidebar (Vertical)</h4>
+                      </div>
+                      
+                      <div className="relative border-2 border-dashed border-slate-200 rounded-xl p-4 bg-slate-50 min-h-[120px] flex flex-col items-center justify-center group overflow-hidden">
+                        {(bannerVerticalFile || bannerVerticalUrl) ? (
+                          <img 
+                            src={bannerVerticalFile ? URL.createObjectURL(bannerVerticalFile) : bannerVerticalUrl} 
+                            className="max-h-24 object-contain rounded-lg shadow-sm"
+                            alt="Preview"
+                          />
+                        ) : (
+                          <p className="text-xs text-slate-400 font-medium tracking-tight">Formato Vertical (Ex: 300x600)</p>
+                        )}
+                        <input 
+                          type="file" 
+                          accept="image/*"
+                          onChange={(e) => setBannerVerticalFile(e.target.files?.[0] || null)}
+                          className="absolute inset-0 opacity-0 cursor-pointer"
+                        />
+                      </div>
+                      
+                      <input 
+                        type="text"
+                        placeholder="Link de redirecionamento (Página, WhatsApp, Site)"
+                        value={linkVerticalNoticia}
+                        onChange={(e) => setLinkVerticalNoticia(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-blue-500 font-medium"
+                      />
+                    </div>
+                  </div>
+
                   <button 
                     onClick={saveLiveConfig}
                     disabled={savingConfig}
                     className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold py-4 rounded-xl transition-all duration-200 hover:shadow-md flex items-center justify-center gap-2 shadow-sm mt-4"
                   >
                     {savingConfig ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
-                    {savingConfig ? "Salvando Nuvem..." : "Salvar Configurações Globais"}
+                    {savingConfig ? "Salvando Nuvem..." : "Salvar Configurações do Portal"}
                   </button>
                 </div>
               </section>

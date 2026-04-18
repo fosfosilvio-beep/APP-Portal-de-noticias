@@ -19,6 +19,7 @@ export default function Home() {
   const [searchBiblioteca, setSearchBiblioteca] = useState("");
   
   const [categoriaAtiva, setCategoriaAtiva] = useState("Início");
+  const [config, setConfig] = useState<any>(null);
 
   // Single Fetch com Fallback de Segurança + Configuração do Portal
   useEffect(() => {
@@ -31,11 +32,14 @@ export default function Home() {
         // 1. Buscar Configuração (Live Status)
         const { data: configData } = await supabase
           .from("configuracao_portal")
-          .select("is_live")
+          .select("is_live, banner_anuncio_home, link_anuncio_home, banner_vertical_noticia, link_vertical_noticia")
           .limit(1)
           .single();
         
-        if (configData) setIsLive(configData.is_live);
+        if (configData) {
+          setIsLive(configData.is_live);
+          setConfig(configData);
+        }
 
         // 2. Buscar Notícias
         let result = await supabase
@@ -369,9 +373,20 @@ export default function Home() {
               </div>
 
                {/* SLOT DE ANÚNCIO 1 */}
-               <div className="w-full bg-slate-100 rounded-2xl border border-dashed border-slate-300 h-64 flex flex-col items-center justify-center p-6 text-center group cursor-pointer hover:bg-slate-200 transition-colors">
-                  <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 border border-slate-300 px-2 py-0.5 rounded">Espaço Publicitário</span>
-                  <p className="text-slate-500 font-bold max-w-[200px]">Anuncie sua marca para milhares de leitores.</p>
+               <div className="w-full">
+                  {config?.banner_anuncio_home ? (
+                    <a href={config.link_anuncio_home || "#"} target="_blank" className="group block relative w-full h-64 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300">
+                       <img src={config.banner_anuncio_home} alt="Publicidade" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                       <div className="absolute top-2 right-2">
+                          <span className="bg-black/20 backdrop-blur-sm text-white text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border border-white/10">Publicidade</span>
+                       </div>
+                    </a>
+                  ) : (
+                    <div className="w-full bg-slate-100 rounded-2xl border border-dashed border-slate-300 h-64 flex flex-col items-center justify-center p-6 text-center group cursor-pointer hover:bg-slate-200 transition-colors">
+                       <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 border border-slate-300 px-2 py-0.5 rounded">Espaço Publicitário</span>
+                       <p className="text-slate-500 font-bold max-w-[200px]">Anuncie sua marca para milhares de leitores.</p>
+                    </div>
+                  )}
                </div>
 
               {/* GIRO LATERAL */}
@@ -398,10 +413,21 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* SLOT DE ANÚNCIO 2 */}
-              <div className="w-full bg-slate-100 rounded-2xl border border-dashed border-slate-300 h-[400px] flex flex-col items-center justify-center p-6 text-center group cursor-pointer hover:bg-slate-200 transition-colors">
-                  <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 border border-slate-300 px-2 py-0.5 rounded">Banner Vertical</span>
-              </div>
+               {/* SLOT DE ANÚNCIO 2 */}
+               <div className="w-full">
+                  {config?.banner_vertical_noticia ? (
+                    <a href={config.link_vertical_noticia || "#"} target="_blank" className="group block relative w-full h-[400px] rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300">
+                       <img src={config.banner_vertical_noticia} alt="Publicidade Vertical" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                       <div className="absolute top-2 right-2">
+                          <span className="bg-black/20 backdrop-blur-sm text-white text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border border-white/10">Publicidade</span>
+                       </div>
+                    </a>
+                  ) : (
+                    <div className="w-full bg-slate-100 rounded-2xl border border-dashed border-slate-300 h-[400px] flex flex-col items-center justify-center p-6 text-center group cursor-pointer hover:bg-slate-200 transition-colors">
+                        <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 border border-slate-300 px-2 py-0.5 rounded">Banner Vertical</span>
+                    </div>
+                  )}
+               </div>
 
             </aside>
           </div>

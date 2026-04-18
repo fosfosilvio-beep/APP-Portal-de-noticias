@@ -230,7 +230,7 @@ export default function NoticiaDetalhe() {
               </div>
             </div>
 
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-zinc-200/60 sticky top-24">
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-zinc-200/60 transition-all duration-300">
               <div className="flex items-center space-x-2 mb-6 border-b border-zinc-100 pb-3">
                 <div className="w-3 h-3 bg-[#00AEE0] rounded-full animate-pulse"></div>
                 <h3 className="font-bold text-zinc-900 text-lg">Giro de Notícias</h3>
@@ -249,18 +249,35 @@ export default function NoticiaDetalhe() {
                       className="flex gap-4 group border-b border-zinc-50 pb-4 last:border-0 last:pb-0 outline-none rounded focus-visible:ring-2 focus-visible:ring-blue-500"
                     >
                        <div className="flex flex-col items-center justify-start pt-1">
-                        <span className="text-zinc-300 font-black text-xl leading-none group-hover:text-red-500 transition-colors">
+                        <span className="text-zinc-300 font-black text-xl leading-none group-hover:text-[#00AEE0] transition-colors">
                           {(idx + 1).toString().padStart(2, '0')}
                         </span>
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-[10px] text-red-500 font-bold uppercase tracking-widest mb-1">{news.categoria || "Geral"}</span>
+                        <span className="text-[10px] text-[#00AEE0] font-bold uppercase tracking-widest mb-1">{news.categoria || "Geral"}</span>
                         <p className="text-sm font-medium text-zinc-700 leading-snug group-hover:text-blue-700 transition-colors line-clamp-2">
                           {news.titulo}
                         </p>
                       </div>
                     </Link>
                   ))}
+                </div>
+              )}
+            </div>
+
+            {/* SLOT DE ANÚNCIO VERTICAL */}
+            <div className="w-full">
+              {config?.banner_vertical_noticia ? (
+                <a href={config.link_vertical_noticia || "#"} target="_blank" className="group block relative w-full h-[500px] rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300">
+                   <img src={config.banner_vertical_noticia} alt="Publicidade" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                   <div className="absolute top-2 right-2">
+                      <span className="bg-black/20 backdrop-blur-sm text-white text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border border-white/10">Publicidade</span>
+                   </div>
+                </a>
+              ) : (
+                <div className="w-full bg-slate-100 rounded-2xl border border-dashed border-slate-300 h-[400px] flex flex-col items-center justify-center p-6 text-center group cursor-pointer hover:bg-slate-200 transition-colors">
+                    <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 border border-slate-300 px-2 py-0.5 rounded">Banner Vertical</span>
+                    <p className="text-slate-500 font-bold max-w-[200px] mt-2 text-xs">Anuncie aqui e alcance Arapongas e região.</p>
                 </div>
               )}
             </div>
