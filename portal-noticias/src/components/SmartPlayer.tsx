@@ -69,29 +69,33 @@ export default function SmartPlayer({ customVideoUrl }: { customVideoUrl?: strin
   };
 
   const verificarAutomacao = async (conf: ConfiguracaoPortal) => {
-    if (!conf.is_live && conf.live_last_ended_at) {
-      const liveEndedDate = new Date(conf.live_last_ended_at);
-      const minutesPassed = (new Date().getTime() - liveEndedDate.getTime()) / 1000 / 60;
+    if (!conf.is_live) {
+      // 1. Prioridade: Notícia em Destaque no Player
+      const { data: noticia } = await supabase
+        .from("noticias")
+        .select("titulo, video_url")
+        .eq("mostrar_no_player", true)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-      if (minutesPassed >= 5) {
-        // 1. Buscar a notícia mais recente com mostrar_no_player = true
-        const { data: noticia } = await supabase
-          .from("noticias")
-          .select("video_url")
-          .eq("mostrar_no_player", true)
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .single();
+      if (noticia?.video_url) {
+        setVideoAutomatico(noticia.video_url);
+        return;
+      }
 
-        if (noticia?.video_url) {
-          setVideoAutomatico(noticia.video_url);
-        }
+      // 2. Fallback: Vídeo mais recente da Biblioteca
+      const { data: biblioteca } = await supabase
+        .from("biblioteca_lives")
+        .select("titulo, url")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-        // 2. Limpar a tabela de mensagens (Opcional: Fazer isso apenas se houver mensagens)
-        const { count } = await supabase.from("live_mensagens").select("*", { count: "exact", head: true });
-        if (count && count > 0) {
-          await supabase.from("live_mensagens").delete().neq("id", "00000000-0000-0000-0000-000000000000"); // Deleta todas (truque pq o .delete() exige um filtro)
-        }
+      if (biblioteca?.url) {
+        setVideoAutomatico(biblioteca.url);
+      } else {
+        setVideoAutomatico(null);
       }
     } else {
       setVideoAutomatico(null);
@@ -148,10 +152,12 @@ export default function SmartPlayer({ customVideoUrl }: { customVideoUrl?: strin
     );
   }
 
+  const isAcervo = !config.is_live && (customVideoUrl || videoAutomatico);
+
   return (
-    <div className="w-full mx-auto font-sans">
-      {/* Cabeçalho do Player */}
-      <div className="flex justify-end mb-3 h-6 absolute top-4 left-4 z-20">
+    <div className="w-full mx-auto font-sans transition-all duration-700 ease-in-out">
+      {/* Etiquetas de Status (Live ou Acervo) */}
+      <div className="flex justify-end mb-3 h-6 absolute top-4 left-4 z-20 gap-2">
         {config.is_live && (
           <div className="flex items-center space-x-2 bg-red-600 px-3 py-1 rounded-full shadow-md animate-pulse">
             <span className="relative flex h-2 w-2">
@@ -163,14 +169,22 @@ export default function SmartPlayer({ customVideoUrl }: { customVideoUrl?: strin
             </span>
           </div>
         )}
+        {isAcervo && (
+          <div className="flex items-center space-x-2 bg-cyan-600/90 backdrop-blur-md px-3 py-1 rounded-full shadow-md border border-white/20 transition-all duration-500">
+             <div className="w-2 h-2 rounded-full bg-cyan-200 shadow-[0_0_8px_rgba(103,232,249,0.8)]"></div>
+             <span className="text-white font-black text-[10px] tracking-widest uppercase">
+               ACERVO WEB TV
+             </span>
+          </div>
+        )}
       </div>
 
       {/* Área do Player (Proporção 16:9) */}
-      <div className="relative w-full overflow-hidden rounded-2xl shadow-md bg-black group" style={{ paddingTop: "56.25%" }}>
+      <div className="relative w-full overflow-hidden rounded-2xl shadow-2xl bg-black group transition-all duration-700 ease-in-out shadow-black/40" style={{ paddingTop: "56.25%" }}>
         {config.is_live && config.url_live_facebook ? (
           <iframe
             src={convertEmbedUrl(config.url_live_facebook)}
-            className="absolute top-0 left-0 w-full h-full border-0"
+            className="absolute top-0 left-0 w-full h-full border-0 transition-opacity duration-700"
             allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
             allowFullScreen
             title="Transmissão ao vivo"
@@ -178,7 +192,7 @@ export default function SmartPlayer({ customVideoUrl }: { customVideoUrl?: strin
         ) : (customVideoUrl || videoAutomatico) ? (
           <video
             src={customVideoUrl || videoAutomatico || ""}
-            className="absolute top-0 left-0 w-full h-full object-contain"
+            className="absolute top-0 left-0 w-full h-full object-contain transition-all duration-700"
             controls
             autoPlay
             muted

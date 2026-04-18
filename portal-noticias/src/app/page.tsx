@@ -141,11 +141,13 @@ export default function Home() {
               {categoriaAtiva === "Início" ? (
                 <>
                   {/* BENTO GRID (VINHETA TOP) */}
-                  <section className="grid grid-cols-1 md:grid-cols-12 gap-5">
-                     {/* Bloco Master: Player + Titulo */}
-                     <div className="md:col-span-8 flex flex-col gap-4">
+                  <section className="grid grid-cols-1 md:grid-cols-12 gap-5 transition-all duration-700 ease-in-out">
+                     {/* Bloco Master: Player + Titulo (MODO CINEMA) */}
+                     <div className={`${isLive ? 'md:col-span-12' : 'md:col-span-8'} flex flex-col gap-4 transition-all duration-700 ease-in-out`}>
                         <SmartPlayer />
-                        {masterHighlights[0] && (
+                        
+                        {/* Notícia Principal - Oculta no Modo Cinema (Live) */}
+                        {!isLive && masterHighlights[0] && (
                            <Link href={`/noticia/${masterHighlights[0].slug || masterHighlights[0].id}`} className="group relative w-full h-[260px] sm:h-[320px] rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300">
                              <img src={masterHighlights[0].imagem_capa || 'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=800'} alt="Destaque" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" />
                              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
@@ -158,9 +160,9 @@ export default function Home() {
                      </div>
 
                      {/* Bloco Lateral (Chat ou Sub-Destaques) */}
-                     <div className="md:col-span-4 flex flex-col gap-5">
+                     <div className={`${isLive ? 'md:col-span-12 lg:col-span-4' : 'md:col-span-4'} flex flex-col gap-5 transition-all duration-700 ease-in-out`}>
                        {isLive ? (
-                         <div className="h-full min-h-[500px] md:min-h-0">
+                         <div className="h-full min-h-[400px] lg:min-h-[500px]">
                            <LiveChat />
                          </div>
                        ) : (
