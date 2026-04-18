@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "../../../lib/supabase";
+import { Search, MapPin, Share2 } from "lucide-react";
 import SmartPlayer from "../../../components/SmartPlayer";
+import Header from "../../../components/Header";
 
 export default function NoticiaDetalhe() {
   const params = useParams();
@@ -93,42 +95,13 @@ export default function NoticiaDetalhe() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
-      {/* Header Principal - Mesmo padrão da Home */}
-      <header className="bg-white border-b-[3px] border-red-600 shadow-sm w-full sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-          <div className="flex items-center">
-            <Link href="/" className="relative group cursor-pointer inline-block outline-none rounded-lg focus-visible:ring-2 focus-visible:ring-blue-500">
-              <img 
-                src="/Logo%20web.png" 
-                alt="Logo Portal Nossa Web TV" 
-                className="h-14 w-auto object-contain"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                  e.currentTarget.parentElement!.innerHTML = '<span class="text-3xl font-extrabold text-red-600 tracking-tighter">NOSSA<span class="text-blue-800">WEB</span><span class="text-zinc-800 font-light text-2xl">TV</span></span>';
-                }}
-              />
-            </Link>
-          </div>
-          
-          <nav className="hidden md:flex space-x-6 shrink-0 items-center">
-            <Link href="/" className="text-zinc-700 hover:text-blue-600 font-semibold transition-colors text-sm uppercase tracking-wide outline-none pb-1">
-              Voltar ao Início
-            </Link>
-            <div className={`text-sm uppercase tracking-wide flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all duration-300 ml-4 ${
-              config?.is_live 
-              ? 'bg-red-50 text-red-600 border-red-100 font-bold' 
-              : 'bg-zinc-100 text-zinc-400 border-zinc-200 opacity-50'
-            }`}>
-              <span className="relative flex h-2.5 w-2.5">
-                {config?.is_live && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>}
-                <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${config?.is_live ? 'bg-red-600' : 'bg-zinc-400'}`}></span>
-              </span>
-              {config?.is_live ? "TV Ao Vivo" : "TV Offline"}
-            </div>
-          </nav>
-        </div>
-      </header>
+    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
+      
+      <Header 
+        isLive={config?.is_live || false} 
+        config={config} 
+        showNavigation={false} 
+      />
 
       {/* Main Content Layout */}
       <main className="container mx-auto px-4 py-8 flex-grow">
@@ -259,7 +232,7 @@ export default function NoticiaDetalhe() {
 
             <div className="bg-white rounded-xl p-6 shadow-sm border border-zinc-200/60 sticky top-24">
               <div className="flex items-center space-x-2 mb-6 border-b border-zinc-100 pb-3">
-                <div className="w-3 h-3 bg-red-600 rounded-full animate-pulse"></div>
+                <div className="w-3 h-3 bg-[#00AEE0] rounded-full animate-pulse"></div>
                 <h3 className="font-bold text-zinc-900 text-lg">Giro de Notícias</h3>
               </div>
               
