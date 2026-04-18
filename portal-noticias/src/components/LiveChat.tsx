@@ -137,11 +137,16 @@ export default function LiveChat() {
       cor_nome: corNome
     };
 
-    setNovaMensagem(""); // Limpa o input instântaneamente
-
-    await supabase.from('live_mensagens').insert([pack]);
-    
-    setLoadingMsg(false);
+    try {
+      const { error } = await supabase.from('live_mensagens').insert([pack]);
+      if (error) throw error;
+      setNovaMensagem(""); // Só limpa se deu certo ou opcionalmente limpa sempre, mas aqui garantimos o envio
+    } catch (err: any) {
+      console.error("Erro ao enviar mensagem:", err);
+      alert("Erro ao enviar mensagem. Tente novamente.");
+    } finally {
+      setLoadingMsg(false);
+    }
   };
 
   return (

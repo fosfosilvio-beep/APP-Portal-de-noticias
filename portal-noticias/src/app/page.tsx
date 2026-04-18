@@ -7,13 +7,15 @@ import SmartPlayer from "../components/SmartPlayer";
 import LiveChat from "../components/LiveChat";
 import AutomatedNewsFeed from "../components/AutomatedNewsFeed";
 import { supabase } from "../lib/supabase";
-import { Play } from "lucide-react";
+import { Play, Search, Film, Calendar, Tag } from "lucide-react";
 
 export default function Home() {
   const [todasNoticias, setTodasNoticias] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isLive, setIsLive] = useState(false);
+  const [bibliotecaLives, setBibliotecaLives] = useState<any[]>([]);
+  const [searchBiblioteca, setSearchBiblioteca] = useState("");
   
   const [categoriaAtiva, setCategoriaAtiva] = useState("Início");
 
@@ -53,6 +55,14 @@ export default function Home() {
           
         if (result.error) throw result.error;
         if (result.data) setTodasNoticias(result.data);
+
+        // 3. Buscar Biblioteca de Lives
+        const { data: bData } = await supabase
+          .from("biblioteca_lives")
+          .select("*")
+          .order("created_at", { ascending: false });
+        
+        if (bData) setBibliotecaLives(bData);
         
       } catch (err: any) {
         console.error("Erro no load inicial:", err);
@@ -111,7 +121,7 @@ export default function Home() {
           </div>
           
           <nav className="hidden md:flex space-x-1 shrink-0 items-center bg-slate-100 p-1.5 rounded-full">
-            {['Início', 'Arapongas', 'Esportes', 'Polícia', 'Política'].map(cat => (
+            {['Início', 'Arapongas', 'Esportes', 'Polícia', 'Política', 'Biblioteca'].map(cat => (
               <a 
                 key={cat}
                 href="#" 
@@ -275,6 +285,83 @@ export default function Home() {
                   {/* FEED G1 EXTRA */}
                   <AutomatedNewsFeed />
                 </>
+              ) : categoriaAtiva === "Biblioteca" ? (
+                /* --- MODO BIBLIOTECA (NETFLIX STYLE) --- */
+                <div className="space-y-8 animate-in fade-in duration-500">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                      <h1 className="text-4xl font-black text-slate-900 border-l-[6px] border-[#00AEE0] pl-4">Biblioteca <span className="text-[#00AEE0]">Web TV</span></h1>
+                      <p className="text-slate-500 mt-2 font-medium">Assista aos nossos programas e matérias especiais a qualquer momento.</p>
+                    </div>
+                    
+                    {/* Barra de Pesquisa */}
+                    <div className="relative w-full md:w-80">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                      <input 
+                        type="text"
+                        placeholder="Pesquisar título ou tema..."
+                        value={searchBiblioteca}
+                        onChange={(e) => setSearchBiblioteca(e.target.value)}
+                        className="w-full bg-white border border-slate-200 rounded-xl py-2.5 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-[#00AEE0]/20 focus:border-[#00AEE0] transition-all shadow-sm"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Grid de Cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {[...bibliotecaLives, ...todasNoticias.filter(n => n.video_url)].filter(item => 
+                      (item.titulo || "").toLowerCase().includes(searchBiblioteca.toLowerCase()) || 
+                      (item.tema || item.categoria || "").toLowerCase().includes(searchBiblioteca.toLowerCase())
+                    ).map((item, idx) => (
+                      <div key={item.id || idx} className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border border-slate-100 flex flex-col hover:-translate-y-2">
+                         <div className="relative h-44 overflow-hidden">
+                           <img 
+                             src={item.thumbnail || item.imagem_capa || "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=400"} 
+                             alt={item.titulo} 
+                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+                           />
+                           <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                             <div className="w-12 h-12 bg-[#00AEE0] rounded-full flex items-center justify-center text-white scale-0 group-hover:scale-100 transition-transform duration-300 shadow-xl">
+                               <Play size={20} fill="currentColor" />
+                             </div>
+                           </div>
+                           <div className="absolute top-3 left-3">
+                             <span className="bg-black/60 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded border border-white/20">
+                               {item.video_url ? "Matéria" : "Live"}
+                             </span>
+                           </div>
+                         </div>
+                         <div className="p-5 flex flex-col flex-1">
+                           <div className="flex items-center gap-2 mb-2">
+                             <span className="text-[10px] text-[#00AEE0] font-black uppercase tracking-widest flex items-center gap-1">
+                               <Tag size={10} /> {item.tema || item.categoria || "Geral"}
+                             </span>
+                           </div>
+                           <h3 className="font-bold text-slate-800 text-sm leading-snug group-hover:text-[#00AEE0] transition-colors line-clamp-2 min-h-[2.5rem]">
+                             {item.titulo}
+                           </h3>
+                           <div className="mt-4 pt-4 border-t border-slate-50 flex items-center justify-between text-[10px] text-slate-400 font-bold uppercase tracking-tighter">
+                             <span className="flex items-center gap-1"><Calendar size={12} /> {new Date(item.created_at).toLocaleDateString('pt-BR')}</span>
+                             <a 
+                               href={item.video_url ? `/noticia/${item.slug || item.id}` : item.url} 
+                               target={item.video_url ? "_self" : "_blank"}
+                               className="text-[#00AEE0] hover:underline"
+                             >
+                               Assistir Agora
+                             </a>
+                           </div>
+                         </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {[...bibliotecaLives, ...todasNoticias.filter(n => n.video_url)].length === 0 && (
+                    <div className="py-20 text-center bg-white rounded-3xl border border-dashed border-slate-200">
+                      <Film className="mx-auto text-slate-200 mb-4" size={64} />
+                      <p className="text-slate-400 font-bold">Nenhum vídeo encontrado no catálogo.</p>
+                    </div>
+                  )}
+                </div>
               ) : (
                 /* --- MODO CATEGORIA ATIVA --- */
                 <div>

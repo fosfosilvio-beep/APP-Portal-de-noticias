@@ -8,6 +8,7 @@ interface ConfiguracaoPortal {
   is_live: boolean;
   url_live_facebook: string | null;
   fake_viewers_boost: number;
+  live_last_ended_at?: string | null;
 }
 
 const convertEmbedUrl = (rawUrl: string | null): string => {
@@ -40,6 +41,7 @@ const convertEmbedUrl = (rawUrl: string | null): string => {
 export default function SmartPlayer() {
   const [config, setConfig] = useState<ConfiguracaoPortal | null>(null);
   const [loading, setLoading] = useState(true);
+  const [videoAutomatico, setVideoAutomatico] = useState<string | null>(null);
 
   const fetchConfig = async () => {
     try {
@@ -57,11 +59,42 @@ export default function SmartPlayer() {
         console.error("Erro ao buscar configuração:", error);
       } else if (data) {
         setConfig(data);
+        await verificarAutomacao(data);
       }
     } catch (err) {
       console.error("Erro inesperado no SmartPlayer:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const verificarAutomacao = async (conf: ConfiguracaoPortal) => {
+    if (!conf.is_live && conf.live_last_ended_at) {
+      const liveEndedDate = new Date(conf.live_last_ended_at);
+      const minutesPassed = (new Date().getTime() - liveEndedDate.getTime()) / 1000 / 60;
+
+      if (minutesPassed >= 5) {
+        // 1. Buscar a notícia mais recente com mostrar_no_player = true
+        const { data: noticia } = await supabase
+          .from("noticias")
+          .select("video_url")
+          .eq("mostrar_no_player", true)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .single();
+
+        if (noticia?.video_url) {
+          setVideoAutomatico(noticia.video_url);
+        }
+
+        // 2. Limpar a tabela de mensagens (Opcional: Fazer isso apenas se houver mensagens)
+        const { count } = await supabase.from("live_mensagens").select("*", { count: "exact", head: true });
+        if (count && count > 0) {
+          await supabase.from("live_mensagens").delete().neq("id", "00000000-0000-0000-0000-000000000000"); // Deleta todas (truque pq o .delete() exige um filtro)
+        }
+      }
+    } else {
+      setVideoAutomatico(null);
     }
   };
 
@@ -80,9 +113,10 @@ export default function SmartPlayer() {
           schema: "public",
           table: "configuracao_portal",
         },
-        (payload) => {
-          // Atualiza o estado com a nova configuração
-          setConfig(payload.new as ConfiguracaoPortal);
+        async (payload) => {
+          const newConf = payload.new as ConfiguracaoPortal;
+          setConfig(newConf);
+          await verificarAutomacao(newConf);
         }
       )
       .subscribe();
@@ -141,6 +175,15 @@ export default function SmartPlayer() {
             allowFullScreen
             title="Transmissão ao vivo"
           ></iframe>
+        ) : videoAutomatico ? (
+          <video
+            src={videoAutomatico}
+            className="absolute top-0 left-0 w-full h-full object-contain"
+            controls
+            autoPlay
+            muted
+            loop
+          ></video>
         ) : (
           <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center bg-zinc-900 overflow-hidden">
             {/* Imagem de Capa Elegante (Fallback) */}

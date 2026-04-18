@@ -25,6 +25,10 @@ export default function AdminPage() {
   const [categoria, setCategoria] = useState("");
   const [slug, setSlug] = useState("");
   const [imagemUrl, setImagemUrl] = useState("");
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [mostrarNoPlayer, setMostrarNoPlayer] = useState(false);
+  const [mostrarNaHomeRecentes, setMostrarNaHomeRecentes] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
 
   // Estados da Lista de Notícias
@@ -144,13 +148,37 @@ export default function AdminPage() {
     setSavingConfig(true);
     try {
       if (!supabase) return;
+
+      // Buscar config atual para saber se a live está mudando de ON para OFF
+      const { data: currentConfig } = await supabase
+        .from("configuracao_portal")
+        .select("is_live, url_live_facebook")
+        .eq("id", 1)
+        .single();
+
+      const lastEndedAt = (!isLive && currentConfig?.is_live) ? new Date().toISOString() : null;
+
+      const updateData: any = {
+        is_live: isLive,
+        url_live_facebook: urlLive,
+        fake_viewers_boost: viewersBoost
+      };
+
+      if (lastEndedAt) {
+        updateData.live_last_ended_at = lastEndedAt;
+        
+        // Salvar na Biblioteca se estiver desligando
+        await supabase.from("biblioteca_lives").insert([{
+          titulo: `Live de ${new Date().toLocaleDateString('pt-BR')}`,
+          url: urlLive,
+          tema: "Live Stream",
+          thumbnail: "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=400" // Fallback ou extrair do YT/FB no futuro
+        }]);
+      }
+
       const { error } = await supabase
         .from("configuracao_portal")
-        .update({
-          is_live: isLive,
-          url_live_facebook: urlLive,
-          fake_viewers_boost: viewersBoost
-        })
+        .update(updateData)
         .eq("id", 1);
         
       if (error) throw error;
@@ -196,8 +224,76 @@ export default function AdminPage() {
     }
   };
 
-  const publishNews = () => {
-    alert(`Notícia pronta para ser inserida!\nTítulo: ${titulo}\nSlug: ${slug}`);
+  const publishNews = async () => {
+    if (!titulo.trim() || !conteudo.trim() || !slug.trim()) {
+      alert("Título, Conteúdo e Slug são obrigatórios.");
+      return;
+    }
+
+    setSavingConfig(true);
+    let finalVideoUrl = "";
+
+    try {
+      if (!supabase) return;
+
+      // 1. Upload de Vídeo se houver
+      if (videoFile) {
+        setUploadingVideo(true);
+        const fileExt = videoFile.name.split('.').pop();
+        const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+        const filePath = `noticias/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('videos')
+          .upload(filePath, videoFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('videos')
+          .getPublicUrl(filePath);
+        
+        finalVideoUrl = publicUrl;
+        setUploadingVideo(false);
+      }
+
+      // 2. Inserir no Banco
+      const { error } = await supabase.from("noticias").insert([{
+        titulo,
+        subtitulo,
+        conteudo,
+        categoria,
+        slug,
+        imagem_capa: imagemUrl,
+        video_url: finalVideoUrl,
+        mostrar_no_player: mostrarNoPlayer,
+        mostrar_na_home_recentes: mostrarNaHomeRecentes,
+        ordem_prioridade: 0
+      }]);
+
+      if (error) throw error;
+
+      alert("🚀 Notícia publicada com sucesso!");
+      
+      // Limpar campos
+      setTitulo("");
+      setSubtitulo("");
+      setConteudo("");
+      setCategoria("");
+      setSlug("");
+      setImagemUrl("");
+      setVideoFile(null);
+      setMostrarNoPlayer(false);
+      setMostrarNaHomeRecentes(false);
+      setTotalNoticias(prev => prev + 1);
+
+    } catch (err: any) {
+      console.error(err);
+      alert("Erro ao publicar: " + err.message);
+    } finally {
+      setSavingConfig(false);
+      setUploadingVideo(false);
+    }
   };
 
   if (!isAuthenticated) {
@@ -453,6 +549,53 @@ export default function AdminPage() {
                       </div>
 
                       <div className="border-t border-slate-100 pt-5">
+                        <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wide">Upload de Vídeo (Opcional)</label>
+                        <div className={`relative border-2 border-dashed rounded-xl p-4 transition-all duration-200 flex flex-col items-center justify-center text-center ${videoFile ? 'border-blue-500 bg-blue-50' : 'border-slate-200 hover:border-slate-300 bg-slate-50'}`}>
+                          <input 
+                            type="file" 
+                            accept="video/*"
+                            onChange={(e) => setVideoFile(e.target.files?.[0] || null)}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          />
+                          {videoFile ? (
+                            <div className="space-y-1">
+                              <p className="text-sm font-bold text-blue-700 truncate max-w-[200px]">{videoFile.name}</p>
+                              <p className="text-[10px] text-blue-500">{(videoFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                            </div>
+                          ) : (
+                            <>
+                              <div className="w-8 h-8 bg-slate-200 text-slate-500 rounded-full flex items-center justify-center mb-2">
+                                <FileText size={16} />
+                              </div>
+                              <p className="text-[10px] text-slate-500 font-medium">Clique ou arraste o vídeo aqui</p>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="border-t border-slate-100 pt-5 space-y-4">
+                        <div className="flex items-center justify-between">
+                          <label className="text-xs font-bold text-slate-600 uppercase tracking-wide">Exibir no Player Principal?</label>
+                          <button 
+                            onClick={() => setMostrarNoPlayer(!mostrarNoPlayer)}
+                            className={`relative inline-flex h-5 w-10 items-center rounded-full transition-colors ${mostrarNoPlayer ? 'bg-blue-600' : 'bg-slate-300'}`}
+                          >
+                            <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${mostrarNoPlayer ? 'translate-x-5.5' : 'translate-x-1'}`} />
+                          </button>
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <label className="text-xs font-bold text-slate-600 uppercase tracking-wide">Aba Recentes da Home?</label>
+                          <button 
+                            onClick={() => setMostrarNaHomeRecentes(!mostrarNaHomeRecentes)}
+                            className={`relative inline-flex h-5 w-10 items-center rounded-full transition-colors ${mostrarNaHomeRecentes ? 'bg-blue-600' : 'bg-slate-300'}`}
+                          >
+                            <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${mostrarNaHomeRecentes ? 'translate-x-5.5' : 'translate-x-1'}`} />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="border-t border-slate-100 pt-5">
                         <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wide">URL Limpa (Slug)</label>
                         <input 
                           type="text" 
@@ -477,9 +620,11 @@ export default function AdminPage() {
 
                       <button 
                         onClick={publishNews}
-                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl transition-all duration-200 hover:shadow-md flex items-center justify-center gap-2 shadow-sm"
+                        disabled={savingConfig || uploadingVideo}
+                        className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white font-bold py-3.5 rounded-xl transition-all duration-200 hover:shadow-md flex items-center justify-center gap-2 shadow-sm"
                       >
-                        <Send size={18} /> Publicar Agora
+                        {uploadingVideo ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />}
+                        {uploadingVideo ? "Subindo Vídeo..." : (savingConfig ? "Publicando..." : "Publicar Agora")}
                       </button>
                     </div>
 
@@ -517,8 +662,9 @@ export default function AdminPage() {
                       placeholder="https://facebook.com/..."
                       value={urlLive}
                       onChange={(e) => setUrlLive(e.target.value)}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all duration-200 text-slate-800 shadow-sm focus:shadow-md"
+                      className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-600 focus:bg-white transition-all duration-200 text-black font-medium shadow-sm focus:shadow-md placeholder-slate-400"
                     />
+                    <p className="text-[10px] text-slate-500 mt-1.5 font-medium italic">O link inserido acima aparecerá no player principal enquanto a transmissão estiver ligada.</p>
                   </div>
 
                   <div className="pt-6 border-t border-slate-100">
