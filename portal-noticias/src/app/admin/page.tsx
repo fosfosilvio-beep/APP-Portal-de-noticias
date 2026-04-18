@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "../../lib/supabase";
-import { Settings, Rss, Users, Sparkles, Send, Loader2, Save, LayoutDashboard, FileText, ExternalLink, LogOut, User, Eye, X, List, Trash2, ChevronUp, ChevronDown } from "lucide-react";
+import { Settings, Rss, Users, Sparkles, Send, Loader2, Save, LayoutDashboard, FileText, ExternalLink, LogOut, User, Eye, X, List, Trash2, ChevronUp, ChevronDown, Video } from "lucide-react";
+import Link from "next/link";
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -419,6 +420,13 @@ export default function AdminPage() {
               {item.icon} {item.label}
             </button>
           ))}
+
+          <Link 
+            href="/admin/biblioteca"
+            className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 text-neutral-400 hover:bg-neutral-900 hover:text-white"
+          >
+            <Video size={20} /> Gerenciar Biblioteca
+          </Link>
         </nav>
         
         <div className="p-4 border-t border-neutral-900">

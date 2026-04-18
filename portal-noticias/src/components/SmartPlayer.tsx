@@ -84,16 +84,29 @@ export default function SmartPlayer({ customVideoUrl }: { customVideoUrl?: strin
         return;
       }
 
-      // 2. Fallback: Vídeo mais recente da Biblioteca
-      const { data: biblioteca } = await supabase
+      // 2. Novo Acervo: biblioteca_webtv (Uploads Manuais)
+      const { data: acervo } = await supabase
+        .from("biblioteca_webtv")
+        .select("titulo, url_video")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (acervo?.url_video) {
+        setVideoAutomatico(acervo.url_video);
+        return;
+      }
+
+      // 3. Fallback: Gravações de Lives anteriores
+      const { data: lives } = await supabase
         .from("biblioteca_lives")
         .select("titulo, url")
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
 
-      if (biblioteca?.url) {
-        setVideoAutomatico(biblioteca.url);
+      if (lives?.url) {
+        setVideoAutomatico(lives.url);
       } else {
         setVideoAutomatico(null);
       }
