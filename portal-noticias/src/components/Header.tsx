@@ -33,25 +33,59 @@ export default function Header({
             <Link 
               href="/" 
               onClick={() => setCategoriaAtiva?.('Início')} 
-              className="relative cursor-pointer outline-none group flex items-center gap-3"
+              className="relative cursor-pointer outline-none group flex items-center gap-4"
             >
-               <div className="relative">
+               {/* 1. Logo Redonda */}
+               <div className="relative shrink-0">
                  <img 
                    src={config?.logo_url || "/logo.png"} 
                    alt="Nossa Web TV" 
-                   className="h-20 sm:h-24 w-auto object-contain transition-transform group-hover:scale-105 rounded-full"
+                   className="h-14 sm:h-16 w-auto object-contain transition-transform group-hover:scale-105 rounded-full drop-shadow-md"
                    onError={(e) => {
                      e.currentTarget.style.display = 'none';
                      e.currentTarget.parentElement!.innerHTML = `
                        <div class="flex items-center gap-3">
-                         <div class="w-16 h-16 bg-gradient-to-tr from-cyan-600 to-blue-800 rounded-full flex items-center justify-center text-white font-black text-2xl shadow-inner border-2 border-white">TV</div>
-                         <div class="flex flex-col">
-                           <span class="text-3xl font-black text-[#00AEE0] tracking-tighter leading-none drop-shadow-sm">NOSSA<span class="text-slate-800">WEB</span></span>
-                           <span class="text-[12px] font-black tracking-widest text-[#00AEE0]">BR</span>
-                         </div>
+                         <div class="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-tr from-cyan-600 to-blue-800 rounded-full flex items-center justify-center text-white font-black text-xl shadow-inner border-2 border-white">TV</div>
                        </div>`;
                    }}
                  />
+               </div>
+
+               {/* 2. Estrelas e Texto Metálico */}
+               <div className="hidden sm:flex items-center gap-3">
+                 {/* Estrelas */}
+                 <div className="flex items-center gap-0.5">
+                   {[1, 2, 3, 4, 5].map((star) => (
+                     <svg key={star} className="w-5 h-5 sm:w-6 sm:h-6" style={{ filter: "drop-shadow(1px 1px 1px rgba(0,0,0,0.3))" }} fill="url(#silverGradient)" viewBox="0 0 24 24">
+                       <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                     </svg>
+                   ))}
+                 </div>
+                 
+                 {/* Texto Metálico 3D */}
+                 <span 
+                   className="text-2xl sm:text-3xl font-black tracking-tighter leading-none whitespace-nowrap"
+                   style={{
+                     background: "linear-gradient(to bottom, #ffffff 0%, #b3b3b3 45%, #e6e6e6 55%, #8c8c8c 100%)",
+                     WebkitBackgroundClip: "text",
+                     WebkitTextFillColor: "transparent",
+                     filter: "drop-shadow(1px 2px 2px rgba(0,0,0,0.4)) drop-shadow(-1px -1px 0 rgba(255,255,255,0.6))",
+                   }}
+                 >
+                   NOSSAWEB TV
+                 </span>
+
+                 {/* Definição do Gradiente Metálico para os SVGs */}
+                 <svg width="0" height="0" className="absolute">
+                   <defs>
+                     <linearGradient id="silverGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                       <stop offset="0%" stopColor="#ffffff" />
+                       <stop offset="45%" stopColor="#b3b3b3" />
+                       <stop offset="55%" stopColor="#e6e6e6" />
+                       <stop offset="100%" stopColor="#8c8c8c" />
+                     </linearGradient>
+                   </defs>
+                 </svg>
                </div>
             </Link>
           </div>
