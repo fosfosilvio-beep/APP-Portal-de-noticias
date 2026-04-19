@@ -226,11 +226,16 @@ export default function AdminPage() {
       
       setTitulo(data.titulo || "");
       setSubtitulo(data.subtitulo || "");
-      const contentAsHtml = (data.conteudo || "").split('\n').filter((p: string) => p.trim() !== '').map((p: string) => `<p>${p.trim()}</p>`).join('');
-      setConteudo(contentAsHtml);
+      setConteudo(data.conteudo || "");
       setCategoria(data.categoria || "Geral");
-      if (data.titulo) {
-        setSlug(data.titulo.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, ""));
+      
+      // Auto Generate Slug (Prioriza o sugerido pela IA)
+      if (data.slug) {
+        setSlug(data.slug);
+      } else if (data.titulo) {
+        setSlug(
+          data.titulo.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")
+        );
       }
     } catch (err: any) {
       alert("⚠️ Robô Jornalista: " + err.message);

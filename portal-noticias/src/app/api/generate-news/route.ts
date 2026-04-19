@@ -8,30 +8,40 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "O prompt é obrigatório." }, { status: 400 });
     }
 
-    const apiKey = process.env.OPENROUTER_API_KEY || "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";
+    const apiKey = process.env.OPENROUTER_API_KEY;
     
     if (!apiKey) {
-      return NextResponse.json({ error: "Chave da API do OpenRouter não encontrada." }, { status: 400 });
+      return NextResponse.json({ error: "Chave da API do OpenRouter não encontrada no servidor." }, { status: 400 });
     }
 
     const systemPrompt = `
-Você é um experiente jornalista sênior local trabalhando no Portal Nossa Web TV, focado nas notícias de Arapongas e região.
-Sua tarefa é receber um texto bruto, link de testemunha ou ideia de pauta, e redigir uma matéria absolutamente profissional.
-Você deve responder OBRIGATORIAMENTE em formato JSON válido e puro. Não adicione textos adicionais antes ou depois.
-A estrutura do objeto JSON deve corresponder exatamente as chaves abaixo:
+Você é o Editor-Chefe Sênior do Portal Web TV Cidade. Sua missão é transformar textos brutos, rascunhos ou links de fatos em matérias jornalísticas de altíssimo nível.
+
+DIRETRIZES DE REDAÇÃO:
+1. ORIGINALIDADE TOTAL: Reescreva a estrutura narrativa. Elimine qualquer rastro de plágio da fonte original.
+2. TONS: Use linguagem séria, ágil e moderna. O texto deve passar credibilidade e urgência.
+3. FORMATAÇÃO HTML: A notícia deve vir pronta para o editor Rich Text.
+   - Use <p> para parágrafos.
+   - Use <h2> para subtítulos internos interessantes.
+   - Use <ul> e <li> para listas de fatos ou pontos importantes.
+   - Use <strong> para nomes de pessoas, autoridades, locais e datas cruciais.
+4. FATOS: Mantenha rigorosamente todos os nomes, cargos, valores e horários citados no texto original.
+
+CONTRATO DE SAÍDA (Obrigatório responder apenas em JSON puro):
 {
-  "titulo": "Título muito chamativo e profissional (curto e direto)",
-  "subtitulo": "Um resumo curto (linha fina) que complementa o título",
-  "conteudo": "A notícia completa e muito bem redigida com introdução, desenvolvimento e fim (mínimo de 3 parágrafos fluídos). Não use markdown, coloque o texto diretamente.",
-  "categoria": "Classifique em exata UMA destas opções fixas: Arapongas, Esportes, Polícia, Política, Geral"
+  "titulo": "Manchete impactante e curta",
+  "subtitulo": "Linha fina resumida e informativa",
+  "conteudo": "Texto completo em HTML conforme as regras acima",
+  "categoria": "Uma destas: Arapongas, Esportes, Polícia, Política, Geral",
+  "slug": "url-amigavel-baseada-no-titulo"
 }`;
 
     const openRouterRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${apiKey}`,
-        "HTTP-Referer": "https://nossawebtv.vercel.app", 
-        "X-Title": "Portal Nossa Web TV",
+        "HTTP-Referer": "https://webtvcidade.com.br", 
+        "X-Title": "Web TV Cidade - Gerador Mágico",
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
@@ -39,16 +49,16 @@ A estrutura do objeto JSON deve corresponder exatamente as chaves abaixo:
         response_format: { type: "json_object" },
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: `Fato a ser noticiado:\n\n${prompt}` }
+          { role: "user", content: `Fato a ser processado pela redação:\n\n${prompt}` }
         ]
       })
     });
 
     if (!openRouterRes.ok) {
       const errText = await openRouterRes.text();
-      console.error("OpenRouter API Failed:", errText);
+      console.error("OpenRouter Error:", errText);
       return NextResponse.json(
-        { error: `O Serviço de Inteligência Artificial está temporariamente indisponível (OpenRouter respondeu ${openRouterRes.status}). Tente novamente em alguns instantes.` },
+        { error: `Falha na redação automática (Status ${openRouterRes.status}). Tente novamente em instantes.` },
         { status: openRouterRes.status }
       );
     }
@@ -56,29 +66,30 @@ A estrutura do objeto JSON deve corresponder exatamente as chaves abaixo:
     const data = await openRouterRes.json();
     let contentStr = data.choices[0].message.content || "";
 
-    // Garantia de fallback para limpar markdown caso a IA responda "```json ... ```"
+    // Limpeza de blocos de código se a IA persistir neles
     contentStr = contentStr.replace(/```json/gi, '').replace(/```/g, '').trim();
 
     try {
       const parsedJson = JSON.parse(contentStr);
       return NextResponse.json({
-        titulo: parsedJson.titulo || parsedJson.título || "",
-        subtitulo: parsedJson.subtitulo || parsedJson.subtítulo || "",
-        conteudo: parsedJson.conteudo || parsedJson.conteúdo || "",
-        categoria: parsedJson.categoria || "Geral"
+        titulo: parsedJson.titulo || "",
+        subtitulo: parsedJson.subtitulo || "",
+        conteudo: parsedJson.conteudo || "",
+        categoria: parsedJson.categoria || "Geral",
+        slug: (parsedJson.slug || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-")
       });
     } catch (parseError) {
-      console.error("Failed to parse AI JSON:", contentStr);
+      console.error("Failed to parse JSON content:", contentStr);
       return NextResponse.json(
-        { error: "A Inteligência artificial retornou um texto fora do padrão JSON. Tente reformular a ideia e tentar novamente." },
+        { error: "A redação automática falhou ao gerar o formato correto. Tente reformular o pedido." },
         { status: 400 }
       );
     }
   } catch (error: any) {
-    console.error("Erro interno Gerador IA:", error);
+    console.error("Erro interno no Gerador Mágico:", error);
     return NextResponse.json(
-      { error: "Erro crítico no servidor ao se comunicar com a IA." },
-      { status: 400 }
+      { error: "Erro crítico no servidor de Inteligência Artificial." },
+      { status: 500 }
     );
   }
 }
