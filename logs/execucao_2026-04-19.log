@@ -49,3 +49,5 @@
 [2026-04-19 16:45:00] [ERROR] Rota ainda emitindo undefined durante a hidratação devido à limitação de page-level prop promises vs use-client em algumas execuções.
 [2026-04-19 16:46:20] [FIX] Componente refatorado para usar hook useParams() nativo do next/navigation e protegendo fetch nulo. Validação confirmada.
 [2026-04-19 17:44:00] [INFO] Atualizado design do Header: Incluído Logo Redonda + Texto "NOSSAWEB TV" com efeito Metálico 3D e 5 estrelas.
+[2026-04-19 17:51:00] [INFO] Asset oficial logo-texto.png movido para /public e integrado ao cabeçalho usando next/image (priority true) para substituir renderização de texto.
+
