@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { supabase } from "../../lib/supabase";
 import { Settings, Rss, Users, Sparkles, Send, Loader2, Save, LayoutDashboard, FileText, ExternalLink, LogOut, User, Eye, X, List, Trash2, ChevronUp, ChevronDown, Video } from "lucide-react";
 import Link from "next/link";
+import RichTextEditor from "../../components/RichTextEditor";
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -258,7 +259,15 @@ export default function AdminPage() {
       
       setTitulo(data.titulo || "");
       setSubtitulo(data.subtitulo || "");
-      setConteudo(data.conteudo || "");
+      
+      // Converte o texto plano da IA para HTML (parágrafos)
+      const contentAsHtml = (data.conteudo || "")
+        .split('\n')
+        .filter((p: string) => p.trim() !== '')
+        .map((p: string) => `<p>${p.trim()}</p>`)
+        .join('');
+        
+      setConteudo(contentAsHtml);
       setCategoria(data.categoria || "Geral");
       
       // Auto Generate Slug
@@ -562,14 +571,11 @@ export default function AdminPage() {
 
                       <div>
                         <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">Conteúdo da Notícia</label>
-                        <textarea 
-                          rows={14}
-                          value={conteudo}
-                          onChange={(e) => setConteudo(e.target.value)}
-                          placeholder="Redija a notícia em linguagem jornalística aqui..."
-                          className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white rounded-xl px-5 py-4 text-slate-800 transition-all duration-200 leading-relaxed font-serif text-lg resize-none shadow-sm focus:shadow-md outline-none"
+                        <RichTextEditor 
+                          content={conteudo}
+                          onChange={(newContent) => setConteudo(newContent)}
                         />
-                        <p className="text-xs text-slate-400 mt-2 text-right">Mínimo ideal: 3 parágrafos. Separe os parágrafos pulando linha dupla (Enter).</p>
+                        <p className="text-xs text-slate-400 mt-2 text-right">Utilize a barra de ferramentas para formatar a notícia. O conteúdo é salvo como HTML profissional.</p>
                       </div>
 
                     </div>

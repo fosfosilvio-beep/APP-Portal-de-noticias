@@ -176,7 +176,7 @@ export default function NoticiaDetalhe() {
                     newsId={noticia.id}
                     title={noticia.titulo} 
                     subtitle={noticia.subtitulo} 
-                    content={noticia.conteudo} 
+                    content={noticia.conteudo?.replace(/<[^>]*>/g, '') || ""} 
                   />
                   <ShareBar url={`/noticia/${slug}`} title={noticia.titulo} />
                 </div>
@@ -194,12 +194,12 @@ export default function NoticiaDetalhe() {
                 </div>
 
                 {/* Corpo do Texto */}
-                <div className="prose prose-zinc prose-lg max-w-none text-zinc-800 mb-8">
-                  {/* Se o conteúdo possuir quebras de linha padrão do Textarea, podemos processar num split */}
+                <div className="prose prose-zinc lg:prose-xl max-w-none text-zinc-800 mb-8 prose-p:leading-relaxed prose-headings:tracking-tight">
                   {noticia.conteudo ? (
-                    noticia.conteudo.split('\n').map((paragraph: string, index: number) => (
-                      paragraph.trim() && <p key={index} className="mb-5 leading-relaxed">{paragraph}</p>
-                    ))
+                    <div 
+                      dangerouslySetInnerHTML={{ __html: noticia.conteudo }} 
+                      className="font-inter"
+                    />
                   ) : (
                     <p className="italic text-zinc-500">Conteúdo indisponível.</p>
                   )}
