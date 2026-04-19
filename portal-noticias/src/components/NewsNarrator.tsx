@@ -19,57 +19,36 @@ export default function NewsNarrator({ newsId, title, subtitle, content }: NewsN
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-    // Efeito para sincronizar progresso e eventos
-    useEffect(() => {
-      const audio = audioRef.current;
-      if (!audio) return;
-  
-      const updateProgress = () => {
-        if (!audio.duration) return;
-        const p = (audio.currentTime / audio.duration) * 100;
-        setProgress(p);
-      };
-  
-      const handleEnd = () => {
-        setIsPlaying(false);
-        setProgress(0);
-      };
-
-      const handlePlay = () => setIsPlaying(true);
-      const handlePause = () => setIsPlaying(false);
-  
-      audio.addEventListener("timeupdate", updateProgress);
-      audio.addEventListener("ended", handleEnd);
-      audio.addEventListener("play", handlePlay);
-      audio.addEventListener("pause", handlePause);
-  
-      return () => {
-        audio.removeEventListener("timeupdate", updateProgress);
-        audio.removeEventListener("ended", handleEnd);
-        audio.removeEventListener("play", handlePlay);
-        audio.removeEventListener("pause", handlePause);
-      };
-    }, [audioUrl]);
-
-    // Efeito de Limpeza Global - Para o áudio quando sair da página
-    useEffect(() => {
-      return () => {
-        if (audioRef.current) {
-          audioRef.current.pause();
-          audioRef.current.currentTime = 0;
-        }
-        if (typeof window !== "undefined") {
-          window.speechSynthesis.cancel();
-        }
-      };
-    }, []);
-
   // Efeito para mudar velocidade
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.playbackRate = rate;
     }
-  }, [rate]);
+  }, [rate, audioUrl]);
+
+  // Efeito de Limpeza Global - Para o áudio quando sair da página
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      if (typeof window !== "undefined") {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
+
+  const updateProgress = () => {
+    const audio = audioRef.current;
+    if (!audio || !audio.duration) return;
+    const p = (audio.currentTime / audio.duration) * 100;
+    setProgress(p);
+  };
+
+  const handleEnd = () => {
+    setIsPlaying(false);
+    setProgress(0);
+  };
 
   const togglePlay = async () => {
     // 1. Limpeza Total: Mata qualquer rastro da voz robótica antiga (speechSynthesis)
@@ -79,18 +58,16 @@ export default function NewsNarrator({ newsId, title, subtitle, content }: NewsN
 
     if (isPlaying) {
       audioRef.current?.pause();
-      // setIsPlaying(false); // O listener handlePause já cuida disso
       return;
     }
 
-    // Se já temos o áudio instanciado, damos o play
-    if (audioRef.current) {
-      // Se o usuário clicar para ouvir novamente e estava pausado, garantimos o play limpo
+    // Se já temos a URL, apenas damos o play no elemento ref
+    if (audioUrl && audioRef.current) {
       audioRef.current.play();
       return;
     }
 
-    // Se não temos, buscamos na API (Cache)
+    // Se não temos a URL, buscamos na API (Cache)
     try {
       setIsLoading(true);
       const res = await fetch("/api/tts", {
@@ -107,12 +84,10 @@ export default function NewsNarrator({ newsId, title, subtitle, content }: NewsN
 
       const data = await res.json();
       if (data.audioUrl) {
-        const audio = new Audio(data.audioUrl);
-        audio.playbackRate = rate;
-        audioRef.current = audio;
         setAudioUrl(data.audioUrl);
-        audio.play();
-        // setIsPlaying(true); // O listener handlePlay já cuida disso
+        // O play será disparado pelo useEffect ou automaticamente se usarmos autoPlay, 
+        // mas aqui vamos esperar o próximo render ou disparar no ref.
+        // Como o React é assíncrono, vamos usar a prop autoPlay na tag ou um useEffect.
       } else {
         throw new Error(data.error || "Falha ao obter URL do áudio");
       }
@@ -124,6 +99,13 @@ export default function NewsNarrator({ newsId, title, subtitle, content }: NewsN
     }
   };
 
+  // Dispara o play assim que a URL for carregada pela primeira vez
+  useEffect(() => {
+    if (audioUrl && audioRef.current && !isPlaying) {
+      audioRef.current.play().catch(err => console.error("Erro ao iniciar áudio:", err));
+    }
+  }, [audioUrl]);
+
   const changeRate = () => {
     const nextRate = rate === 1.05 ? 1.25 : rate === 1.25 ? 1.5 : 1.05;
     setRate(nextRate);
@@ -131,6 +113,18 @@ export default function NewsNarrator({ newsId, title, subtitle, content }: NewsN
 
   return (
     <div className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 md:p-6 mb-8 group transition-all hover:border-blue-400/50 hover:shadow-lg">
+      
+      {/* Elemento de Áudio Declarativo */}
+      <audio 
+        ref={audioRef}
+        src={audioUrl || undefined}
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
+        onEnded={handleEnd}
+        onTimeUpdate={updateProgress}
+        preload="auto"
+      />
+
       <div className="flex flex-col md:flex-row items-center gap-6">
         
         {/* Play Button */}
