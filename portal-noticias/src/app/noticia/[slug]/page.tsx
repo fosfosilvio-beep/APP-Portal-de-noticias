@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { supabase } from "../../../lib/supabase";
 import { Tag, ChevronLeft, Sun, Play, Clock } from "lucide-react";
 import Link from "next/link";
@@ -17,8 +17,8 @@ import ShareBar from "../../../components/ShareBar";
 import NewsNarrator from "../../../components/NewsNarrator";
 import ArticleComments from "../../../components/ArticleComments";
 
-export default function NoticiaDetalhe({ params }: { params: { slug: string } }) {
-  const { slug } = params;
+export default function NoticiaDetalhe({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = use(params);
   const [noticia, setNoticia] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
