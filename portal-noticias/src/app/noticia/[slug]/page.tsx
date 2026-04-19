@@ -1,164 +1,159 @@
 "use client";
 
-import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "../../../lib/supabase";
-import { Search, MapPin, Share2 } from "lucide-react";
-import SmartPlayer from "../../../components/SmartPlayer";
+import { Tag, ChevronLeft, Sun, Play, Clock } from "lucide-react";
+import Link from "next/link";
+import dynamic from "next/dynamic";
+
+// Lightbox dinâmico para performance
+const Lightbox = dynamic(() => import("yet-another-react-lightbox"), { ssr: false });
+import "yet-another-react-lightbox/styles.css";
+import Zoom from "yet-another-react-lightbox/plugins/zoom";
+import Fullscreen from "yet-another-react-lightbox/plugins/fullscreen";
+
 import Header from "../../../components/Header";
-import NewsNarrator from "../../../components/NewsNarrator";
 import ShareBar from "../../../components/ShareBar";
+import NewsNarrator from "../../../components/NewsNarrator";
 import ArticleComments from "../../../components/ArticleComments";
 
-export default function NoticiaDetalhe() {
-  const params = useParams();
-  const router = useRouter();
-  const slug = params.slug as string;
-
+export default function NoticiaDetalhe({ params }: { params: { slug: string } }) {
+  const { slug } = params;
   const [noticia, setNoticia] = useState<any>(null);
-  const [ultimasNoticias, setUltimasNoticias] = useState<any[]>([]);
-  const [config, setConfig] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState("");
+  
+  // Estados para o Header
+  const [isLive, setIsLive] = useState(false);
+  const [config, setConfig] = useState<any>(null);
+
+  // Estados do Lightbox
+  const [isOpen, setIsOpen] = useState(false);
+  const [photoIndex, setPhotoIndex] = useState(0);
+  const [slides, setSlides] = useState<{ src: string }[]>([]);
 
   useEffect(() => {
-    async function loadData() {
-      if (!slug) return;
-      setLoading(true);
-      setError(null);
-      
-      try {
-        if (!supabase) throw new Error("Supabase indisponível.");
-
-        // 1. Buscar Configuração do Portal (Identidade e Live)
-        const { data: configData } = await supabase
-          .from("configuracao_portal")
-          .select("*")
-          .limit(1)
-          .single();
-        
-        if (configData) setConfig(configData);
-
-        // 2. Busca a notícia especificamente pelo slug (ou ID se for UUID)
-        let query = supabase.from("noticias").select("*");
-        
-        // Se parece um UUID, tenta buscar por ID também, senão apenas por slug para evitar erro de sintaxe
-        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
-        
-        if (isUUID) {
-          query = query.or(`slug.eq.${slug},id.eq.${slug}`);
-        } else {
-          query = query.eq('slug', slug);
-        }
-
-        const { data, error: fetchError } = await query.single();
-
-        if (fetchError) throw fetchError;
-        if (!data) throw new Error("Notícia não encontrada.");
-
-        setNoticia(data);
-
-        // Opcional: Busca as últimas notícias para a sidebar
-        const { data: ultimas } = await supabase
-          .from('noticias')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(5);
-
-        if (ultimas) setUltimasNoticias(ultimas);
-
-      } catch (err: any) {
-        console.error("Erro ao carregar notícia:", err);
-        if (err.message.includes("multiple") || err.message.includes("no rows") || err.message.toLowerCase().includes("notícia não encontrada")) {
-          setError("404");
-        } else {
-          setError(err.message || "Erro ao carregar matéria.");
-        }
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadData();
+    fetchData();
   }, [slug]);
 
-  // Função para formatar a data (ex: "Publicado em 12 de abr de 2024 às 14:30")
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return "Data desconhecida";
+  // Efeito para capturar imagens e injetar eventos de clique
+  useEffect(() => {
+    if (noticia && !loading) {
+      const timer = setTimeout(() => {
+        const articleElement = document.getElementById("article-body");
+        const coverImg = document.getElementById("cover-image");
+        
+        const allImages: HTMLImageElement[] = [];
+        
+        if (coverImg instanceof HTMLImageElement) {
+          allImages.push(coverImg);
+        }
+        
+        if (articleElement) {
+          const bodyImages = Array.from(articleElement.getElementsByTagName("img"));
+          allImages.push(...bodyImages);
+        }
+
+        if (allImages.length > 0) {
+          const slideUrls = allImages.map(img => ({ src: img.src }));
+          setSlides(slideUrls);
+
+          allImages.forEach((img, index) => {
+            img.style.cursor = "zoom-in";
+            img.onclick = () => {
+              setPhotoIndex(index);
+              setIsOpen(true);
+            };
+          });
+        }
+      }, 800);
+
+      return () => clearTimeout(timer);
+    }
+  }, [noticia, loading]);
+
+  const fetchData = async () => {
     try {
-      const date = new Date(dateString);
-      return new Intl.DateTimeFormat('pt-BR', { 
-        day: '2-digit', month: 'long', year: 'numeric',
-        hour: '2-digit', minute: '2-digit'
-      }).format(date);
-    } catch {
-      return dateString;
+      if (!supabase) return;
+      
+      // 1. Buscar Config do Portal
+      const { data: configData } = await supabase
+        .from("configuracao_portal")
+        .select("*")
+        .limit(1)
+        .single();
+      
+      if (configData) {
+        setIsLive(configData.is_live);
+        setConfig(configData);
+      }
+
+      // 2. Buscar Notícia
+      const { data, error: err } = await supabase
+        .from("noticias")
+        .select("*")
+        .eq("slug", slug)
+        .single();
+
+      if (err) throw err;
+      setNoticia(data);
+    } catch (err: any) {
+      setError("Notícia não encontrada.");
+    } finally {
+      setLoading(false);
     }
   };
 
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return "";
+    return new Date(dateStr).toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric'
+    });
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
-      
+    <div className="min-h-screen bg-white">
       <Header 
-        isLive={config?.is_live || false} 
+        isLive={isLive} 
         config={config} 
-        showNavigation={false} 
+        categoriaAtiva={noticia?.categoria || "Geral"}
+        setCategoriaAtiva={() => {}} // Dummy as it's a detail page
       />
 
-      {/* Main Content Layout */}
-      <main className="container mx-auto px-4 py-8 flex-grow">
-        <div className="flex flex-col lg:flex-row gap-8">
-          
-          {/* Lado Esquerdo - 70% (Conteúdo da Notícia) */}
-          <div className="w-full lg:w-[70%] flex flex-col space-y-6">
-            
-            {/* Opcional incluir o SmartPlayer no topo das postagens para dar engajamento, 
-                ou o usuário pode ignorar e focar na leitura. Manterei minimizado ou na sidebar dependendo da visão. 
-                Neste caso colocarei no topo conforme a linha "Use o layout que já aprovamos... SmartPlayer à esquerda, feed abaixo" */}
-            <SmartPlayer customVideoUrl={noticia?.video_url} />
+      <main className="container mx-auto px-4 py-8 max-w-7xl">
+        <div className="mb-6">
+          <Link href="/" className="text-zinc-500 hover:text-blue-600 flex items-center gap-1 text-sm font-medium transition-colors">
+            <ChevronLeft size={16} />
+            Voltar para o Início
+          </Link>
+        </div>
 
+        <div className="flex flex-col lg:flex-row gap-12">
+          <div className="w-full lg:w-[70%]">
             {loading ? (
-              <div className="animate-pulse space-y-6 bg-white p-8 rounded-xl border border-zinc-200/60">
-                <div className="h-4 bg-zinc-200 rounded w-1/4"></div>
-                <div className="h-10 bg-zinc-200 rounded w-full"></div>
-                <div className="h-6 bg-zinc-200 rounded w-3/4"></div>
-                <div className="h-64 bg-zinc-200 rounded w-full mt-6"></div>
-                <div className="space-y-3 mt-6">
-                  <div className="h-4 bg-zinc-200 rounded w-full"></div>
-                  <div className="h-4 bg-zinc-200 rounded w-full"></div>
-                  <div className="h-4 bg-zinc-200 rounded w-5/6"></div>
-                </div>
-              </div>
-            ) : error === "404" ? (
-              <div className="bg-white p-12 text-center rounded-xl shadow-sm border border-zinc-200/60 flex flex-col items-center">
-                <svg className="w-20 h-20 text-red-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                <h1 className="text-3xl font-bold text-zinc-900 mb-2">Página não encontrada</h1>
-                <p className="text-zinc-500 mb-6 font-medium">A matéria que você tentou acessar não existe ou foi removida.</p>
-                <Link href="/" className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors">
-                  Voltar para as Notícias
-                </Link>
+              <div className="flex flex-col items-center justify-center py-20 animate-pulse">
+                <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+                <p className="text-zinc-500 font-medium tracking-tight uppercase text-xs">Carregando notícia...</p>
               </div>
             ) : error ? (
-              <div className="bg-red-50 p-6 rounded-xl border border-red-200 text-red-700">
-                <p className="font-bold">Houve um problema ao carregar a página.</p>
+              <div className="bg-red-50 border border-red-100 text-red-600 p-8 rounded-xl text-center">
+                <p className="font-bold text-lg">⚠️ Erro</p>
                 <p className="text-sm mt-1">{error}</p>
               </div>
             ) : noticia && (
               <article className="bg-white p-6 md:p-10 rounded-xl shadow-sm border border-zinc-200/60">
-                
-                {/* Meta Head: Categoria & Data */}
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-4">
                   <span className="inline-block bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 uppercase tracking-widest rounded-sm self-start">
                     {noticia.categoria || "Notícia"}
                   </span>
                   <span className="text-sm text-zinc-500 flex items-center gap-1.5 font-medium">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <Clock size={16} />
                     Publicado em {formatDate(noticia.created_at || noticia.data_publicacao)}
                   </span>
                 </div>
 
-                {/* Título Principal */}
                 <h1 
                   style={{ 
                     fontFamily: noticia.titulo_config?.font || "inherit", 
@@ -170,7 +165,6 @@ export default function NoticiaDetalhe() {
                   {noticia.titulo}
                 </h1>
                 
-                {/* Subtítulo / Linha Fina */}
                 {noticia.subtitulo && (
                   <h2 
                     style={{ 
@@ -184,7 +178,6 @@ export default function NoticiaDetalhe() {
                   </h2>
                 )}
 
-                {/* INTERATIVIDADE: NARRADOR & SHARE (TOP) */}
                 <div className="flex flex-col gap-2 mb-8 border-y border-slate-50 py-4">
                   <NewsNarrator 
                     newsId={noticia.id}
@@ -195,22 +188,22 @@ export default function NoticiaDetalhe() {
                   <ShareBar url={`/noticia/${slug}`} title={noticia.titulo} />
                 </div>
 
-                {/* Imagem de Capa do Artigo */}
-                <div className="relative w-full h-[300px] sm:h-[400px] lg:h-[450px] mb-10 rounded-lg overflow-hidden bg-zinc-100 border border-zinc-200">
+                <div className="relative w-full h-[300px] sm:h-[400px] lg:h-[450px] mb-10 rounded-lg overflow-hidden bg-zinc-100 border border-zinc-200 shadow-sm group">
                   <img
+                    id="cover-image"
                     src={noticia.imagem_capa || "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=1200&q=80"}
                     alt={noticia.titulo}
-                    className="absolute inset-0 w-full h-full object-cover"
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     onError={(e) => {
                       e.currentTarget.src = "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=1200&q=80";
                     }}
                   />
                 </div>
 
-                {/* Corpo do Texto */}
-                <div className="prose prose-zinc lg:prose-xl max-w-none text-zinc-800 mb-8 prose-p:leading-relaxed prose-headings:tracking-tight">
+                <div className="prose prose-zinc lg:prose-xl max-w-none text-zinc-800 mb-8">
                   {noticia.conteudo ? (
                     <div 
+                      id="article-body"
                       dangerouslySetInnerHTML={{ __html: noticia.conteudo }} 
                       className="font-inter"
                     />
@@ -219,7 +212,6 @@ export default function NoticiaDetalhe() {
                   )}
                 </div>
 
-                {/* INTERATIVIDADE: SHARE (BOTTOM) & COMENTÁRIOS */}
                 <div className="mt-12">
                    <ShareBar url={`/noticia/${slug}`} title={noticia.titulo} />
                    <ArticleComments noticiaId={noticia.id} />
@@ -228,15 +220,11 @@ export default function NoticiaDetalhe() {
             )}
           </div>
 
-          {/* Lado Direito - 30% (Barra Lateral igual da Home) */}
           <aside className="w-full lg:w-[30%] flex flex-col space-y-6">
             <div className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl p-6 text-white shadow-md relative overflow-hidden group">
-              <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:scale-110 transition-transform duration-700">
-                <svg className="w-24 h-24 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
-              </div>
               <div className="relative z-10">
                 <h3 className="font-bold text-xs mb-5 uppercase tracking-widest text-blue-100 flex items-center gap-2">
-                  <svg className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zM12 18a6 6 0 110-12 6 6 0 010 12z"/></svg>
+                  <Sun size={14} className="text-yellow-400" />
                   Tempo em Arapongas
                 </h3>
                 <div className="flex flex-col">
@@ -251,68 +239,57 @@ export default function NoticiaDetalhe() {
               </div>
             </div>
 
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-zinc-200/60 transition-all duration-300">
-              <div className="flex items-center space-x-2 mb-6 border-b border-zinc-100 pb-3">
-                <div className="w-3 h-3 bg-[#00AEE0] rounded-full animate-pulse"></div>
-                <h3 className="font-bold text-zinc-900 text-lg">Giro de Notícias</h3>
+            <div className="bg-white border border-zinc-200 rounded-xl p-6 shadow-sm">
+              <h3 className="font-bold text-zinc-900 mb-4 flex items-center gap-2">
+                <Tag size={18} className="text-blue-600" />
+                Categorias Populares
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {["Arapongas", "Polícia", "Esportes", "Política", "Geral"].map(cat => (
+                  <span key={cat} className="px-3 py-1 bg-zinc-100 text-zinc-600 text-xs font-bold rounded-full hover:bg-blue-600 hover:text-white transition-colors cursor-pointer uppercase">
+                    {cat}
+                  </span>
+                ))}
               </div>
-              
-              {ultimasNoticias.length === 0 ? (
-                <div className="flex justify-center py-4">
-                  <span className="text-zinc-400 text-sm italic">Carregando giro...</span>
-                </div>
-              ) : (
-                <div className="flex flex-col space-y-4">
-                  {ultimasNoticias.map((news, idx) => (
-                    <Link 
-                      href={`/noticia/${news.slug || news.id}`} 
-                      key={news.id || idx} 
-                      className="flex gap-4 group border-b border-zinc-50 pb-4 last:border-0 last:pb-0 outline-none rounded focus-visible:ring-2 focus-visible:ring-blue-500"
-                    >
-                       <div className="flex flex-col items-center justify-start pt-1">
-                        <span className="text-zinc-300 font-black text-xl leading-none group-hover:text-[#00AEE0] transition-colors">
-                          {(idx + 1).toString().padStart(2, '0')}
-                        </span>
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-[10px] text-[#00AEE0] font-bold uppercase tracking-widest mb-1">{news.categoria || "Geral"}</span>
-                        <p className="text-sm font-medium text-zinc-700 leading-snug group-hover:text-blue-700 transition-colors line-clamp-2">
-                          {news.titulo}
-                        </p>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              )}
             </div>
 
-            {/* SLOT DE ANÚNCIO VERTICAL */}
-            <div className="w-full">
-              {config?.banner_vertical_noticia ? (
-                <a href={config.link_vertical_noticia || "#"} target="_blank" className="group block relative w-full h-[500px] rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300">
-                   <img src={config.banner_vertical_noticia} alt="Publicidade" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                   <div className="absolute top-2 right-2">
-                      <span className="bg-black/20 backdrop-blur-sm text-white text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border border-white/10">Publicidade</span>
-                   </div>
-                </a>
-              ) : (
-                <div className="w-full bg-slate-100 rounded-2xl border border-dashed border-slate-300 h-[400px] flex flex-col items-center justify-center p-6 text-center group cursor-pointer hover:bg-slate-200 transition-colors">
-                    <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 border border-slate-300 px-2 py-0.5 rounded">Banner Vertical</span>
-                    <p className="text-slate-500 font-bold max-w-[200px] mt-2 text-xs">Anuncie aqui e alcance Arapongas e região.</p>
-                </div>
-              )}
+            <div className="sticky top-24 bg-zinc-900 rounded-xl h-[500px] flex items-center justify-center p-6 border border-zinc-800 shadow-xl overflow-hidden group">
+               <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800')] bg-cover bg-center opacity-20 group-hover:scale-105 transition-transform duration-[20s]" />
+               <div className="relative z-10 text-center">
+                  <span className="bg-blue-600 text-white text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-tighter mb-4 inline-block">Publicidade</span>
+                  <h4 className="text-white font-bold text-xl uppercase tracking-tighter leading-tight drop-shadow-md">Seu Negócio Aqui</h4>
+                  <p className="text-zinc-400 text-sm mt-2 font-medium">Anuncie no maior portal de Arapongas</p>
+                  <button className="mt-6 w-full bg-white text-black font-black py-3 rounded-lg hover:bg-blue-600 hover:text-white transition-all uppercase text-xs tracking-widest shadow-lg">Saiba Mais</button>
+               </div>
             </div>
           </aside>
         </div>
       </main>
-      
-      {/* Footer */}
-      <footer className="bg-zinc-950 text-zinc-400 py-10 mt-auto border-t-[4px] border-blue-700">
-        <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center text-sm gap-4">
-          <div className="flex items-center gap-2">
-            <span className="font-extrabold text-white text-lg tracking-tighter">NOSSA<span className="text-blue-500">WEB</span><span className="text-zinc-600">TV</span></span>
+
+      {slides.length > 0 && (
+        <Lightbox
+          open={isOpen}
+          close={() => setIsOpen(false)}
+          index={photoIndex}
+          slides={slides}
+          plugins={[Zoom, Fullscreen]}
+          animation={{ fade: 300 }}
+          controller={{ closeOnBackdropClick: true }}
+          styles={{
+            container: { backgroundColor: "rgba(0, 0, 0, .95)" },
+          }}
+        />
+      )}
+
+      <footer className="bg-[#0f172a] text-slate-400 py-12 mt-auto border-t-[5px] border-[#00AEE0] rounded-t-3xl">
+        <div className="container mx-auto px-4 lg:px-8 flex flex-col md:flex-row justify-between items-center text-sm gap-6">
+          <div className="flex flex-col items-center md:items-start">
+            <span className="font-black text-2xl text-white tracking-tighter leading-none mb-2">NOSSA<span className="text-[#00AEE0]">WEB</span><span className="text-slate-500 font-light">TV</span></span>
+            <p className="font-medium text-slate-500 text-xs text-center md:text-left max-w-xs">A maior fonte regional de notícias.</p>
           </div>
-          <p>© {new Date().getFullYear()} Portal Nossa Web TV. Todos os direitos reservados.</p>
+          <div className="flex flex-col items-center md:items-end">
+            <p className="font-bold text-slate-300">© {new Date().getFullYear()} Portal Nossa Web TV.</p>
+          </div>
         </div>
       </footer>
     </div>
