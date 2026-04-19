@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
 import { supabase } from "../../../lib/supabase";
 import { Tag, ChevronLeft, Sun, Play, Clock } from "lucide-react";
 import Link from "next/link";
@@ -17,8 +18,10 @@ import ShareBar from "../../../components/ShareBar";
 import NewsNarrator from "../../../components/NewsNarrator";
 import ArticleComments from "../../../components/ArticleComments";
 
-export default function NoticiaDetalhe({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = use(params);
+export default function NoticiaDetalhe() {
+  const params = useParams();
+  const slug = params?.slug as string;
+
   const [noticia, setNoticia] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -73,6 +76,10 @@ export default function NoticiaDetalhe({ params }: { params: Promise<{ slug: str
   }, [noticia, loading]);
 
   const fetchData = async () => {
+    if (!slug) return; // Evita buscar com slug undefined
+    
+    console.log("Slug capturado:", slug);
+    
     try {
       if (!supabase) return;
       
