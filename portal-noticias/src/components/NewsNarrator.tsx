@@ -107,12 +107,6 @@ export default function NewsNarrator({ newsId, title, subtitle, content }: NewsN
 
       const data = await res.json();
       if (data.audioUrl) {
-        // Garantir que a instância anterior (se houver) pare totalmente
-        if (audioRef.current) {
-          audioRef.current.pause();
-          audioRef.current.currentTime = 0;
-        }
-
         const audio = new Audio(data.audioUrl);
         audio.playbackRate = rate;
         audioRef.current = audio;
