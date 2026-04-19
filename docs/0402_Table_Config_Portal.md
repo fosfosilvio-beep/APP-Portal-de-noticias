@@ -1,0 +1,26 @@
+# [0402] Tabela: configuracao_portal
+
+Gerencia o estado global do portal, incluindo status de transmissão e espaços publicitários.
+
+## Contrato de Dados (Esquema)
+
+| Coluna | Tipo | Descrição |
+| :--- | :--- | :--- |
+| `id` | INTEGER (PK) | Geralmente ID 1 (Single Row). |
+| `is_live` | BOOLEAN | Switch global para "Modo Cinema / Ao Vivo". |
+| `url_live_facebook` | TEXT (URL) | URL da transmissão atual. |
+| `fake_viewers_boost` | INTEGER | Número fictício de espectadores para contador social. |
+| `banner_anuncio_home` | TEXT (URL) | URL da imagem do banner principal na home. |
+| `link_anuncio_home` | TEXT (URL) | Link de destino do banner home. |
+| `banner_vertical_noticia` | TEXT (URL) | URL do banner lateral fixo. |
+| `link_vertical_noticia` | TEXT (URL) | Link de destino do banner lateral. |
+| `live_last_ended_at` | TIMESTAMP | Registro de quando a última live foi encerrada. |
+
+## Uso no Frontend
+- Utilizado na Home para alternar layouts (Bento vs Cinema).
+- Utilizado no SmartPlayer para definir a fonte primária de vídeo.
+- Sincronizado via Supabase Realtime para atualizações instantâneas.
+
+---
+Status: Documentado
+Relacionado: [[0201] Home](../02XX/0201_Home.md)

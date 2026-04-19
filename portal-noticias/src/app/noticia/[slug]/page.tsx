@@ -7,6 +7,9 @@ import { supabase } from "../../../lib/supabase";
 import { Search, MapPin, Share2 } from "lucide-react";
 import SmartPlayer from "../../../components/SmartPlayer";
 import Header from "../../../components/Header";
+import NewsNarrator from "../../../components/NewsNarrator";
+import ShareBar from "../../../components/ShareBar";
+import ArticleComments from "../../../components/ArticleComments";
 
 export default function NoticiaDetalhe() {
   const params = useParams();
@@ -167,6 +170,17 @@ export default function NoticiaDetalhe() {
                   </h2>
                 )}
 
+                {/* INTERATIVIDADE: NARRADOR & SHARE (TOP) */}
+                <div className="flex flex-col gap-2 mb-8 border-y border-slate-50 py-4">
+                  <NewsNarrator 
+                    newsId={noticia.id}
+                    title={noticia.titulo} 
+                    subtitle={noticia.subtitulo} 
+                    content={noticia.conteudo} 
+                  />
+                  <ShareBar url={`/noticia/${slug}`} title={noticia.titulo} />
+                </div>
+
                 {/* Imagem de Capa do Artigo */}
                 <div className="relative w-full h-[300px] sm:h-[400px] lg:h-[450px] mb-10 rounded-lg overflow-hidden bg-zinc-100 border border-zinc-200">
                   <img
@@ -191,17 +205,10 @@ export default function NoticiaDetalhe() {
                   )}
                 </div>
 
-                {/* Rodapé da Matéria - Compartilhar */}
-                <div className="flex border-t border-zinc-100 pt-6 mt-8 justify-between items-center">
-                  <div className="flex items-center gap-3">
-                    <span className="font-bold text-zinc-800 text-sm">Compartilhe:</span>
-                    <button className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 transition-colors">
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-                    </button>
-                    <button className="w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center hover:bg-green-600 transition-colors">
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 000 12a12 12 0 004 8.718L2 24l5.656-.474A12.015 12.015 0 0012 24c6.627 0 12-5.373 12-12S18.573 0 11.944 0zm0 19A6.994 6.994 0 018.441 18l-3.35.304L6 15.65a6.993 6.993 0 115.944 3.35z"/></svg>
-                    </button>
-                  </div>
+                {/* INTERATIVIDADE: SHARE (BOTTOM) & COMENTÁRIOS */}
+                <div className="mt-12">
+                   <ShareBar url={`/noticia/${slug}`} title={noticia.titulo} />
+                   <ArticleComments noticiaId={noticia.id} />
                 </div>
               </article>
             )}

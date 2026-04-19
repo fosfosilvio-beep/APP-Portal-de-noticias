@@ -1,0 +1,11 @@
+[2026-04-18 14:37] INFO: Inicialização do Sistema de Governança.
+[2026-04-18 14:37] INFO: Pastas /docs e /logs criadas.
+[2026-04-18 14:37] INFO: indice.txt criado na raiz do repositório.
+[2026-04-18 14:37] INFO: Auditoria inicial concluída. Mapeamento de 5 telas principais e 3 tabelas Supabase.
+[2026-04-18 14:56] INFO: Logo aumentada no Header.tsx conforme solicitação do usuário.
+[2026-04-18 15:00] INFO: Deploy para produção na Vercel concluído com sucesso. URL: https://app-portal-de-noticias.vercel.app
+[2026-04-18 15:03] INFO: Deploy corrigido para o projeto correto (portal-noticias). Vínculo restabelecido com a Vercel.
+[2026-04-18 15:10] INFO: Modo Cinema reestruturado para Side-by-Side (9/3) em Desktop. Alturas sincronizadas e transições suaves aplicadas na Home.
+[2026-04-18 15:15] INFO: Deploy concluído com sucesso. O Modo Cinema (Side-by-Side) está ativo em produção.
+[2026-04-18 15:42] INFO: Lançamento oficial da Home 'Movie Portal'. Layout Hero + Grid 3x3 Cronológico operacionais em produção.
+[2026-04-18 16:15] INFO: Implementação de Interatividade Total concluída. Narrador TTS, ShareBar e Comentários Sociais operacionais.

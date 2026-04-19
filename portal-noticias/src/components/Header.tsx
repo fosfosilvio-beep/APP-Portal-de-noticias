@@ -39,15 +39,15 @@ export default function Header({
                  <img 
                    src={config?.logo_url || "/logo.png"} 
                    alt="Nossa Web TV" 
-                   className="h-14 sm:h-16 w-auto object-contain transition-transform group-hover:scale-105 rounded-full"
+                   className="h-20 sm:h-24 w-auto object-contain transition-transform group-hover:scale-105 rounded-full"
                    onError={(e) => {
                      e.currentTarget.style.display = 'none';
                      e.currentTarget.parentElement!.innerHTML = `
-                       <div class="flex items-center gap-2">
-                         <div class="w-12 h-12 bg-gradient-to-tr from-cyan-600 to-blue-800 rounded-full flex items-center justify-center text-white font-black text-xl shadow-inner border-2 border-white">TV</div>
+                       <div class="flex items-center gap-3">
+                         <div class="w-16 h-16 bg-gradient-to-tr from-cyan-600 to-blue-800 rounded-full flex items-center justify-center text-white font-black text-2xl shadow-inner border-2 border-white">TV</div>
                          <div class="flex flex-col">
-                           <span class="text-2xl font-black text-[#00AEE0] tracking-tighter leading-none drop-shadow-sm">NOSSA<span class="text-slate-800">WEB</span></span>
-                           <span class="text-[10px] font-black tracking-widest text-[#00AEE0]">BR</span>
+                           <span class="text-3xl font-black text-[#00AEE0] tracking-tighter leading-none drop-shadow-sm">NOSSA<span class="text-slate-800">WEB</span></span>
+                           <span class="text-[12px] font-black tracking-widest text-[#00AEE0]">BR</span>
                          </div>
                        </div>`;
                    }}

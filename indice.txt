@@ -1,0 +1,30 @@
+# MAPA DO PROJETO - NOSSA WEB TV
+
+Este arquivo é o ponto de entrada principal para a governança do repositório.
+Toda a documentação técnica vive na pasta /docs.
+
+[QUARTEIRÕES DE DOCUMENTAÇÃO]
+
+[01XX] - CONFIGURAÇÕES E INFRAESTRUTURA
+- /docs/0101_Config_Geral.md (Env, Supabase, Next.js)
+
+[02XX] - TELAS E INTERFACE (FRONTEND)
+- /docs/0200_Indice_Telas.md (Mapa de Rotas e Componentes)
+- /docs/0201_Home.md (Tela Principal /)
+- /docs/0202_Noticia_Detalhe.md (Tela de Notícia /noticia/[slug])
+- /docs/0203_Admin_Dashboard.md (Painel Admin /admin)
+- /docs/0204_Biblioteca.md (Tela Biblioteca /biblioteca)
+- /docs/0206_Privacidade.md (Política de Privacidade /privacidade)
+- /docs/0207_Termos_Servico.md (Termos de Serviço /termos)
+
+[03XX] - LÓGICA DE ESTADO E HOOKS
+- /docs/0301_Supabase_Client.md (Padrões de Fetching e Cliente Supabase)
+
+[04XX] - BACKEND, SUPABASE E ESTRUTURA DE DADOS
+- /docs/0401_Table_Noticias.md (Tabela de Notícias)
+- /docs/0402_Table_Config_Portal.md (Configurações Globais)
+- /docs/0403_Table_Biblioteca_Lives.md (Acervo de Lives)
+
+---
+Última Auditoria: 2026-04-18
+Status: GOVERNANÇA ATIVA

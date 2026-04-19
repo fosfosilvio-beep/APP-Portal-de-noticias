@@ -7,8 +7,9 @@ import SmartPlayer from "../components/SmartPlayer";
 import LiveChat from "../components/LiveChat";
 import AutomatedNewsFeed from "../components/AutomatedNewsFeed";
 import { supabase } from "../lib/supabase";
-import { Play, Search, Film, Calendar, Tag } from "lucide-react";
+import { Play, Search, Film, Calendar, Tag, ChevronRight } from "lucide-react";
 import Header from "../components/Header";
+import VideoCarousel from "../components/VideoCarousel";
 
 export default function Home() {
   const [todasNoticias, setTodasNoticias] = useState<any[]>([]);
@@ -20,6 +21,7 @@ export default function Home() {
   
   const [categoriaAtiva, setCategoriaAtiva] = useState("Início");
   const [config, setConfig] = useState<any>(null);
+  const [selectedVideoUrl, setSelectedVideoUrl] = useState<string | null>(null);
 
   // Single Fetch com Fallback de Segurança + Configuração do Portal
   useEffect(() => {
@@ -137,117 +139,93 @@ export default function Home() {
             {/* LADO ESQUERDO (70% - CONTEÚDO PRINCIPAL) */}
             <div className="w-full lg:w-[70%] flex flex-col space-y-12">
               
-              {/* --- MODO HOME (INÍCIO) --- */}
+              {/* --- MODO HOME (INÍCIO): ESTILO MOVIE PORTAL --- */}
               {categoriaAtiva === "Início" ? (
-                <>
-                  {/* BENTO GRID (VINHETA TOP) */}
-                  <section className="grid grid-cols-1 md:grid-cols-12 gap-5 transition-all duration-700 ease-in-out">
-                     {/* Bloco Master: Player + Titulo (MODO CINEMA) */}
-                     <div className={`${isLive ? 'md:col-span-12' : 'md:col-span-8'} flex flex-col gap-4 transition-all duration-700 ease-in-out`}>
-                        <SmartPlayer />
-                        
-                        {/* Notícia Principal - Oculta no Modo Cinema (Live) */}
-                        {!isLive && masterHighlights[0] && (
-                           <Link href={`/noticia/${masterHighlights[0].slug || masterHighlights[0].id}`} className="group relative w-full h-[260px] sm:h-[320px] rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300">
-                             <img src={masterHighlights[0].imagem_capa || 'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=800'} alt="Destaque" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" />
-                             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
-                             <div className="absolute inset-0 p-6 flex flex-col justify-end">
-                               <span className="bg-[#00AEE0] text-white text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded inline-block w-max mb-3 mb-2 shadow-sm">{masterHighlights[0].categoria || "Geral"}</span>
-                               <h2 className="text-2xl sm:text-3xl font-extrabold text-white leading-tight drop-shadow-lg group-hover:text-cyan-300 transition-colors">{masterHighlights[0].titulo}</h2>
-                             </div>
-                           </Link>
-                        )}
+                <div className="flex flex-col space-y-16 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+                  
+                  {/* SEÇÃO 1: HERO PLAYER (DESTAQUE CENTRAL) */}
+                  <section className="w-full flex flex-col gap-6">
+                     <div className="w-full bg-slate-950 rounded-3xl overflow-hidden shadow-2xl shadow-slate-900/50 border border-slate-800">
+                        <SmartPlayer customVideoUrl={selectedVideoUrl || undefined} />
                      </div>
 
-                     {/* Bloco Lateral (Chat ou Sub-Destaques) */}
-                     <div className={`${isLive ? 'md:col-span-12 lg:col-span-4' : 'md:col-span-4'} flex flex-col gap-5 transition-all duration-700 ease-in-out`}>
-                       {isLive ? (
-                         <div className="h-full min-h-[400px] lg:min-h-[500px]">
-                           <LiveChat />
-                         </div>
-                       ) : (
-                         masterHighlights.slice(1, 4).map((noticia, i) => (
-                            <Link key={noticia.id} href={`/noticia/${noticia.slug || noticia.id}`} className="group relative w-full flex-1 min-h-[140px] sm:min-h-0 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 bg-slate-900 border border-transparent hover:border-cyan-500/50">
-                              <img src={noticia.imagem_capa || `https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=400&q=80&random=${i}`} alt="Destaque Lateral" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out opacity-80 group-hover:opacity-100" />
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent"></div>
-                              <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
-                                 <span className="text-cyan-400 font-bold text-[10px] uppercase tracking-widest block mb-1 drop-shadow-md">{noticia.categoria || "Geral"}</span>
-                                 <h3 className="text-sm sm:text-base font-bold text-white leading-snug drop-shadow-lg group-hover:text-cyan-300 transition-colors line-clamp-3">{noticia.titulo}</h3>
-                              </div>
-                            </Link>
-                         ))
-                       )}
+                     {/* CARROSSEL DE VÍDEOS (ACERVO) */}
+                     <div className="bg-slate-900/40 backdrop-blur-sm rounded-3xl p-6 border border-white/5 shadow-inner">
+                        <VideoCarousel 
+                          activeUrl={selectedVideoUrl} 
+                          onVideoSelect={(url) => {
+                            setSelectedVideoUrl(url);
+                            window.scrollTo({ top: 120, behavior: 'smooth' });
+                          }} 
+                        />
                      </div>
                   </section>
 
-                  {/* FAIXA: PLANTÃO POLICIAL */}
-                  {policiasNews.length > 0 && (
-                    <section>
-                      <div className="flex items-center justify-between mb-5">
-                        <h2 className="text-2xl font-black text-slate-800 flex items-center gap-3">
-                           <span className="w-1.5 h-6 bg-slate-800 rounded-full"></span> 
-                           Câmera Policial
+                  {/* SEÇÃO 2: GRID DE NOTÍCIAS (3x3 CRONOLÓGICO) */}
+                  <section className="flex flex-col">
+                     <div className="flex items-center justify-between mb-10 pb-4 border-b border-slate-200/60">
+                        <h2 className="text-3xl font-black text-slate-900 flex items-center gap-4">
+                           <span className="w-2 h-8 bg-cyan-500 rounded-full shadow-[0_0_12px_#06b6d4]"></span> 
+                           Últimas Notícias
                         </h2>
-                        <button onClick={() => {setCategoriaAtiva('Polícia'); window.scrollTo(0,0)}} className="text-sm font-bold text-slate-500 hover:text-slate-800 hidden sm:block">Ver todos &rarr;</button>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
-                        {policiasNews.map((noticia, i) => (
-                           <Link key={noticia.id} href={`/noticia/${noticia.slug || noticia.id}`} className="group bg-white rounded-2xl p-3 shadow-sm border border-slate-100/50 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                             <div className="w-full h-36 rounded-xl bg-slate-200 mb-4 overflow-hidden relative">
-                                <img src={noticia.imagem_capa || `https://images.unsplash.com/photo-1549880181-56a44cf4a9a0?w=400&random=${i}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="capa" />
-                             </div>
-                             <h4 className="font-bold text-slate-800 text-[15px] leading-snug group-hover:text-cyan-600 transition-colors line-clamp-3">{noticia.titulo}</h4>
-                             <p className="text-xs text-slate-400 font-medium mt-3">{new Date(noticia.created_at).toLocaleDateString()}</p>
-                           </Link>
-                        ))}
-                      </div>
-                    </section>
-                  )}
-
-                  {/* FAIXA: POLÍTICA LOCAL */}
-                  {politicaNews.length > 0 && (
-                    <section>
-                      <div className="flex items-center mb-5">
-                        <h2 className="text-2xl font-black text-slate-800 flex items-center gap-3">
-                           <span className="w-1.5 h-6 bg-[#00AEE0] rounded-full"></span> 
-                           Poder & Política
-                        </h2>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 md:grid-cols-4">
-                        {politicaNews.map((noticia, i) => (
-                           <Link key={noticia.id} href={`/noticia/${noticia.slug || noticia.id}`} className="group flex flex-row sm:flex-col gap-4 sm:gap-0 bg-white rounded-2xl p-3 shadow-sm border border-slate-100/50 hover:shadow-lg transition-all duration-300">
-                             <div className="w-24 sm:w-full h-24 sm:h-36 shrink-0 rounded-xl bg-slate-200 sm:mb-4 overflow-hidden relative">
-                                <img src={noticia.imagem_capa || `https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400&random=${i}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="capa" />
-                             </div>
-                             <div className="flex flex-col flex-1 justify-center sm:justify-start">
-                               <h4 className="font-bold text-slate-800 text-sm sm:text-[15px] leading-snug group-hover:text-cyan-600 transition-colors line-clamp-3">{noticia.titulo}</h4>
-                             </div>
-                           </Link>
-                        ))}
-                      </div>
-                    </section>
-                  )}
-
-                  {/* O RESTANTE DAS NOTÍCIAS CARREGADAS (MIX) */}
-                  {remainingNews.length > 0 && (
-                     <section>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                          {remainingNews.slice(0, 6).map((noticia, i) => (
-                            <Link key={noticia.id} href={`/noticia/${noticia.slug || noticia.id}`} className="group bg-white rounded-2xl p-4 shadow-sm border border-slate-100/50 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                               <div className="flex items-center gap-2 mb-3">
-                                  <span className="text-[10px] bg-slate-100 text-slate-600 font-bold uppercase tracking-widest px-2 py-1 rounded">{noticia.categoria || "Geral"}</span>
-                                  <span className="text-[10px] text-slate-400 font-medium">{new Date(noticia.created_at).toLocaleDateString()}</span>
-                               </div>
-                               <h3 className="font-bold text-slate-800 text-lg leading-snug group-hover:text-cyan-600 transition-colors">{noticia.titulo}</h3>
-                            </Link>
-                          ))}
+                        <div className="flex items-center gap-2 text-slate-400 font-bold text-xs uppercase tracking-widest bg-white px-4 py-2 rounded-full border border-slate-100">
+                          Frequência 24h <ChevronRight size={14} />
                         </div>
-                     </section>
-                  )}
-                  
+                     </div>
+
+                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
+                        {todasNoticias.slice(0, 18).map((noticia, i) => (
+                           <Link 
+                              key={noticia.id} 
+                              href={`/noticia/${noticia.slug || noticia.id}`} 
+                              className="group flex flex-col transition-all duration-300"
+                           >
+                              {/* Thumbnail Universal */}
+                              <div className="relative aspect-[16/10] w-full rounded-2xl overflow-hidden bg-slate-200 mb-5 shadow-sm group-hover:shadow-xl transition-all duration-500">
+                                 <img 
+                                    src={noticia.imagem_capa || `https://picsum.photos/seed/${noticia.id}/600/400`} 
+                                    alt={noticia.titulo} 
+                                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+                                 />
+                                 <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-slate-950/80 to-transparent opacity-60"></div>
+                                 
+                                 {/* Ícone Play Minimalista com Glow (Apenas para vídeos) */}
+                                 {(noticia.video_url || noticia.mostrar_no_player) && (
+                                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                      <div className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white scale-0 group-hover:scale-100 transition-all duration-300 shadow-2xl">
+                                         <Play size={22} fill="currentColor" className="text-white drop-shadow-[0_0_10px_#00AEE0]" />
+                                      </div>
+                                   </div>
+                                 )}
+
+                                 {/* Tag de Categoria */}
+                                 <div className="absolute top-4 left-4">
+                                    <span className="bg-cyan-600/90 backdrop-blur-sm text-white text-[9px] font-black uppercase tracking-widest px-2.5 py-1.5 rounded-full shadow-lg border border-white/10">
+                                       {noticia.categoria || "Geral"}
+                                    </span>
+                                 </div>
+                              </div>
+
+                              {/* Conteúdo do Card */}
+                              <div className="flex flex-col flex-1 pl-1">
+                                 <div className="flex items-center gap-2 mb-3">
+                                    <span className="w-1 h-1 rounded-full bg-slate-300"></span>
+                                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                                       {new Date(noticia.created_at).toLocaleDateString()}
+                                    </span>
+                                 </div>
+                                 <h3 className="text-xl font-bold text-slate-800 leading-[1.3] group-hover:text-cyan-600 transition-colors line-clamp-3">
+                                    {noticia.titulo}
+                                 </h3>
+                              </div>
+                           </Link>
+                        ))}
+                     </div>
+                  </section>
+
                   {/* FEED G1 EXTRA */}
                   <AutomatedNewsFeed />
-                </>
+                </div>
               ) : categoriaAtiva === "Biblioteca" ? (
                 /* --- MODO BIBLIOTECA (NETFLIX STYLE) --- */
                 <div className="space-y-8 animate-in fade-in duration-500">

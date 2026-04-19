@@ -167,6 +167,12 @@ export default function SmartPlayer({ customVideoUrl }: { customVideoUrl?: strin
 
   const isAcervo = !config.is_live && (customVideoUrl || videoAutomatico);
 
+  // Determinar qual vídeo exibir baseado na Prioridade Mestra
+  // 1. Live (Sempre vence)
+  // 2. Seleção Manual (Carrossel)
+  // 3. Automático (Acervo/Notícia)
+  const activeVideoUrl = config.is_live ? config.url_live_facebook : (customVideoUrl || videoAutomatico);
+
   return (
     <div className="w-full mx-auto font-sans transition-all duration-700 ease-in-out">
       {/* Etiquetas de Status (Live ou Acervo) */}
@@ -186,7 +192,7 @@ export default function SmartPlayer({ customVideoUrl }: { customVideoUrl?: strin
           <div className="flex items-center space-x-2 bg-cyan-600/90 backdrop-blur-md px-3 py-1 rounded-full shadow-md border border-white/20 transition-all duration-500">
              <div className="w-2 h-2 rounded-full bg-cyan-200 shadow-[0_0_8px_rgba(103,232,249,0.8)]"></div>
              <span className="text-white font-black text-[10px] tracking-widest uppercase">
-               ACERVO WEB TV
+               {customVideoUrl ? "REPRODUZINDO" : "ACERVO WEB TV"}
              </span>
           </div>
         )}
@@ -202,14 +208,15 @@ export default function SmartPlayer({ customVideoUrl }: { customVideoUrl?: strin
             allowFullScreen
             title="Transmissão ao vivo"
           ></iframe>
-        ) : (customVideoUrl || videoAutomatico) ? (
+        ) : activeVideoUrl ? (
           <video
-            src={customVideoUrl || videoAutomatico || ""}
+            key={activeVideoUrl} // Forçar re-montagem ao trocar vídeo
+            src={activeVideoUrl}
             className="absolute top-0 left-0 w-full h-full object-contain transition-all duration-700"
             controls
-            autoPlay
-            muted
-            loop
+            autoPlay={!!customVideoUrl} // Só auto-play se for seleção manual
+            muted={!customVideoUrl} // Mudo apenas no automático
+            loop={!customVideoUrl}
           ></video>
         ) : (
           <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center bg-zinc-900 overflow-hidden">
