@@ -8,3 +8,39 @@
 [2026-04-19 13:00:55] [INFO] Correções implementadas com sucesso em NewsNarrator.tsx.
 [2026-04-19 13:00:55] [INFO] Verificação lógica concluída: cancel() adicionado, cleanup implementado e gestão de instância única garantida.
 [2026-04-19 13:00:55] [INFO] Tarefa finalizada.
+[2026-04-19 13:01:45] [INFO] Alterações commitadas (hash 30707da) e enviadas para o GitHub (push origin main).
+[2026-04-19 13:01:45] [INFO] Deploy em andamento via trigger do repositório.
+[2026-04-19 13:03:35] [INFO] Falha no deploy detectada (Erro de tipagem TS no Vercel).
+[2026-04-19 13:03:35] [INFO] Correção aplicada: Removido check redundante que causava tipo 'never'. Build local validado com sucesso.
+[2026-04-19 13:03:35] [INFO] Novo commit enviado (hash 87a7dec). Deploy re-iniciado.
+[2026-04-19 13:07:50] [INFO] Usuário reportou que o botão de pause não funciona.
+[2026-04-19 13:07:50] [INFO] Analisando NewsNarrator.tsx para verificar gestão da referência do áudio e listeners.
+[2026-04-19 13:08:45] [INFO] Plano de refatoração para tag <audio> aprovado.
+[2026-04-19 13:08:45] [INFO] Iniciando refatoração declarativa em NewsNarrator.tsx.
+[2026-04-19 13:09:40] [INFO] Refatoração concluída: tag <audio> implementada com listeners nativos de play/pause.
+[2026-04-19 13:09:40] [INFO] Build local realizado com sucesso. Alterações enviadas para produção (hash eceda15).
+[2026-04-19 13:20:55] [INFO] Plano para Editor Rich Text aprovado.
+[2026-04-19 13:20:55] [INFO] Fontes selecionadas: Inter, Merriweather, Montserrat.
+[2026-04-19 13:20:55] [INFO] Iniciando criação do RichTextEditor.tsx.
+[2026-04-19 13:25:20] [INFO] Adicionado suporte a Tamanho de Fonte e Cores conforme solicitado.
+[2026-04-19 13:26:15] [INFO] Documentação atualizada (Admin e Notícia Detalhe).
+[2026-04-19 13:26:30] [INFO] Build local finalizado com sucesso.
+[2026-04-19 13:26:45] [INFO] Commit e Push realizados (hash 805cc01). Deploy disparado.
+[2026-04-19 14:12:00] [INFO] Iniciando planejamento do Upgrade Visual Profissional (8+ fontes e estilos dinâmicos).
+[2026-04-19 14:15:20] [INFO] Plano aprovado. SQL executado no Supabase pelo usuário.
+[2026-04-19 14:16:10] [INFO] Catálogo de fontes implementado no layout.tsx e RichTextEditor.tsx.
+[2026-04-19 14:17:15] [INFO] Controles de estilo adicionados ao Admin e aplicados no NoticiaDetalhe.
+[2026-04-19 14:18:40] [INFO] Commit e Push finalizados (hash 8ff6afb). Deploy em andamento.
+[2026-04-19 14:32:00] [INFO] Iniciando upgrade do Gerador Mágico para o modelo GPT-OSS-120B.
+[2026-04-19 14:33:40] [INFO] Plano aprovado. Nova persona de Editor-Chefe Sênior configurada.
+[2026-04-19 14:34:30] [INFO] Implementado suporte a HTML (h2, ul, strong) e SEO (Slug) automático.
+[2026-04-19 14:35:15] [INFO] Commit e Push realizados (hash 4525ea7). Gerador IA em produção.
+[2026-04-19 14:48:00] [INFO] Iniciando refatoração: movendo Gerador Mágico para dentro do TipTap.
+[2026-04-19 14:49:50] [INFO] Plano aprovado. Removendo bloco azul do topo e integrando Sparkles no editor.
+[2026-04-19 14:50:40] [INFO] API atualizada para modo "Reescrita Jornalística Sênior".
+[2026-04-19 14:51:35] [INFO] Commit e Push realizados (hash e4d4e20). Nova interface IA ativa.
+[2026-04-19 16:34:00] [INFO] Iniciando implementação do Lightbox interativo para imagens das notícias.
+[2026-04-19 16:34:30] [INFO] Instalação da biblioteca yet-another-react-lightbox realizada.
+[2026-04-19 16:35:40] [INFO] Captura via DOM (Capa + Corpo) implementada com plugins de Zoom e Fullscreen.
+[2026-04-19 16:36:20] [INFO] Corrigida tipagem do Header.tsx na página [slug]/page.tsx (integração de isLive e Config).
+[2026-04-19 16:36:55] [INFO] Build final aprovado sem falhas. Lightbox operacional.

@@ -20,7 +20,9 @@ Exibe o conteúdo completo de uma matéria jornalística com suporte a vídeo em
 5. Carrega "Giro de Notícias" (5 notícias recentes) para a barra lateral.
 
 ## Design
-- Tipografia serifada/prose para o corpo do texto (melhora a legibilidade).
+- **Renderização HTML**: Suporte a conteúdo formatado via TipTap (Rich Text).
+- **Estilização Dinâmica**: Títulos e Subtítulos consomem configurações de `fontFamily`, `fontWeight` e `color` salvos no banco.
+- **Tipografia**: Uso do plugin `@tailwindcss/typography` (`prose`) para o corpo, respeitando estilos inline.
 - Imagem de capa em destaque abaixo do título.
 - Barra lateral com informações meteorológicas e banner vertical de publicidade.
 

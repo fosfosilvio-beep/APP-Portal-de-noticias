@@ -27,6 +27,9 @@ Centro de controle para jornalistas e administradores do portal.
 
 ### 4. Postagem de Notícias
 - Formulário completo para inserção na tabela `noticias`.
+- **Editor Rich Text (TipTap)**: Suporte expandido (8 famílias), tamanhos, cores, alinhamentos e **Gerador Mágico IA Integrado**.
+- **Gerador Mágico (IA)**: Acessível via ícone de Faíscas (`Sparkles`) na barra de ferramentas do editor. Permite reescrever o rascunho colado com base em diretrizes customizadas (Tom, Estilo, etc).
+- **Estilização de Títulos**: Controles para escolher Fonte, Peso e Cor para Título e Subtítulo.
 - Suporte a upload de vídeo para o Storage do Supabase.
 
 ### 5. Configurações do Portal
