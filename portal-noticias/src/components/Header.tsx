@@ -57,9 +57,9 @@ export default function Header({
                  <Image 
                    src="/logo-texto.png"
                    alt="NOSSAWEB TV"
-                   width={300}
-                   height={64}
-                   className="h-10 sm:h-12 w-auto object-contain drop-shadow-md transition-transform group-hover:scale-[1.02]"
+                   width={400}
+                   height={100}
+                   className="h-12 sm:h-16 w-auto object-contain transition-transform group-hover:scale-[1.02]"
                    priority
                  />
                </div>
