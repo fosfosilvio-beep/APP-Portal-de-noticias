@@ -159,13 +159,27 @@ export default function NoticiaDetalhe() {
                 </div>
 
                 {/* Título Principal */}
-                <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-zinc-900 leading-tight mb-4 tracking-tight">
+                <h1 
+                  style={{ 
+                    fontFamily: noticia.titulo_config?.font || "inherit", 
+                    fontWeight: noticia.titulo_config?.weight || "900",
+                    color: noticia.titulo_config?.color === 'destaque' ? '#2563eb' : (noticia.titulo_config?.color === 'urgente' ? '#dc2626' : '#0f172a')
+                  }}
+                  className="text-3xl md:text-4xl lg:text-5xl leading-tight mb-4 tracking-tight"
+                >
                   {noticia.titulo}
                 </h1>
                 
                 {/* Subtítulo / Linha Fina */}
                 {noticia.subtitulo && (
-                  <h2 className="text-lg md:text-xl text-zinc-600 font-normal leading-relaxed mb-8">
+                  <h2 
+                    style={{ 
+                      fontFamily: noticia.subtitulo_config?.font || "inherit", 
+                      fontWeight: noticia.subtitulo_config?.weight || "400",
+                      color: noticia.subtitulo_config?.color === 'destaque' ? '#2563eb' : (noticia.subtitulo_config?.color === 'urgente' ? '#dc2626' : '#475569')
+                    }}
+                    className="text-lg md:text-xl leading-relaxed mb-8"
+                  >
                     {noticia.subtitulo}
                   </h2>
                 )}

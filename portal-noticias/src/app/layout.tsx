@@ -1,5 +1,16 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Inter, Merriweather, Montserrat } from "next/font/google";
+import { 
+  Geist, 
+  Geist_Mono, 
+  Inter, 
+  Merriweather, 
+  Montserrat, 
+  Playfair_Display, 
+  Lora, 
+  Poppins, 
+  Anton, 
+  Oswald 
+} from "next/font/google";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -12,19 +23,49 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// Fontes Sans
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
 });
 
+const poppins = Poppins({
+  variable: "--font-poppins",
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  subsets: ["latin"],
+});
+
+const montserrat = Montserrat({
+  variable: "--font-montserrat",
+  subsets: ["latin"],
+});
+
+// Fontes Serif
 const merriweather = Merriweather({
   variable: "--font-merriweather",
   weight: ["300", "400", "700", "900"],
   subsets: ["latin"],
 });
 
-const montserrat = Montserrat({
-  variable: "--font-montserrat",
+const playfairDisplay = Playfair_Display({
+  variable: "--font-playfair",
+  subsets: ["latin"],
+});
+
+const lora = Lora({
+  variable: "--font-lora",
+  subsets: ["latin"],
+});
+
+// Fontes Impact
+const anton = Anton({
+  variable: "--font-anton",
+  weight: "400",
+  subsets: ["latin"],
+});
+
+const oswald = Oswald({
+  variable: "--font-oswald",
   subsets: ["latin"],
 });
 
@@ -40,10 +81,23 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const fontVariables = [
+    geistSans.variable,
+    geistMono.variable,
+    inter.variable,
+    montserrat.variable,
+    poppins.variable,
+    merriweather.variable,
+    playfairDisplay.variable,
+    lora.variable,
+    anton.variable,
+    oswald.variable
+  ].join(" ");
+
   return (
     <html
       lang="pt-BR"
-      className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${merriweather.variable} ${montserrat.variable} h-full antialiased`}
+      className={`${fontVariables} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-sans">
         <Providers>{children}</Providers>
