@@ -44,3 +44,8 @@
 [2026-04-19 16:35:40] [INFO] Captura via DOM (Capa + Corpo) implementada com plugins de Zoom e Fullscreen.
 [2026-04-19 16:36:20] [INFO] Corrigida tipagem do Header.tsx na página [slug]/page.tsx (integração de isLive e Config).
 [2026-04-19 16:36:55] [INFO] Build final aprovado sem falhas. Lightbox operacional.
+[2026-04-19 16:43:00] [ERROR] Falha de Rota Detectada: Supabase falhando na busca de slug (Next.js 15).
+[2026-04-19 16:44:00] [FIX] Componente NoticiaDetalhe alterado para usar React.use(params) desempacotando a Promise dinâmica da rota, restaurando queries.
+[2026-04-19 16:45:00] [ERROR] Rota ainda emitindo undefined durante a hidratação devido à limitação de page-level prop promises vs use-client em algumas execuções.
+[2026-04-19 16:46:20] [FIX] Componente refatorado para usar hook useParams() nativo do next/navigation e protegendo fetch nulo. Validação confirmada.
+[2026-04-19 17:44:00] [INFO] Atualizado design do Header: Incluído Logo Redonda + Texto "NOSSAWEB TV" com efeito Metálico 3D e 5 estrelas.
