@@ -47,9 +47,7 @@ export default function AdminPage() {
   const [bannerVerticalFile, setBannerVerticalFile] = useState<File | null>(null);
   const [linkVerticalNoticia, setLinkVerticalNoticia] = useState("");
 
-  // Estados Gerador IA
-  const [promptIA, setPromptIA] = useState("");
-  const [isGenerating, setIsGenerating] = useState(false);
+  // Estados Gerador IA (Removidos - Agora no RichTextEditor)
   const [titulo, setTitulo] = useState("");
   const [subtitulo, setSubtitulo] = useState("");
   const [conteudo, setConteudo] = useState("");
@@ -212,37 +210,6 @@ export default function AdminPage() {
     }
   };
 
-  const handleIA = async () => {
-    if (!promptIA.trim()) return;
-    setIsGenerating(true);
-    try {
-      const res = await fetch("/api/generate-news", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: promptIA })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "IA falhou.");
-      
-      setTitulo(data.titulo || "");
-      setSubtitulo(data.subtitulo || "");
-      setConteudo(data.conteudo || "");
-      setCategoria(data.categoria || "Geral");
-      
-      // Auto Generate Slug (Prioriza o sugerido pela IA)
-      if (data.slug) {
-        setSlug(data.slug);
-      } else if (data.titulo) {
-        setSlug(
-          data.titulo.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")
-        );
-      }
-    } catch (err: any) {
-      alert("⚠️ Robô Jornalista: " + err.message);
-    } finally {
-      setIsGenerating(false);
-    }
-  };
 
   const menuItems = [
     { id: "dashboard", label: "Início", icon: <LayoutDashboard size={20} /> },
@@ -400,25 +367,6 @@ export default function AdminPage() {
 
             {activeTab === 'nova-noticia' && (
               <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                <section className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-xl shadow-sm border border-transparent overflow-hidden text-white transition-all duration-200">
-                  <div className="p-6 md:p-8 flex flex-col md:flex-row items-center gap-6">
-                    <div className="flex-1 w-full space-y-4">
-                      <h2 className="font-black text-2xl flex items-center gap-2 text-white">
-                        <Sparkles className="text-blue-300" size={24} /> Gerador Mágico
-                      </h2>
-                      <p className="text-blue-100 text-sm italic">O Robô Jornalista redige tudo nos moldes profissionais com base na sua ideia.</p>
-                      <div className="flex bg-white/10 rounded-xl border border-white/20 p-1 backdrop-blur-sm shadow-sm transition-all duration-200">
-                        <input type="text" placeholder="Exemplo: Fale sobre a feira de roupas em Arapongas amanhã..." value={promptIA} onChange={(e) => setPromptIA(e.target.value)} className="flex-1 bg-transparent px-4 py-2 focus:outline-none text-white placeholder-blue-100" />
-                      </div>
-                    </div>
-                    <div className="w-full md:w-auto shrink-0 flex items-center justify-center">
-                      <button onClick={handleIA} disabled={isGenerating || !promptIA} className="w-full md:w-auto bg-white hover:bg-slate-50 disabled:opacity-75 text-blue-700 font-bold px-8 py-4 rounded-xl transition-all duration-200 hover:shadow-md flex items-center justify-center gap-2 shadow-sm uppercase tracking-tighter">
-                        {isGenerating ? <Loader2 className="animate-spin" size={20} /> : <Sparkles size={20} />}
-                        {isGenerating ? "Redigindo..." : "Escrever Notícia"}
-                      </button>
-                    </div>
-                  </div>
-                </section>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   <div className="lg:col-span-2 space-y-6">

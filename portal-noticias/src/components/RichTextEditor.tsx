@@ -24,7 +24,10 @@ import {
   RotateCcw,
   Palette,
   Type as TypeIcon,
-  ChevronDown
+  ChevronDown,
+  Sparkles,
+  Loader2,
+  X
 } from "lucide-react";
 import { useState } from "react";
 
@@ -72,6 +75,11 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
   const [showColors, setShowColors] = useState(false);
   const [showSizes, setShowSizes] = useState(false);
   const [showFonts, setShowFonts] = useState(false);
+  
+  // Estados para IA
+  const [showAIPopover, setShowAIPopover] = useState(false);
+  const [guidelines, setGuidelines] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const editor = useEditor({
     extensions: [
@@ -103,6 +111,39 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
   });
 
   if (!editor) return null;
+
+  const handleRewrite = async () => {
+    const currentContent = editor.getHTML();
+    if (!currentContent || currentContent === "<p></p>") {
+      alert("⚠️ Cole o texto bruto no editor antes de reescrever.");
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      const res = await fetch("/api/generate-news", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          content: currentContent,
+          guidelines: guidelines 
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "IA falhou.");
+
+      if (data.conteudo) {
+        editor.commands.setContent(data.conteudo);
+        setShowAIPopover(false);
+        setGuidelines("");
+      }
+    } catch (err: any) {
+      alert("⚠️ Erro na IA: " + err.message);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   const addLink = () => {
     const url = window.prompt("Digite a URL do link:");
@@ -138,10 +179,49 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
       {/* Toolbar Superior */}
       <div className="flex flex-wrap items-center gap-1 p-3 bg-neutral-900 border-b border-neutral-800 backdrop-blur-md sticky top-0 z-10">
         
+        {/* IA MAGIC BUTTON */}
+        <div className="relative mr-2 border-r border-neutral-800 pr-2">
+          <button 
+            onClick={() => { setShowAIPopover(!showAIPopover); setShowFonts(false); setShowSizes(false); setShowColors(false); }}
+            className={`p-2 rounded-lg flex items-center gap-2 text-xs font-bold transition-all ${showAIPopover ? "bg-indigo-600 text-white" : "bg-indigo-600/10 text-indigo-400 hover:bg-indigo-600/20"}`}
+            title="Gerador Mágico IA"
+          >
+            <Sparkles size={18} />
+            <span className="hidden sm:inline">Gerador Mágico</span>
+          </button>
+
+          {showAIPopover && (
+            <div className="absolute top-full left-0 mt-2 p-4 bg-neutral-900 border border-neutral-800 rounded-xl shadow-2xl z-50 min-w-[300px] animate-in fade-in zoom-in duration-200">
+              <div className="flex justify-between items-center mb-3">
+                <span className="text-[10px] font-black uppercase text-indigo-400 tracking-widest flex items-center gap-2">
+                  <Sparkles size={12} /> Diretrizes do Editor
+                </span>
+                <button onClick={() => setShowAIPopover(false)} className="text-neutral-500 hover:text-white">
+                  <X size={14} />
+                </button>
+              </div>
+              <textarea
+                value={guidelines}
+                onChange={(e) => setGuidelines(e.target.value)}
+                placeholder="Ex: Torne polêmico, estilo BBC, foque no clima, etc..."
+                className="w-full h-24 bg-neutral-950 border border-neutral-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 placeholder:text-neutral-600 resize-none mb-3"
+              />
+              <button
+                onClick={handleRewrite}
+                disabled={isProcessing}
+                className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-bold py-2 rounded-lg transition-all flex items-center justify-center gap-2"
+              >
+                {isProcessing ? <Loader2 className="animate-spin" size={14} /> : <Sparkles size={14} />}
+                {isProcessing ? "Reescrevendo..." : "Reescrever Matéria"}
+              </button>
+            </div>
+          )}
+        </div>
+
         {/* Font Family Selector (Dropdown) */}
         <div className="relative mr-2 border-r border-neutral-800 pr-2">
           <button 
-            onClick={() => { setShowFonts(!showFonts); setShowSizes(false); setShowColors(false); }}
+            onClick={() => { setShowFonts(!showFonts); setShowSizes(false); setShowColors(false); setShowAIPopover(false); }}
             className={`px-3 py-2 rounded-lg flex items-center gap-2 text-xs font-bold transition-all ${showFonts ? "bg-blue-600 text-white" : "text-neutral-400 hover:bg-neutral-800 hover:text-white"}`}
             title="Escolher Fonte"
           >
@@ -177,7 +257,7 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
         {/* Font Size Dropdown */}
         <div className="relative mr-2 border-r border-neutral-800 pr-2">
           <button 
-            onClick={() => { setShowSizes(!showSizes); setShowColors(false); setShowFonts(false); }}
+            onClick={() => { setShowSizes(!showSizes); setShowColors(false); setShowFonts(false); setShowAIPopover(false); }}
             className={`p-2 rounded-lg flex items-center gap-1 text-xs font-bold transition-all ${showSizes ? "bg-blue-600 text-white" : "text-neutral-400 hover:bg-neutral-800 hover:text-white"}`}
             title="Tamanho da Fonte"
           >
@@ -206,7 +286,7 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
         {/* Color Picker */}
         <div className="relative mr-2 border-r border-neutral-800 pr-2">
           <button 
-            onClick={() => { setShowColors(!showColors); setShowSizes(false); setShowFonts(false); }}
+            onClick={() => { setShowColors(!showColors); setShowSizes(false); setShowFonts(false); setShowAIPopover(false); }}
             className={`p-2 rounded-lg flex items-center gap-2 text-xs font-bold transition-all ${showColors ? "bg-blue-600 text-white" : "text-neutral-400 hover:bg-neutral-800 hover:text-white"}`}
             title="Cor do Texto"
           >
