@@ -115,7 +115,7 @@ export default function Home() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#09090b] text-slate-100 flex flex-col font-sans">
       
       <Header 
         isLive={isLive} 
@@ -151,8 +151,8 @@ export default function Home() {
                 <div className="flex flex-col space-y-16 animate-in fade-in slide-in-from-bottom-4 duration-1000">
                   
                   {/* CARROSSEL HERO DINÂMICO (NOVO) */}
-                  {config?.hero_banner_items?.length > 0 && (
-                    <section className="w-full">
+                  {config?.hero_banner_items?.length > 0 && config?.ui_settings?.widgets_visibility?.herobanner !== false && (
+                    <section className="w-full mb-4">
                        <HeroBanner items={config.hero_banner_items} />
                     </section>
                   )}
@@ -231,62 +231,61 @@ export default function Home() {
 
                   </section>
 
-                  {/* SEÇÃO 2: GRID DE NOTÍCIAS (3x3 CRONOLÓGICO) */}
-                  <section className="flex flex-col">
-                     <div className="flex items-center justify-between mb-10 pb-4 border-b border-slate-200/60">
-                        <h2 className="text-3xl font-black text-slate-900 flex items-center gap-4">
-                           <span className="w-2 h-8 bg-cyan-500 rounded-full shadow-[0_0_12px_#06b6d4]"></span> 
+                  {/* SEÇÃO 2: GRID DE NOTÍCIAS (BENTO DARK MODE) */}
+                  <section className="flex flex-col mt-8">
+                     <div className="flex items-center justify-between mb-8 pb-4 border-b border-zinc-800">
+                        <h2 className="text-2xl font-black text-zinc-100 flex items-center gap-4">
+                           <span className="w-1.5 h-6 bg-cyan-500 rounded-full shadow-[0_0_12px_#06b6d4]"></span> 
                            Últimas Notícias
                         </h2>
-                        <div className="flex items-center gap-2 text-slate-400 font-bold text-xs uppercase tracking-widest bg-white px-4 py-2 rounded-full border border-slate-100">
-                          Frequência 24h <ChevronRight size={14} />
+                        <div className="flex items-center gap-2 text-zinc-400 font-bold text-[10px] uppercase tracking-widest bg-zinc-900/50 px-4 py-2 rounded-full border border-zinc-800">
+                          Recentes <ChevronRight size={14} />
                         </div>
                      </div>
 
-                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
+                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {todasNoticias.slice(0, 18).map((noticia, i) => (
                            <Link 
                               key={noticia.id} 
                               href={`/noticia/${noticia.slug || noticia.id}`} 
-                              className="group flex flex-col transition-all duration-300"
+                              className="group flex flex-col transition-all duration-300 bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-cyan-900/10 hover:-translate-y-1 hover:border-zinc-700"
                            >
                               {/* Thumbnail Universal */}
-                              <div className="relative aspect-[16/10] w-full rounded-2xl overflow-hidden bg-slate-200 mb-5 shadow-sm group-hover:shadow-xl transition-all duration-500">
+                              <div className="relative aspect-[16/10] w-full overflow-hidden bg-zinc-800 isolate">
                                  <img 
                                     src={noticia.imagem_capa || `https://picsum.photos/seed/${noticia.id}/600/400`} 
                                     alt={noticia.titulo} 
-                                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+                                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out z-0"
                                  />
-                                 <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-slate-950/80 to-transparent opacity-60"></div>
+                                 <div className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-[#09090b] via-[#09090b]/60 to-transparent z-10"></div>
                                  
                                  {/* Ícone Play Minimalista com Glow (Apenas para vídeos) */}
                                  {(noticia.video_url || noticia.mostrar_no_player) && (
-                                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                      <div className="w-12 h-12 rounded-full bg-slate-900/40 backdrop-blur-xl border border-white/20 flex items-center justify-center text-white scale-0 group-hover:scale-100 transition-all duration-300 shadow-2xl">
+                                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+                                      <div className="w-12 h-12 rounded-full bg-slate-900/60 backdrop-blur-xl border border-white/20 flex items-center justify-center text-white scale-0 group-hover:scale-100 transition-all duration-300 shadow-2xl">
                                          <Play size={22} fill="currentColor" className="text-white drop-shadow-[0_0_10px_#00AEE0]" />
                                       </div>
                                    </div>
                                  )}
 
                                  {/* Tag de Categoria */}
-                                 <div className="absolute top-4 left-4">
-                                    <span className="bg-slate-900/60 backdrop-blur-md text-white text-[9px] font-black uppercase tracking-widest px-2.5 py-1.5 rounded-full shadow-lg border border-white/10">
+                                 <div className="absolute top-4 left-4 z-20">
+                                    <span className="bg-zinc-900/80 backdrop-blur-md text-zinc-100 text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-lg border border-zinc-700/50">
                                        {noticia.categoria || "Geral"}
                                     </span>
                                  </div>
-                              </div>
-
-                              {/* Conteúdo do Card */}
-                              <div className="flex flex-col flex-1 pl-1">
-                                 <div className="flex items-center gap-2 mb-3">
-                                    <span className="w-1 h-1 rounded-full bg-slate-300"></span>
-                                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                                       {new Date(noticia.created_at).toLocaleDateString()}
-                                    </span>
+                                 
+                                 {/* Conteúdo do Card em Overlay Flutuante */}
+                                 <div className="absolute bottom-0 left-0 w-full p-5 flex flex-col flex-1 z-30">
+                                    <div className="flex items-center gap-2 mb-2">
+                                       <span className="text-[9px] text-zinc-400 font-bold uppercase tracking-widest bg-zinc-950/60 px-2 py-0.5 rounded-full border border-zinc-800">
+                                          {new Date(noticia.created_at).toLocaleDateString()}
+                                       </span>
+                                    </div>
+                                    <h3 className="text-xl font-bold text-zinc-100 leading-snug group-hover:text-cyan-400 transition-colors line-clamp-3 text-shadow-sm">
+                                       {noticia.titulo}
+                                    </h3>
                                  </div>
-                                 <h3 className="text-xl font-bold text-slate-800 leading-[1.3] group-hover:text-cyan-600 transition-colors line-clamp-3">
-                                    {noticia.titulo}
-                                 </h3>
                               </div>
                            </Link>
                         ))}
@@ -376,22 +375,23 @@ export default function Home() {
               ) : (
                 /* --- MODO CATEGORIA ATIVA --- */
                 <div>
-                   <h1 className="text-4xl font-black text-slate-900 mb-8 border-l-[6px] border-cyan-600 pl-4">{categoriaAtiva}</h1>
+                   <h1 className="text-4xl font-black text-zinc-100 mb-8 border-l-[6px] border-cyan-600 pl-4">{categoriaAtiva}</h1>
                    
                    {!noticiasDaCategoriaAtiva.length ? (
-                      <div className="bg-white rounded-2xl p-12 text-center border border-slate-200">
-                         <p className="text-slate-500 text-lg font-medium">Nenhuma matéria registrada em {categoriaAtiva}.</p>
+                      <div className="bg-zinc-900 rounded-2xl p-12 text-center border border-zinc-800">
+                         <p className="text-zinc-500 text-lg font-medium">Nenhuma matéria registrada em {categoriaAtiva}.</p>
                       </div>
                    ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                          {noticiasDaCategoriaAtiva.map((noticia, i) => (
-                            <Link key={noticia.id} href={`/noticia/${noticia.slug || noticia.id}`} className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col">
-                               <div className="h-56 bg-slate-200 w-full relative overflow-hidden">
-                                  <img src={noticia.imagem_capa || `https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=600&random=${i}`} alt="Capa" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                            <Link key={noticia.id} href={`/noticia/${noticia.slug || noticia.id}`} className="group bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-lg hover:border-zinc-700 hover:-translate-y-1 transition-all duration-300 flex flex-col">
+                               <div className="h-64 w-full relative overflow-hidden isolate bg-zinc-800">
+                                  <img src={noticia.imagem_capa || `https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=600&random=${i}`} alt="Capa" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 z-0" />
+                                  <div className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-[#09090b] via-[#09090b]/80 to-transparent z-10"></div>
                                </div>
-                               <div className="p-6 flex flex-col flex-1">
-                                  <div className="font-bold text-[#00AEE0] uppercase tracking-widest text-[11px] mb-2">{noticia.categoria}</div>
-                                  <h2 className="text-xl font-bold text-slate-800 leading-snug group-hover:text-[#005a78] transition-colors">{noticia.titulo}</h2>
+                               <div className="p-6 flex flex-col flex-1 relative z-20 -mt-16">
+                                  <div className="font-bold text-cyan-400 uppercase tracking-widest text-[11px] mb-2 drop-shadow-md">{noticia.categoria}</div>
+                                  <h2 className="text-xl font-bold text-zinc-100 leading-snug group-hover:text-cyan-400 transition-colors drop-shadow-lg">{noticia.titulo}</h2>
                                </div>
                             </Link>
                          ))}
@@ -431,46 +431,46 @@ export default function Home() {
                {/* SLOT DE ANÚNCIO 1 (CONSOLIDADO) */}
                <div className="w-full">
                   {config?.ad_slot_1?.visible && config.ad_slot_1.image_url ? (
-                    <a href={config.ad_slot_1.link || "#"} target="_blank" className="group block relative w-full h-64 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-200">
+                    <a href={config.ad_slot_1.link || "#"} target="_blank" className="group block relative w-full h-64 rounded-2xl overflow-hidden shadow-xl border border-zinc-800 hover:border-zinc-700 transition-all duration-300">
                        <img src={config.ad_slot_1.image_url} alt="Publicidade" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                        <div className="absolute top-2 right-2">
-                          <span className="bg-slate-900/40 backdrop-blur-md text-white text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border border-white/10">Publicidade</span>
+                          <span className="bg-zinc-900/80 backdrop-blur-md text-zinc-100 text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border border-zinc-700/50">Publicidade</span>
                        </div>
                     </a>
                   ) : config?.banner_anuncio_home ? (
-                    <a href={config.link_anuncio_home || "#"} target="_blank" className="group block relative w-full h-64 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300">
+                    <a href={config.link_anuncio_home || "#"} target="_blank" className="group block relative w-full h-64 rounded-2xl overflow-hidden shadow-xl transition-all duration-300 border border-zinc-800">
                        <img src={config.banner_anuncio_home} alt="Publicidade Legacy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                        <div className="absolute top-2 right-2">
-                          <span className="bg-black/20 backdrop-blur-sm text-white text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border border-white/10">Publicidade</span>
+                          <span className="bg-black/40 backdrop-blur-md text-white text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border border-white/10">Publicidade</span>
                        </div>
                     </a>
                   ) : (
-                    <div className="w-full bg-white rounded-2xl border border-dashed border-slate-200 h-64 flex flex-col items-center justify-center p-6 text-center group cursor-pointer hover:bg-slate-50 transition-colors shadow-sm">
-                       <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 border border-slate-200 px-2 py-0.5 rounded">Espaço Publicitário</span>
-                       <p className="text-slate-400 font-bold text-xs max-w-[180px]">Impacte milhares de leitores regionais com sua marca.</p>
+                    <div className="w-full bg-zinc-900/40 rounded-2xl border border-dashed border-zinc-700 h-64 flex flex-col items-center justify-center p-6 text-center group cursor-pointer hover:bg-zinc-800/60 transition-colors shadow-sm">
+                       <span className="text-[10px] font-black uppercase text-zinc-500 tracking-widest mb-2 border border-zinc-700 px-2 py-0.5 rounded">Espaço Publicitário</span>
+                       <p className="text-zinc-500 font-bold text-xs max-w-[180px]">Impacte milhares de leitores regionais com sua marca.</p>
                     </div>
                   )}
                </div>
 
-              {/* GIRO LATERAL */}
+              {/* GIRO LATERAL (NEON/BENTO) */}
               {(config?.ui_settings?.widgets_visibility?.giro24h !== false) && (
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100/50">
-                  <div className="flex items-center justify-between mb-6 border-b border-slate-100 pb-4">
+                <div className="bg-zinc-900/80 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-zinc-800/80">
+                  <div className="flex items-center justify-between mb-6 border-b border-zinc-800 pb-4">
                     <div className="flex items-center space-x-2">
-                      <span className="w-2.5 h-2.5 bg-cyan-500 rounded-full animate-pulse shadow-[0_0_8px_#06b6d4]"></span>
-                      <h3 className="font-black text-slate-800 text-lg uppercase tracking-tight">Giro 24h</h3>
+                      <span className="w-2.5 h-2.5 bg-cyan-500 rounded-full shadow-[0_0_8px_#06b6d4]"></span>
+                      <h3 className="font-black text-zinc-100 text-lg uppercase tracking-tight">Giro 24h</h3>
                     </div>
                   </div>
                   
                   <div className="flex flex-col space-y-6">
                     {todasNoticias.slice(0, 5).map((news, idx) => (
-                      <Link href={`/noticia/${news.slug || news.id}`} key={news.id} className="flex gap-5 group items-center">
-                        <span className="text-slate-200 font-black text-4xl leading-none group-hover:text-cyan-500 transition-colors w-8 shrink-0 text-center">
+                      <Link href={`/noticia/${news.slug || news.id}`} key={news.id} className="flex gap-4 group items-center">
+                        <span className="text-transparent bg-clip-text bg-gradient-to-br from-cyan-400 to-blue-600 font-black text-4xl leading-none group-hover:scale-110 transition-transform w-8 shrink-0 text-center drop-shadow-sm">
                           {idx + 1}
                         </span>
                         <div className="flex flex-col">
-                          <span className="text-[9px] text-cyan-600 font-black uppercase tracking-widest mb-1">{news.categoria || "Geral"}</span>
-                          <p className="text-sm font-bold text-slate-700 leading-snug group-hover:text-cyan-600 transition-colors line-clamp-3">
+                          <span className="text-[9px] text-cyan-500 font-black uppercase tracking-widest mb-1">{news.categoria || "Geral"}</span>
+                          <p className="text-sm font-bold text-zinc-300 leading-snug group-hover:text-cyan-400 transition-colors line-clamp-3">
                             {news.titulo}
                           </p>
                         </div>

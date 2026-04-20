@@ -626,6 +626,13 @@ export default function AdminPage() {
                                 <div className="w-9 h-5 bg-zinc-200 peer-focus:outline-none rounded-full peer peer-checked:bg-blue-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
                                 <span className="ml-3 text-xs font-bold text-zinc-700">Renderizar</span>
                              </label>
+                          <div className="flex flex-col gap-2">
+                             <span className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">App: Hero Banner Home</span>
+                             <label className="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" checked={uiSettings.widgets_visibility?.herobanner !== false} onChange={e => setUiSettings({...uiSettings, widgets_visibility: {...uiSettings.widgets_visibility, herobanner: e.target.checked}})} className="sr-only peer" />
+                                <div className="w-9 h-5 bg-zinc-200 peer-focus:outline-none rounded-full peer peer-checked:bg-blue-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
+                                <span className="ml-3 text-xs font-bold text-zinc-700">Renderizar</span>
+                             </label>
                           </div>
                        </div>
 
