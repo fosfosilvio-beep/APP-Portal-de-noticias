@@ -128,8 +128,9 @@ export default function SmartPlayer({ customVideoUrl, onLiveChange }: SmartPlaye
 
     if (!supabase) return;
 
+    const channelId = `smart_player_config_${Math.random().toString(36).substring(2, 9)}`;
     const channel = supabase
-      .channel("smart_player_config")
+      .channel(channelId)
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "configuracao_portal" },
