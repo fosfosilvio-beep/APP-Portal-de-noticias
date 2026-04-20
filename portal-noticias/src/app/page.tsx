@@ -125,14 +125,14 @@ export default function Home() {
       />
 
       {/* ENTERPRISE COLOR INJECTION */}
-      <style jsx global>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         :root {
           --primary-color: ${config?.ui_settings?.primary_color || '#00AEE0'};
         }
         .text-primary { color: var(--primary-color); }
         .bg-primary { background-color: var(--primary-color); }
         .border-primary { border-color: var(--primary-color); }
-      `}</style>
+      `}} />
 
       <main className="container mx-auto px-4 lg:px-8 py-8 flex-grow">
         
@@ -188,79 +188,23 @@ export default function Home() {
                           <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600" />
                         </span>
                         <p className="text-red-400 font-black text-xs uppercase tracking-widest">
-                  {/* SEÇÃO 1: HERO & LIVE */}
-                  <div className="flex flex-col space-y-12">
-                    
-                    {/* HeroBanner Condicional */}
-                    {config?.ui_settings?.widgets_visibility?.herobanner !== false && (
-                      <HeroBanner 
-                        items={config?.hero_banner_items || []} 
-                        duration={config?.ui_settings?.hero_duration}
-                        transition={config?.ui_settings?.hero_transition}
-                      />
-                    )}
-
-                    <section className="w-full flex flex-col gap-8">
-
-                      {/* ── MODO LIVE: Player + Chat lateral ── */}
-                      <div
-                        className={`w-full transition-all duration-700 ease-in-out overflow-hidden ${
-                          isLive ? "max-h-[800px] opacity-100 translate-y-0" : "max-h-0 opacity-0 -translate-y-4 pointer-events-none"
-                        }`}
-                      >
-                        {/* Banner de alerta ativo */}
-                        <div className="flex items-center gap-3 bg-red-600/10 border border-red-500/20 rounded-2xl px-5 py-3 mb-4">
-                          <span className="relative flex h-3 w-3 shrink-0">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
-                            <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600" />
-                          </span>
-                          <p className="text-red-400 font-black text-xs uppercase tracking-widest">
-                            Transmissão ao Vivo em andamento — Assista agora!
-                          </p>
-                          <Tv className="ml-auto text-red-500/60 shrink-0" size={18} />
-                        </div>
-
-                        {/* Player + Chat lado a lado */}
-                        <div className="flex flex-col lg:flex-row gap-4">
-                          {/* Player ocupa ~65% */}
-                          <div className="relative w-full lg:w-[65%] bg-slate-950 rounded-3xl overflow-hidden shadow-2xl shadow-red-900/20 border border-red-900/30">
-                            <SmartPlayer
-                              customVideoUrl={undefined}
-                              onLiveChange={handleLiveChange}
-                            />
-                          </div>
-
-                          {/* Chat ocupa ~35% */}
-                          <div className="w-full lg:w-[35%] min-h-[340px] lg:min-h-0">
-                            <LiveChat liveUrl={liveUrl} />
-                          </div>
-                        </div>
+                          Transmissão ao Vivo em andamento — Assista agora!
+                        </p>
+                        <Tv className="ml-auto text-red-500/60 shrink-0" size={18} />
                       </div>
 
-                      {/* ── MODO BIBLIOTECA: Player + Carrossel ── */}
-                      <div
-                        className={`w-full flex flex-col gap-6 transition-all duration-700 ease-in-out overflow-hidden ${
-                          !isLive ? "max-h-[1200px] opacity-100 translate-y-0" : "max-h-0 opacity-0 translate-y-4 pointer-events-none"
-                        }`}
-                      >
-                        {/* Label Biblioteca */}
-                        <div className="flex items-center gap-3 bg-cyan-500/5 border border-cyan-500/15 rounded-2xl px-5 py-3">
-                          <Radio className="text-cyan-500/70 shrink-0" size={16} />
-                          <p className="text-cyan-600/80 font-black text-xs uppercase tracking-widest">
-                            Biblioteca Web TV — Podcasts &amp; Programas
-                          </p>
-                        </div>
-
-                        {/* Player principal da Biblioteca */}
-                        <div className="relative w-full bg-slate-950 rounded-3xl overflow-hidden shadow-2xl shadow-slate-900/50 border border-slate-800">
+                      {/* Player + Chat lado a lado */}
+                      <div className="flex flex-col lg:flex-row gap-4">
+                        {/* Player ocupa ~65% */}
+                        <div className="relative w-full lg:w-[65%] bg-slate-950 rounded-3xl overflow-hidden shadow-2xl shadow-red-900/20 border border-red-900/30">
                           <SmartPlayer
-                            customVideoUrl={selectedVideoUrl || undefined}
+                            customVideoUrl={undefined}
                             onLiveChange={handleLiveChange}
                           />
                         </div>
 
                         {/* Chat ocupa ~35% */}
-                        <div className="w-full lg:w-[35%] min-h-[340px] lg:min-h-0">
+                        <div className="w-full lg:w-[35%] min-h-[340px] lg:min-h-0 text-white">
                           <LiveChat liveUrl={liveUrl} />
                         </div>
                       </div>
