@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
+import { useSettingsStore } from "../store/settingsStore";
 
 interface HeaderProps {
   isLive: boolean;
@@ -32,7 +33,12 @@ export default function Header({
   showNavigation = true 
 }: HeaderProps) {
   
-  const temaCor = config?.tema_cor || "#00AEE0";
+  const { ui } = useSettingsStore();
+
+  const brandName = ui.siteName || config?.ui_settings?.brand_name || 'NOSSA WEB TV';
+  const logoUrl = ui.logoUrl || config?.ui_settings?.logo_url || config?.logo_url;
+  const primaryColor = ui.primaryColor || config?.ui_settings?.primary_color || '#00AEE0';
+  const fontFamily = ui.fontFamily || config?.ui_settings?.font_family || 'Inter, sans-serif';
 
   return (
     <div className="w-full flex flex-col font-sans sticky top-0 z-50">
@@ -45,30 +51,31 @@ export default function Header({
               onClick={() => setCategoriaAtiva?.('Início')} 
               className="relative cursor-pointer outline-none group flex items-center gap-4"
             >
-               {config?.ui_settings?.logo_mode === "text" || !config?.ui_settings?.logo_url ? (
+               {!logoUrl ? (
                   // LOGO EM TEXTO COM VARIÁVEIS DO PAINEL
                   <div className="flex items-center gap-2">
                      <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-black text-xl shadow-inner border border-white"
-                          style={{ background: config?.ui_settings?.primary_color || '#00AEE0' }}>
-                        A
+                          style={{ background: primaryColor }}>
+                        {brandName.charAt(0)}
                      </div>
                      <span 
                        className="hidden sm:inline-block uppercase tracking-wider" 
                        style={{ 
-                          fontFamily: config?.ui_settings?.font_family || 'Inter, sans-serif',
-                          fontWeight: config?.ui_settings?.font_weight?.replace('font-', '') || '900', // support classes mapped to weights
-                          color: config?.ui_settings?.primary_color || '#00AEE0'
+                          fontFamily: fontFamily,
+                          fontWeight: '900',
+                          color: primaryColor
                        }}
                      >
-                        {config?.ui_settings?.brand_name || 'NOSSA WEB TV'}
+                        {brandName}
                      </span>
                   </div>
                ) : (
-                 // LOGO EM IMAGEM CUSTOMIZADA
+                 // LOGO EM IMAGEM CUSTOMIZADA + TEXTO SR-ONLY PARA SEO
                  <div className="relative shrink-0 flex items-center gap-3">
+                   <h1 className="sr-only">{brandName}</h1>
                    <img 
-                     src={config?.ui_settings?.logo_url || config?.logo_url || "/logo.png"} 
-                     alt={config?.ui_settings?.brand_name || "Nossa Web TV"} 
+                     src={logoUrl} 
+                     alt={brandName} 
                      className="h-12 sm:h-14 w-auto object-contain transition-transform group-hover:scale-[1.02]"
                    />
                  </div>

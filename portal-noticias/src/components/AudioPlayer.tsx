@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import WaveSurfer from "wavesurfer.js";
 import { Play, Pause, FastForward, Loader2 } from "lucide-react";
+import { useSettingsStore } from "../store/settingsStore";
 
 interface AudioPlayerProps {
   audioUrl: string;
@@ -24,6 +25,8 @@ export default function AudioPlayer({ audioUrl, autoPlay = false }: AudioPlayerP
     return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
   };
 
+  const { ui } = useSettingsStore();
+
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -31,7 +34,7 @@ export default function AudioPlayer({ audioUrl, autoPlay = false }: AudioPlayerP
     const ws = WaveSurfer.create({
       container: containerRef.current,
       waveColor: "#D1D5DB", // Cinza claro (slate-300)
-      progressColor: "#EF4444", // Vermelho (red-500)
+      progressColor: ui.primaryColor || "#EF4444", // Cor primária da marca ou vermelho fallback
       barWidth: 2,
       barGap: 3,
       height: 40,

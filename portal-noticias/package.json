@@ -28,7 +28,8 @@
     "react-dom": "19.2.4",
     "rss-parser": "^3.13.0",
     "wavesurfer.js": "^7.12.6",
-    "yet-another-react-lightbox": "^3.31.0"
+    "yet-another-react-lightbox": "^3.31.0",
+    "zustand": "^5.0.12"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

@@ -11,6 +11,8 @@ import { Play, Search, Film, Calendar, Tag, ChevronRight, Tv, Radio } from "luci
 import Header from "../components/Header";
 import VideoCarousel from "../components/VideoCarousel";
 import HeroBanner from "../components/HeroBanner";
+import FallbackImage from "../components/FallbackImage";
+import PlantaoPolicialWidget from "../components/PlantaoPolicialWidget";
 
 export default function Home() {
   const [todasNoticias, setTodasNoticias] = useState<any[]>([]);
@@ -258,7 +260,7 @@ export default function Home() {
                         </div>
                      </div>
 
-                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
                         {todasNoticias.slice(0, 18).map((noticia, i) => (
                            <Link 
                               key={noticia.id} 
@@ -266,15 +268,15 @@ export default function Home() {
                               className="group flex flex-col transition-all duration-300 bg-slate-900/60 backdrop-blur-md border border-white/5 rounded-2xl overflow-hidden shadow-lg hover:shadow-cyan-900/20 hover:-translate-y-1 hover:border-white/10"
                            >
                               {/* Thumbnail Universal */}
-                              <div className="relative aspect-[16/10] w-full overflow-hidden bg-slate-800 isolate">
-                                 <Image 
-                                    src={noticia.imagem_capa || `https://picsum.photos/seed/${noticia.id}/600/400`} 
+                              <div className="relative aspect-video w-full overflow-hidden bg-slate-800 isolate">
+                                 <FallbackImage 
+                                    src={noticia.imagem_capa} 
                                     alt={noticia.titulo} 
                                     fill
-                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                    sizes="(max-width: 768px) 50vw, (max-width: 1200px) 50vw, 33vw"
                                     className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out z-0"
                                  />
-                                 <div className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-black/90 via-black/40 to-transparent z-10 pointer-events-none"></div>
+                                 <div className="absolute inset-x-0 bottom-0 h-[80%] bg-gradient-to-t from-black/95 via-black/40 to-transparent z-10 pointer-events-none"></div>
                                  
                                  {/* Ícone Play Minimalista com Glow (Apenas para vídeos) */}
                                  {(noticia.video_url || noticia.mostrar_no_player) && (
@@ -444,6 +446,9 @@ export default function Home() {
                    </div>
                 </div>
               )}
+
+              {/* PLANTÃO POLICIAL */}
+              <PlantaoPolicialWidget />
 
                {/* SLOT DE ANÚNCIO 1 (CONSOLIDADO) */}
                <div className="w-full">

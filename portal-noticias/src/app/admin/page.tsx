@@ -11,6 +11,7 @@ import {
 import Link from "next/link";
 import RichTextEditor from "../../components/RichTextEditor";
 import NewsEditorForm from "../../components/admin/NewsEditorForm";
+import { useSettingsStore } from "../../store/settingsStore";
 import { 
   Plus, Pencil, Layout, Monitor, Trash, 
   CheckCircle2, XCircle, Info, Smartphone, Upload, Check, ChevronDown
@@ -52,6 +53,8 @@ export default function AdminPage() {
   const [descricaoLive, setDescricaoLive] = useState("");
   const [organicViewsEnabled, setOrganicViewsEnabled] = useState(false);
   
+  const updateUI = useSettingsStore(state => state.updateUI);
+
   // Estados de Aparência & Ads
   const [heroBanners, setHeroBanners] = useState<any[]>([]);
   const [adSlot1, setAdSlot1] = useState<any>({ image_url: "", link: "", visible: true });
@@ -193,6 +196,11 @@ export default function AdminPage() {
       if (!supabase) return;
       const { error } = await supabase.from("configuracao_portal").update(fieldsToUpdate).eq("id", 1);
       if (error) throw error;
+
+      if (fieldsToUpdate.ui_settings) {
+        updateUI(fieldsToUpdate.ui_settings);
+      }
+
       notify("🚀 Configurações Publicadas com Sucesso!");
     } catch (err: any) {
       alert("❌ Erro ao salvar: " + err.message);
@@ -700,7 +708,15 @@ export default function AdminPage() {
                                     <label className="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Nome da Marca</label>
                                     <input type="text" value={uiSettings.brand_name || ""} onChange={e => setUiSettings({...uiSettings, brand_name: e.target.value})} placeholder="Ex: NOSSA WEB TV" className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3 text-sm font-black uppercase" />
                                  </div>
-                                 <div className="grid grid-cols-2 gap-3">
+                                 <div className="grid grid-cols-3 gap-3">
+                                    <div>
+                                       <label className="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Fonte</label>
+                                       <select value={uiSettings.font_family || "Inter"} onChange={e => setUiSettings({...uiSettings, font_family: e.target.value})} className="w-full bg-white border border-zinc-200 rounded-xl px-3 py-2 text-xs font-bold">
+                                          <option value="Inter">Inter</option>
+                                          <option value="Anton">Anton</option>
+                                          <option value="Montserrat">Montserrat</option>
+                                       </select>
+                                    </div>
                                     <div>
                                        <label className="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Peso</label>
                                        <select value={uiSettings.font_weight || "900"} onChange={e => setUiSettings({...uiSettings, font_weight: e.target.value})} className="w-full bg-white border border-zinc-200 rounded-xl px-3 py-2 text-xs font-bold">
