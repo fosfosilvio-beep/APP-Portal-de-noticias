@@ -55,21 +55,13 @@ export default function AudioPlayer({ audioUrl, autoPlay = false }: AudioPlayerP
     ws.on("play", () => setIsPlaying(true));
     ws.on("pause", () => setIsPlaying(false));
     
-    ws.on("audioprocess", () => {
-      setCurrentTime(formatTime(ws.getCurrentTime()));
-    });
 
     ws.on("finish", () => {
       setIsPlaying(false);
       ws.setTime(0);
     });
 
-    // Responsividade
-    const handleResize = () => ws.drawBuffer();
-    window.addEventListener("resize", handleResize);
-
     return () => {
-      window.removeEventListener("resize", handleResize);
       ws.destroy();
     };
   }, [audioUrl]);
