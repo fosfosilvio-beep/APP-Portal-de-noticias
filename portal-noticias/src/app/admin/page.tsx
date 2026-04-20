@@ -143,6 +143,7 @@ export default function AdminPage() {
     } catch (err) {
       console.error("Erro ao buscar config. Verifique se adicionou as colunas no Supabase.", err);
     }
+  };
   const handleFileUpload = async (file: File, path: string) => {
     try {
       setUploadingMedia(true);
@@ -947,5 +948,4 @@ export default function AdminPage() {
       )}
     </div>
   );
-}
 }
