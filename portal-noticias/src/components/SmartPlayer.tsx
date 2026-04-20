@@ -14,6 +14,9 @@ export interface ConfiguracaoPortal {
   mostrar_live_facebook: boolean;
   fake_viewers_boost: number;
   live_last_ended_at?: string | null;
+  titulo_live?: string | null;
+  descricao_live?: string | null;
+  organic_views_enabled?: boolean;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -74,6 +77,7 @@ export default function SmartPlayer({ customVideoUrl, onLiveChange }: SmartPlaye
   const [config, setConfig] = useState<ConfiguracaoPortal | null>(null);
   const [loading, setLoading] = useState(true);
   const [videoAutomatico, setVideoAutomatico] = useState<string | null>(null);
+  const [displayViewers, setDisplayViewers] = useState(0);
 
   // ─── Fallback chain (sem noticias.mostrar_no_player) ──────────────────────
   const resolverFallback = async () => {
@@ -107,7 +111,7 @@ export default function SmartPlayer({ customVideoUrl, onLiveChange }: SmartPlaye
 
       const { data, error } = await supabase
         .from("configuracao_portal")
-        .select("id, is_live, url_live_facebook, url_live_youtube, mostrar_live_facebook, fake_viewers_boost, live_last_ended_at")
+        .select("id, is_live, url_live_facebook, url_live_youtube, mostrar_live_facebook, fake_viewers_boost, live_last_ended_at, titulo_live, descricao_live, organic_views_enabled")
         .limit(1)
         .single();
 
@@ -154,6 +158,32 @@ export default function SmartPlayer({ customVideoUrl, onLiveChange }: SmartPlaye
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ─── Lógica de Simulação Orgânica de Viewers ────────────────────────────────
+  useEffect(() => {
+    if (!config) return;
+    
+    // Inicialização
+    setDisplayViewers(config.fake_viewers_boost || 0);
+
+    if (!config.is_live || !config.organic_views_enabled) return;
+
+    const interval = setInterval(() => {
+      setDisplayViewers(prev => {
+        const base = config.fake_viewers_boost || 0;
+        const variation = Math.floor(base * 0.05); // 5% oscillation
+        const change = Math.floor(Math.random() * (variation * 2 + 1)) - variation;
+        const newVal = prev + change;
+        
+        // Mantém dentro de um range razoável (±10% do base)
+        if (newVal < base - (variation * 2)) return base - variation;
+        if (newVal > base + (variation * 2)) return base + variation;
+        return newVal;
+      });
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [config?.fake_viewers_boost, config?.is_live, config?.organic_views_enabled]);
+
   // ─── Estados de renderização ──────────────────────────────────────────────
   if (loading) {
     return (
@@ -188,28 +218,50 @@ export default function SmartPlayer({ customVideoUrl, onLiveChange }: SmartPlaye
 
   return (
     <div className="w-full mx-auto font-sans">
-      {/* Badge de status */}
-      <div className="absolute top-4 left-4 z-20 flex gap-2">
-        {config.is_live && (
-          <div className="flex items-center gap-2 bg-red-600 px-3 py-1 rounded-full shadow-lg animate-pulse">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-300 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
-            </span>
-            <span className="text-white font-black text-xs tracking-wider uppercase">
-              AO VIVO · {config.fake_viewers_boost?.toLocaleString("pt-BR") ?? 0}
-            </span>
-          </div>
-        )}
-        {isAcervo && (
-          <div className="flex items-center gap-2 bg-cyan-600/90 backdrop-blur-md px-3 py-1 rounded-full shadow-md border border-white/20">
-            <div className="w-2 h-2 rounded-full bg-cyan-200 shadow-[0_0_8px_rgba(103,232,249,0.8)]" />
-            <span className="text-white font-black text-[10px] tracking-widest uppercase">
-              {customVideoUrl ? "REPRODUZINDO" : "ACERVO WEB TV"}
-            </span>
-          </div>
-        )}
+      {/* Overlay Top Bar (Esquerda e Direita) */}
+      <div className="absolute top-4 left-4 right-4 z-20 flex justify-between items-start pointer-events-none">
+         {/* Lado Esquerdo */}
+         <div className="flex flex-col gap-2">
+            {config.is_live && (
+              <div className="flex items-center gap-2 bg-red-600/90 backdrop-blur-md px-3 py-1.5 rounded-full shadow-lg border border-red-500/50 w-fit pointer-events-auto">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-300 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
+                </span>
+                <span className="text-white font-black text-xs tracking-wider uppercase">
+                  REC <span className="mx-1 text-red-200">·</span> {displayViewers.toLocaleString("pt-BR")}
+                </span>
+              </div>
+            )}
+            {isAcervo && (
+              <div className="flex items-center gap-2 bg-slate-900/80 backdrop-blur-md px-3 py-1 rounded-full shadow-md border border-white/10 w-fit pointer-events-auto">
+                <div className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
+                <span className="text-white font-bold text-[10px] tracking-widest uppercase">
+                  {customVideoUrl ? "REPRODUZINDO AGORA" : "ACERVO REGIONAL"}
+                </span>
+              </div>
+            )}
+         </div>
+
+         {/* Lado Direito (Exclusivo/Ao Vivo) */}
+         {config.is_live && (
+            <div className="bg-gradient-to-r from-orange-500 to-pink-600 px-4 py-1.5 rounded-full shadow-lg border border-white/20 pointer-events-auto">
+               <span className="text-white font-black text-[11px] tracking-widest uppercase drop-shadow-md">
+                 EXCLUSIVO
+               </span>
+            </div>
+         )}
       </div>
+
+      {/* Overlay de Metadados (Live 2.0) - Backdrop Blur */}
+      {config.is_live && (config.titulo_live || config.descricao_live) && (
+        <div className="absolute bottom-6 left-6 right-6 z-20 pointer-events-none transition-all duration-500 animate-in fade-in slide-in-from-bottom-2">
+           <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 p-5 rounded-2xl max-w-xl shadow-2xl">
+              {config.titulo_live && <h4 className="text-white font-black text-lg leading-tight mb-1 drop-shadow-md">{config.titulo_live}</h4>}
+              {config.descricao_live && <p className="text-zinc-300 text-xs font-medium line-clamp-2 opacity-90">{config.descricao_live}</p>}
+           </div>
+        </div>
+      )}
 
       {/* Área do player 16:9 */}
       <div

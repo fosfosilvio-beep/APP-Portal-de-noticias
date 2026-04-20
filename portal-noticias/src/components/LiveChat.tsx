@@ -91,7 +91,7 @@ export default function LiveChat({ liveUrl }: LiveChatProps) {
           />
         ) : (
           /* Fallback: Comentários do Facebook */
-          <div className="flex flex-col h-full overflow-y-auto p-4 bg-white">
+          <div className="flex flex-col h-full overflow-y-auto p-4 bg-slate-900/60 backdrop-blur-md">
             <div id="fb-root" />
             <div
               className="fb-comments"
@@ -101,10 +101,10 @@ export default function LiveChat({ liveUrl }: LiveChatProps) {
               }
               data-width="100%"
               data-numposts="20"
-              data-colorscheme="light"
+              data-colorscheme="dark"
             />
 
-            <div className="mt-6 pt-4 border-t border-slate-100 flex items-center gap-2 text-slate-400">
+            <div className="mt-6 pt-4 border-t border-white/10 flex items-center gap-2 text-slate-500">
               <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
               </svg>

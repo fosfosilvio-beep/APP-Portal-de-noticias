@@ -9,6 +9,7 @@ import { supabase } from "../lib/supabase";
 import { Play, Search, Film, Calendar, Tag, ChevronRight, Tv, Radio } from "lucide-react";
 import Header from "../components/Header";
 import VideoCarousel from "../components/VideoCarousel";
+import HeroBanner from "../components/HeroBanner";
 
 export default function Home() {
   const [todasNoticias, setTodasNoticias] = useState<any[]>([]);
@@ -37,10 +38,10 @@ export default function Home() {
       try {
         if (!supabase) throw new Error("Supabase não conectado.");
         
-        // 1. Buscar Configuração (Live Status)
+        // 1. Buscar Configuração (Live, Ads, Banners, UI Settings)
         const { data: configData } = await supabase
           .from("configuracao_portal")
-          .select("is_live, banner_anuncio_home, link_anuncio_home, banner_vertical_noticia, link_vertical_noticia")
+          .select("is_live, hero_banner_items, ad_slot_1, ad_slot_2, banner_anuncio_home, link_anuncio_home, banner_vertical_noticia, link_vertical_noticia, ui_settings")
           .limit(1)
           .single();
         
@@ -149,6 +150,13 @@ export default function Home() {
               {categoriaAtiva === "Início" ? (
                 <div className="flex flex-col space-y-16 animate-in fade-in slide-in-from-bottom-4 duration-1000">
                   
+                  {/* CARROSSEL HERO DINÂMICO (NOVO) */}
+                  {config?.hero_banner_items?.length > 0 && (
+                    <section className="w-full">
+                       <HeroBanner items={config.hero_banner_items} />
+                    </section>
+                  )}
+                  
                   {/* SEÇÃO 1: HERO PLAYER — BIFURCAÇÃO LIVE / BIBLIOTECA */}
                   <section className="w-full flex flex-col gap-6">
 
@@ -254,7 +262,7 @@ export default function Home() {
                                  {/* Ícone Play Minimalista com Glow (Apenas para vídeos) */}
                                  {(noticia.video_url || noticia.mostrar_no_player) && (
                                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                      <div className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white scale-0 group-hover:scale-100 transition-all duration-300 shadow-2xl">
+                                      <div className="w-12 h-12 rounded-full bg-slate-900/40 backdrop-blur-xl border border-white/20 flex items-center justify-center text-white scale-0 group-hover:scale-100 transition-all duration-300 shadow-2xl">
                                          <Play size={22} fill="currentColor" className="text-white drop-shadow-[0_0_10px_#00AEE0]" />
                                       </div>
                                    </div>
@@ -262,7 +270,7 @@ export default function Home() {
 
                                  {/* Tag de Categoria */}
                                  <div className="absolute top-4 left-4">
-                                    <span className="bg-cyan-600/90 backdrop-blur-sm text-white text-[9px] font-black uppercase tracking-widest px-2.5 py-1.5 rounded-full shadow-lg border border-white/10">
+                                    <span className="bg-slate-900/60 backdrop-blur-md text-white text-[9px] font-black uppercase tracking-widest px-2.5 py-1.5 rounded-full shadow-lg border border-white/10">
                                        {noticia.categoria || "Geral"}
                                     </span>
                                  </div>
@@ -397,76 +405,132 @@ export default function Home() {
             <aside className="w-full lg:w-[30%] flex flex-col space-y-8">
               
               {/* CLIMA ARAPONGAS */}
-              <div className="bg-gradient-to-br from-[#005a78] to-[#00344d] rounded-2xl p-7 text-white shadow-lg relative overflow-hidden group border border-[#00AEE0]/20">
-                 <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#00AEE0] rounded-full blur-3xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
-                 <div className="relative z-10">
-                   <h3 className="font-bold text-xs mb-6 uppercase tracking-widest text-cyan-200/70 flex items-center gap-2">
-                     <svg className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zM12 18a6 6 0 110-12 6 6 0 010 12z"/></svg>
-                     Arapongas / PR
-                   </h3>
-                   <div className="flex items-end justify-between">
-                     <p className="text-6xl font-black tracking-tighter">26°</p>
-                     <div className="text-right">
-                       <span className="block font-bold text-cyan-300 text-lg">Ensolarado</span>
-                       <span className="text-sm font-medium text-cyan-100/60">Max: 31° / Min: 18°</span>
+              {(config?.ui_settings?.widgets_visibility?.weather !== false) && (
+                <div className="bg-slate-900 rounded-2xl p-7 text-white shadow-lg relative overflow-hidden group border border-slate-800">
+                   <div className="absolute top-0 right-0 w-40 h-40 bg-[#00AEE0] rounded-full blur-[80px] opacity-20 group-hover:opacity-40 transition-opacity duration-700"></div>
+                   <div className="relative z-10">
+                     <h3 className="font-bold text-xs mb-6 uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                       <svg className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zM12 18a6 6 0 110-12 6 6 0 010 12z"/></svg>
+                       Arapongas / PR
+                     </h3>
+                     <div className="flex items-center justify-between mb-2">
+                       <p className="text-6xl font-black tracking-tighter">26°<span className="text-3xl text-slate-500 font-medium">C</span></p>
+                       <div className="text-right flex flex-col items-end">
+                         <span className="block font-black text-cyan-400 text-lg">Ensolarado</span>
+                         <span className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">Máx 31° Min 18°</span>
+                       </div>
+                     </div>
+                     <div className="flex items-center gap-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-4 pt-4 border-t border-slate-800">
+                        <span className="flex items-center gap-1"><span className="text-cyan-500">💧</span> Umidade: 55%</span>
+                        <span className="flex items-center gap-1"><span className="text-orange-500">🌡️</span> Sensação: 28°C</span>
                      </div>
                    </div>
-                 </div>
-              </div>
+                </div>
+              )}
 
-               {/* SLOT DE ANÚNCIO 1 */}
+               {/* SLOT DE ANÚNCIO 1 (CONSOLIDADO) */}
                <div className="w-full">
-                  {config?.banner_anuncio_home ? (
+                  {config?.ad_slot_1?.visible && config.ad_slot_1.image_url ? (
+                    <a href={config.ad_slot_1.link || "#"} target="_blank" className="group block relative w-full h-64 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-200">
+                       <img src={config.ad_slot_1.image_url} alt="Publicidade" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                       <div className="absolute top-2 right-2">
+                          <span className="bg-slate-900/40 backdrop-blur-md text-white text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border border-white/10">Publicidade</span>
+                       </div>
+                    </a>
+                  ) : config?.banner_anuncio_home ? (
                     <a href={config.link_anuncio_home || "#"} target="_blank" className="group block relative w-full h-64 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300">
-                       <img src={config.banner_anuncio_home} alt="Publicidade" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                       <img src={config.banner_anuncio_home} alt="Publicidade Legacy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                        <div className="absolute top-2 right-2">
                           <span className="bg-black/20 backdrop-blur-sm text-white text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border border-white/10">Publicidade</span>
                        </div>
                     </a>
                   ) : (
-                    <div className="w-full bg-slate-100 rounded-2xl border border-dashed border-slate-300 h-64 flex flex-col items-center justify-center p-6 text-center group cursor-pointer hover:bg-slate-200 transition-colors">
-                       <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 border border-slate-300 px-2 py-0.5 rounded">Espaço Publicitário</span>
-                       <p className="text-slate-500 font-bold max-w-[200px]">Anuncie sua marca para milhares de leitores.</p>
+                    <div className="w-full bg-white rounded-2xl border border-dashed border-slate-200 h-64 flex flex-col items-center justify-center p-6 text-center group cursor-pointer hover:bg-slate-50 transition-colors shadow-sm">
+                       <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 border border-slate-200 px-2 py-0.5 rounded">Espaço Publicitário</span>
+                       <p className="text-slate-400 font-bold text-xs max-w-[180px]">Impacte milhares de leitores regionais com sua marca.</p>
                     </div>
                   )}
                </div>
 
               {/* GIRO LATERAL */}
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100/50">
-                <div className="flex items-center space-x-2 mb-6 border-b border-slate-100 pb-4">
-                  <span className="w-2.5 h-2.5 bg-cyan-600 rounded-full animate-pulse"></span>
-                  <h3 className="font-black text-slate-800 text-lg">Giro 24h</h3>
+              {(config?.ui_settings?.widgets_visibility?.giro24h !== false) && (
+                <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100/50">
+                  <div className="flex items-center justify-between mb-6 border-b border-slate-100 pb-4">
+                    <div className="flex items-center space-x-2">
+                      <span className="w-2.5 h-2.5 bg-cyan-500 rounded-full animate-pulse shadow-[0_0_8px_#06b6d4]"></span>
+                      <h3 className="font-black text-slate-800 text-lg uppercase tracking-tight">Giro 24h</h3>
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-col space-y-6">
+                    {todasNoticias.slice(0, 5).map((news, idx) => (
+                      <Link href={`/noticia/${news.slug || news.id}`} key={news.id} className="flex gap-5 group items-center">
+                        <span className="text-slate-200 font-black text-4xl leading-none group-hover:text-cyan-500 transition-colors w-8 shrink-0 text-center">
+                          {idx + 1}
+                        </span>
+                        <div className="flex flex-col">
+                          <span className="text-[9px] text-cyan-600 font-black uppercase tracking-widest mb-1">{news.categoria || "Geral"}</span>
+                          <p className="text-sm font-bold text-slate-700 leading-snug group-hover:text-cyan-600 transition-colors line-clamp-3">
+                            {news.titulo}
+                          </p>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
                 </div>
-                
-                <div className="flex flex-col space-y-5">
-                  {todasNoticias.slice(0, 5).map((news, idx) => (
-                    <Link href={`/noticia/${news.slug || news.id}`} key={news.id} className="flex gap-4 group">
-                      <span className="text-slate-200 font-black text-3xl leading-none group-hover:text-cyan-200 transition-colors italic w-8 shrink-0 text-center">
-                        {idx + 1}
-                      </span>
-                      <div className="flex flex-col">
-                        <span className="text-[9px] text-cyan-600 font-black uppercase tracking-widest mb-1">{news.categoria || "Geral"}</span>
-                        <p className="text-sm font-bold text-slate-700 leading-snug group-hover:text-cyan-700 transition-colors line-clamp-3">
+              )}
+
+              {/* PLANTÃO POLICIAL */}
+              {(config?.ui_settings?.widgets_visibility?.plantao !== false) && (
+                <div className="bg-gradient-to-b from-slate-900 to-slate-950 rounded-2xl p-6 shadow-xl border border-slate-800 relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600 rounded-full blur-[80px] opacity-30 group-hover:opacity-40 transition-opacity duration-700"></div>
+                  <div className="flex items-center space-x-3 mb-6 relative z-10 border-b border-slate-800 pb-4">
+                    <div className="relative flex h-3 w-3">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600 border border-black"></span>
+                    </div>
+                    <h3 className="font-black text-white text-lg uppercase tracking-widest drop-shadow-md">Plantão Policial</h3>
+                  </div>
+                  
+                  <div className="flex flex-col space-y-5 relative z-10">
+                    {todasNoticias.filter(n => ['polícia', 'policia'].includes(n.categoria?.toLowerCase())).slice(0, 3).map((news) => (
+                      <Link href={`/noticia/${news.slug || news.id}`} key={news.id} className="flex flex-col group block">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">
+                            {new Date(news.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                          </span>
+                        </div>
+                        <p className="text-sm font-medium text-slate-300 leading-snug group-hover:text-white transition-colors line-clamp-2">
                           {news.titulo}
                         </p>
-                      </div>
-                    </Link>
-                  ))}
+                      </Link>
+                    ))}
+                    {todasNoticias.filter(n => ['polícia', 'policia'].includes(n.categoria?.toLowerCase())).length === 0 && (
+                       <p className="text-xs font-medium text-slate-500 italic">Nenhum registro policial recente.</p>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
 
-               {/* SLOT DE ANÚNCIO 2 */}
+               {/* SLOT DE ANÚNCIO 2 (CONSOLIDADO) */}
                <div className="w-full">
-                  {config?.banner_vertical_noticia ? (
+                  {config?.ad_slot_2?.visible && config.ad_slot_2.image_url ? (
+                    <a href={config.ad_slot_2.link || "#"} target="_blank" className="group block relative w-full h-[400px] rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-200">
+                       <img src={config.ad_slot_2.image_url} alt="Publicidade Vertical" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                       <div className="absolute top-2 right-2">
+                          <span className="bg-slate-900/40 backdrop-blur-md text-white text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border border-white/10">Publicidade</span>
+                       </div>
+                    </a>
+                  ) : config?.banner_vertical_noticia ? (
                     <a href={config.link_vertical_noticia || "#"} target="_blank" className="group block relative w-full h-[400px] rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300">
-                       <img src={config.banner_vertical_noticia} alt="Publicidade Vertical" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                       <img src={config.banner_vertical_noticia} alt="Publicidade Vertical Legacy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                        <div className="absolute top-2 right-2">
                           <span className="bg-black/20 backdrop-blur-sm text-white text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border border-white/10">Publicidade</span>
                        </div>
                     </a>
                   ) : (
-                    <div className="w-full bg-slate-100 rounded-2xl border border-dashed border-slate-300 h-[400px] flex flex-col items-center justify-center p-6 text-center group cursor-pointer hover:bg-slate-200 transition-colors">
-                        <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 border border-slate-300 px-2 py-0.5 rounded">Banner Vertical</span>
+                    <div className="w-full bg-white rounded-2xl border border-dashed border-slate-200 h-[400px] flex flex-col items-center justify-center p-6 text-center group cursor-pointer hover:bg-slate-50 transition-colors shadow-sm">
+                        <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 border border-slate-200 px-2 py-0.5 rounded">Banner Vertical</span>
                     </div>
                   )}
                </div>

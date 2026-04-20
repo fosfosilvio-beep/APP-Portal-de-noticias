@@ -10,6 +10,11 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import RichTextEditor from "../../components/RichTextEditor";
+import NewsEditorForm from "../../components/admin/NewsEditorForm";
+import { 
+  Plus, Pencil, Layout, Monitor, Trash, 
+  CheckCircle2, XCircle, Info, Smartphone 
+} from "lucide-react";
 
 interface StyleConfig {
   font: string;
@@ -43,23 +48,32 @@ export default function AdminPage() {
   const [youtubeChannelUrl, setYoutubeChannelUrl] = useState("");
   const [facebookPageUrl, setFacebookPageUrl] = useState("");
   const [openrouterApiKey, setOpenrouterApiKey] = useState("");
+  const [tituloLive, setTituloLive] = useState("");
+  const [descricaoLive, setDescricaoLive] = useState("");
+  const [organicViewsEnabled, setOrganicViewsEnabled] = useState(false);
+  
+  // Estados de Aparência & Ads
+  const [heroBanners, setHeroBanners] = useState<any[]>([]);
+  const [adSlot1, setAdSlot1] = useState<any>({ image_url: "", link: "", visible: true });
+  const [adSlot2, setAdSlot2] = useState<any>({ image_url: "", link: "", visible: true });
   
   const [viewersBoost, setViewersBoost] = useState(0);
   const [savingConfig, setSavingConfig] = useState(false);
   const [totalNoticias, setTotalNoticias] = useState(0);
 
-  // Estados de Nova Postagem
-  const [titulo, setTitulo] = useState("");
-  const [subtitulo, setSubtitulo] = useState("");
-  const [conteudo, setConteudo] = useState("");
-  const [categoria, setCategoria] = useState("");
-  const [slug, setSlug] = useState("");
-  const [imagemUrl, setImagemUrl] = useState("");
-  const [videoFile, setVideoFile] = useState<File | null>(null);
-  const [uploadingVideo, setUploadingVideo] = useState(false);
-  
-  const [tituloConfig, setTituloConfig] = useState<StyleConfig>(DEFAULT_CONFIG);
-  const [subtituloConfig, setSubtituloConfig] = useState<StyleConfig>(SUBTITLE_DEFAULT);
+  // Estados de Branding & UI (ui_settings)
+  const [uiSettings, setUiSettings] = useState<any>({
+    logo_mode: "image",
+    logo_url: "",
+    brand_name: "NOSSA WEB TV",
+    font_family: "Inter, sans-serif",
+    primary_color: "#00AEE0",
+    breaking_news_alert: { text: "", color: "#e11d48", speed: "normal" },
+    widgets_visibility: { weather: true, giro24h: true, plantao: true }
+  });
+
+  // Estados de Nova Postagem (Agora gerenciados pelo componente NewsEditorForm)
+  // Mantemos apenas estados globais se necessário
 
   // Lista de Notícias
   const [listaNoticias, setListaNoticias] = useState<any[]>([]);
@@ -112,6 +126,13 @@ export default function AdminPage() {
         try { setFacebookPageUrl(data.facebook_page_url || ""); } catch(e){}
         try { setOpenrouterApiKey(data.openrouter_api_key || ""); } catch(e){}
         try { setViewersBoost(data.fake_viewers_boost || 0); } catch(e){}
+        try { setTituloLive(data.titulo_live || ""); } catch(e){}
+        try { setDescricaoLive(data.descricao_live || ""); } catch(e){}
+        try { setOrganicViewsEnabled(data.organic_views_enabled || false); } catch(e){}
+        try { setHeroBanners(data.hero_banner_items || []); } catch(e){}
+        try { setAdSlot1(data.ad_slot_1 || { image_url: "", link: "", visible: true }); } catch(e){}
+        try { setAdSlot2(data.ad_slot_2 || { image_url: "", link: "", visible: true }); } catch(e){}
+        try { if (data.ui_settings) setUiSettings({ ...uiSettings, ...data.ui_settings }); } catch(e){}
       }
       
       const { count } = await supabase.from("noticias").select('*', { count: 'exact', head: true });
@@ -145,46 +166,7 @@ export default function AdminPage() {
     }
   };
 
-  const publishNews = async () => {
-    if (!titulo.trim() || !conteudo.trim() || !slug.trim()) {
-      alert("Título, Conteúdo e Slug são obrigatórios."); return;
-    }
-    setSavingConfig(true);
-    let finalVideoUrl = "";
-
-    try {
-      if (videoFile) {
-        setUploadingVideo(true);
-        const fileExt = videoFile.name.split('.').pop();
-        const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-        const filePath = `noticias/${fileName}`;
-        const { error: uploadError } = await supabase.storage.from('videos').upload(filePath, videoFile);
-        if (uploadError) throw uploadError;
-        const { data: { publicUrl } } = supabase.storage.from('videos').getPublicUrl(filePath);
-        finalVideoUrl = publicUrl;
-        setUploadingVideo(false);
-      }
-
-      const cleanSlug = slug.trim().replace(/^https?:\/\//, '').split('/').filter(Boolean).pop() || slug;
-
-      const { error } = await supabase.from("noticias").insert([{
-        titulo, subtitulo, conteudo, categoria, slug: cleanSlug, imagem_capa: imagemUrl, 
-        video_url: finalVideoUrl, mostrar_no_player: false, mostrar_na_home_recentes: true,
-        titulo_config: tituloConfig, subtitulo_config: subtituloConfig, ordem_prioridade: 0
-      }]);
-
-      if (error) throw error;
-      alert("🚀 Notícia publicada com sucesso no banco de dados da redação!");
-      
-      setTitulo(""); setSubtitulo(""); setConteudo(""); setCategoria(""); setSlug("");
-      setImagemUrl(""); setVideoFile(null); setTituloConfig(DEFAULT_CONFIG);
-      setSubtituloConfig(SUBTITLE_DEFAULT); setTotalNoticias(prev => prev + 1);
-    } catch (err: any) {
-       alert("Erro ao publicar: " + err.message);
-    } finally {
-      setSavingConfig(false); setUploadingVideo(false);
-    }
-  };
+  // Função publishNews removida pois agora é gerenciada pelo componente NewsEditorForm
 
   if (!isAuthenticated) {
     return (
@@ -221,7 +203,9 @@ export default function AdminPage() {
   const menuItems = [
     { id: "dashboard", label: "Visão Geral", icon: <LayoutDashboard size={18} /> },
     { id: "ao-vivo", label: "Sinal Ao Vivo", icon: <Radio size={18} /> },
-    { id: "postagens", label: "Editor de Postagens", icon: <FileText size={18} /> },
+    { id: "postagens", label: "Editor de Postagens", icon: <Plus size={18} /> },
+    { id: "aparencia", label: "Publicidade & Hero", icon: <Palette size={18} /> },
+    { id: "branding", label: "Branding & UI", icon: <TypeIcon size={18} /> },
     { id: "facebook-insta", label: "Feeds Sociais", icon: <Globe size={18} /> },
     { id: "biblioteca", label: "Acervo de Biblioteca", icon: <Video size={18} /> },
     { id: "copiloto-ia", label: "Copiloto IA", icon: <Sparkles size={18} /> },
@@ -356,57 +340,96 @@ export default function AdminPage() {
                        </div>
                        
                        <div className="p-6 md:p-8 space-y-8">
-                          {/* Toggle Mestre */}
-                          <div className="bg-zinc-50 p-6 rounded-2xl border border-zinc-200 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-                            <div>
-                               <h4 className="font-black text-zinc-900 text-lg">Acionamento Mestre da Bifurcação</h4>
-                               <p className="text-zinc-500 text-sm mt-1 max-w-lg">Quando ATIVADO, o portal oculta a biblioteca on-demand e renderiza imediatamente o módulo de Ao Vivo em Tela Cheia e em tempo real para os leitores na Homepage.</p>
-                            </div>
-                            <label className="relative inline-flex items-center cursor-pointer shrink-0 scale-125">
-                              <input type="checkbox" checked={isLive} onChange={(e) => setIsLive(e.target.checked)} className="sr-only peer" />
-                              <div className="w-14 h-7 bg-zinc-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-red-500 shadow-inner"></div>
-                            </label>
-                          </div>
-
-                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                             {/* Coluna YouTube (Prioridade) */}
-                             <div className="space-y-4">
-                               <div className="flex items-center gap-2 text-zinc-800 font-bold mb-4">
-                                  <MonitorPlay size={20} className="text-red-600" /> Player 1 (Prioritário: YouTube)
-                               </div>
-                               <div>
-                                 <label className="block text-xs font-black text-zinc-500 uppercase tracking-widest mb-1.5">Link da Transmissão YT</label>
-                                 <input type="text" value={urlLiveYoutube} onChange={e => setUrlLiveYoutube(e.target.value)} placeholder="https://youtube.com/live/..." className="w-full bg-zinc-50 border border-zinc-200 focus:border-red-500 rounded-xl px-4 py-3 text-sm outline-none transition-all shadow-sm font-medium" />
-                               </div>
+                           <div className="bg-zinc-50 p-6 rounded-2xl border border-zinc-200 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                             <div>
+                                <h4 className="font-black text-zinc-900 text-lg">Acionamento Mestre da Bifurcação</h4>
+                                <p className="text-zinc-500 text-sm mt-1 max-w-lg">Quando ATIVADO, o portal oculta a biblioteca on-demand e renderiza imediatamente o módulo de Ao Vivo.</p>
                              </div>
-
-                             {/* Coluna Facebook (Secundária) */}
-                             <div className="space-y-4 border-t lg:border-t-0 lg:border-l border-zinc-200 pt-6 lg:pt-0 lg:pl-8">
-                               <div className="flex items-center gap-2 text-zinc-800 font-bold mb-4">
-                                  <Globe size={20} className="text-blue-600" /> Player 2 (Secundário: Facebook)
-                               </div>
-                               <div>
-                                 <label className="block text-xs font-black text-zinc-500 uppercase tracking-widest mb-1.5">Link da Transmissão FB</label>
-                                 <input type="text" value={urlLiveFacebook} onChange={e => setUrlLiveFacebook(e.target.value)} placeholder="https://facebook.com/..." className="w-full bg-zinc-50 border border-zinc-200 focus:border-blue-500 rounded-xl px-4 py-3 text-sm outline-none transition-all shadow-sm font-medium" />
-                               </div>
-                               <div className="flex items-center gap-3 pt-2">
-                                  <input type="checkbox" id="showFb" checked={mostrarLiveFacebook} onChange={e => setMostrarLiveFacebook(e.target.checked)} className="w-5 h-5 accent-blue-600 cursor-pointer border-zinc-300 rounded" />
-                                  <label htmlFor="showFb" className="text-sm font-bold text-zinc-700 cursor-pointer">Usar Facebook em vez do YouTube nesta sessão.</label>
-                               </div>
-                               <p className="text-xs text-zinc-400 font-medium bg-zinc-50 p-3 rounded-lg border border-zinc-100 italic">O sistema sempre prioriza nativamente o fluxo do YouTube. Alterne esta chave e salve para que o portal consuma o link e o chat do Facebook.</p>
+                             <div className="flex items-center gap-4">
+                               {isLive && (
+                                 <button 
+                                   onClick={() => {
+                                     if(window.confirm("⚠️ INTERROMPER TRANSMISSÃO IMEDIATAMENTE?")) {
+                                       setIsLive(false);
+                                       saveConfig({ is_live: false });
+                                     }
+                                   }}
+                                   className="bg-red-600 hover:bg-red-700 text-white font-black text-[10px] px-4 py-2 rounded-lg flex items-center gap-2 animate-pulse"
+                                 >
+                                    <XCircle size={14} /> KILL SWITCH
+                                 </button>
+                               )}
+                               <label className="relative inline-flex items-center cursor-pointer shrink-0 scale-125">
+                                 <input type="checkbox" checked={isLive} onChange={(e) => setIsLive(e.target.checked)} className="sr-only peer" />
+                                 <div className="w-14 h-7 bg-zinc-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-red-500 shadow-inner"></div>
+                               </label>
                              </div>
-                          </div>
+                           </div>
 
-                          <div className="border-t border-zinc-200 pt-8 pt-6">
-                            <label className="block text-xs font-black text-zinc-500 uppercase tracking-widest mb-2">Simulador de Espectadores Sociais (Boost)</label>
-                            <input type="number" value={viewersBoost} onChange={(e) => setViewersBoost(Number(e.target.value))} className="w-full max-w-xs bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 text-2xl font-black text-zinc-800 shadow-sm outline-none" />
-                          </div>
+                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                              <div>
+                                <label className="block text-xs font-black text-zinc-500 uppercase tracking-widest mb-1.5">Título do Overlay (Live Name)</label>
+                                <input type="text" value={tituloLive} onChange={e => setTituloLive(e.target.value)} placeholder="Ex: AO VIVO: Cobertura Especial..." className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3 text-sm font-medium outline-none" />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-black text-zinc-500 uppercase tracking-widest mb-1.5">Descrição Curta (Overlay)</label>
+                                <input type="text" value={descricaoLive} onChange={e => setDescricaoLive(e.target.value)} placeholder="Ex: Acompanhe as últimas notícias..." className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3 text-sm font-medium outline-none" />
+                              </div>
+                           </div>
 
-                          <div className="flex justify-end pt-4">
-                             <button onClick={() => saveConfig({ is_live: isLive, url_live_youtube: urlLiveYoutube, url_live_facebook: urlLiveFacebook, mostrar_live_facebook: mostrarLiveFacebook, fake_viewers_boost: viewersBoost })} disabled={savingConfig} className="bg-zinc-900 hover:bg-zinc-800 text-white font-bold px-8 py-3.5 rounded-xl shadow-lg transition-all flex items-center gap-2 disabled:opacity-50">
-                               {savingConfig ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />} Salvar Definições da Live
-                             </button>
-                          </div>
+                           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-4">
+                              {/* Coluna YouTube (Prioridade) */}
+                              <div className="space-y-4">
+                                <div className="flex items-center gap-2 text-zinc-800 font-bold mb-4">
+                                   <MonitorPlay size={20} className="text-red-600" /> Fonte YouTube
+                                </div>
+                                <input type="text" value={urlLiveYoutube} onChange={e => setUrlLiveYoutube(e.target.value)} placeholder="https://youtube.com/live/..." className="w-full bg-zinc-50 border border-zinc-200 focus:border-red-500 rounded-xl px-4 py-3 text-sm outline-none transition-all shadow-sm font-medium" />
+                              </div>
+
+                              {/* Coluna Facebook (Secundária) */}
+                              <div className="space-y-4 border-t lg:border-t-0 lg:border-l border-zinc-200 pt-6 lg:pt-0 lg:pl-8">
+                                <div className="flex items-center gap-2 text-zinc-800 font-bold mb-4">
+                                   <Globe size={20} className="text-blue-600" /> Fonte Facebook
+                                </div>
+                                <input type="text" value={urlLiveFacebook} onChange={e => setUrlLiveFacebook(e.target.value)} placeholder="https://facebook.com/..." className="w-full bg-zinc-50 border border-zinc-200 focus:border-blue-500 rounded-xl px-4 py-3 text-sm outline-none transition-all shadow-sm font-medium" />
+                                <div className="flex items-center gap-3 pt-2">
+                                   <input type="checkbox" id="showFb" checked={mostrarLiveFacebook} onChange={e => setMostrarLiveFacebook(e.target.checked)} className="w-5 h-5 accent-blue-600 cursor-pointer border-zinc-300 rounded" />
+                                   <label htmlFor="showFb" className="text-sm font-bold text-zinc-700 cursor-pointer italic">Priorizar Facebook nesta sessão.</label>
+                                </div>
+                              </div>
+                           </div>
+
+                           <div className="border-t border-zinc-100 pt-8 flex flex-col md:flex-row gap-8">
+                             <div className="flex-1">
+                               <label className="block text-xs font-black text-zinc-500 uppercase tracking-widest mb-2">Simulador de Espectadores Sociais (Boost)</label>
+                               <input type="number" value={viewersBoost} onChange={(e) => setViewersBoost(Number(e.target.value))} className="w-full max-w-xs bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-2xl font-black text-white shadow-sm outline-none" />
+                             </div>
+                             <div className="bg-zinc-50 p-6 rounded-2xl border border-zinc-100 flex-1 flex items-center justify-between">
+                               <div>
+                                  <h4 className="font-bold text-zinc-800 text-sm">Simulação Orgânica</h4>
+                                  <p className="text-[10px] text-zinc-500">Oscilação automática de ±5% no contador.</p>
+                               </div>
+                               <label className="relative inline-flex items-center cursor-pointer">
+                                 <input type="checkbox" checked={organicViewsEnabled} onChange={(e) => setOrganicViewsEnabled(e.target.checked)} className="sr-only peer" />
+                                 <div className="w-11 h-6 bg-zinc-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                               </label>
+                             </div>
+                           </div>
+
+                           <div className="flex justify-end pt-4">
+                              <button onClick={() => saveConfig({ 
+                                is_live: isLive, 
+                                url_live_youtube: urlLiveYoutube, 
+                                url_live_facebook: urlLiveFacebook, 
+                                mostrar_live_facebook: mostrarLiveFacebook, 
+                                fake_viewers_boost: viewersBoost,
+                                titulo_live: tituloLive,
+                                descricao_live: descricaoLive,
+                                organic_views_enabled: organicViewsEnabled
+                              })} disabled={savingConfig} className="bg-zinc-900 hover:bg-zinc-800 text-white font-bold px-8 py-3.5 rounded-xl shadow-lg transition-all flex items-center gap-2 disabled:opacity-50">
+                                {savingConfig ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />} Salvar Configuração de Live
+                              </button>
+                           </div>
                        </div>
                     </div>
                 </div>
@@ -414,109 +437,208 @@ export default function AdminPage() {
 
              {/* 3. ABA POSTAGENS (CRIAÇÃO DE NOTÍCIAS COM LIBERDADE E CORES/BLOCOS) */}
              {activeTab === 'postagens' && (
-                <div className="animate-in slide-in-from-bottom-4 fade-in duration-500 grid xl:grid-cols-3 gap-8">
-                   
-                   {/* ENGINE DO EDITOR RICH */}
-                   <div className="xl:col-span-2 space-y-6">
-                      <div className="bg-white border border-zinc-200 rounded-2xl shadow-sm p-6 sm:p-8 relative">
-                          <h3 className="font-black text-zinc-800 flex items-center gap-2 mb-6 border-b border-zinc-100 pb-4">
-                            <FileText size={20} className="text-blue-500" /> Editor de Postagens da Redação
-                          </h3>
-                          
-                          <div className="space-y-8">
-                             {/* TITULO */}
-                             <div>
-                               <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-                                  <label className="text-xs font-black text-zinc-500 uppercase tracking-widest">Título Impactante</label>
-                                  <div className="flex gap-2">
-                                    <select value={tituloConfig.font} onChange={e => setTituloConfig({...tituloConfig, font: e.target.value})} className="text-[10px] bg-zinc-50 border border-zinc-200 rounded p-1 font-bold outline-none text-zinc-700">
-                                       <option value="var(--font-inter)">Inter (Sans)</option>
-                                       <option value="var(--font-anton)">Anton (Slab)</option>
-                                       <option value="var(--font-playfair)">Playfair (Serif)</option>
-                                    </select>
-                                    <select value={tituloConfig.color} onChange={e => setTituloConfig({...tituloConfig, color: e.target.value})} className="text-[10px] bg-zinc-50 border border-zinc-200 rounded p-1 font-bold outline-none text-zinc-700">
-                                       <option value="default">Grafite</option>
-                                       <option value="destaque">Azul Portal</option>
-                                       <option value="urgente">Vermelho Urgente</option>
-                                    </select>
-                                  </div>
-                               </div>
-                               <input type="text" value={titulo} onChange={e => setTitulo(e.target.value)} placeholder="Insira o Título Principal..." style={{ fontFamily: tituloConfig.font, color: tituloConfig.color === 'destaque' ? '#2563eb' : (tituloConfig.color === 'urgente' ? '#dc2626' : '#18181b') }} className="w-full bg-white border border-zinc-200 focus:border-zinc-400 rounded-xl px-4 py-3.5 text-2xl md:text-3xl font-black shadow-sm outline-none transition-all placeholder:font-medium placeholder:text-zinc-300" />
-                             </div>
+                <div className="animate-in slide-in-from-bottom-4 fade-in duration-500">
+                    <NewsEditorForm onSuccess={() => {
+                       setViewersBoost(prev => prev); // dummy trigger
+                       fetchCurrentConfig();
+                    }} />
+                </div>
+             )}
 
-                             {/* SUBTITULO */}
-                             <div>
-                               <label className="block text-xs font-black text-zinc-500 uppercase tracking-widest mb-1.5">Linha Fina / Subtítulo</label>
-                               <input type="text" value={subtitulo} onChange={e => setSubtitulo(e.target.value)} placeholder="Resumo auxiliar ou contextualização..." className="w-full bg-zinc-50 border border-zinc-200 focus:border-zinc-400 rounded-xl px-4 py-3 text-sm font-medium shadow-sm outline-none transition-all placeholder:text-zinc-400 text-zinc-700" />
-                             </div>
+             {/* 3.1 ABA APARÊNCIA (HERO & ADS) */}
+             {activeTab === 'aparencia' && (
+                <div className="space-y-8 animate-in slide-in-from-bottom-4 fade-in duration-500">
+                    <div className="bg-white border border-zinc-200 shadow-sm rounded-2xl p-6 md:p-10">
+                       <h3 className="font-black text-2xl text-zinc-900 mb-2 flex items-center gap-3">
+                          <Layout className="text-blue-600" /> Gestor de Identidade Visual
+                       </h3>
+                       <p className="text-sm font-medium text-zinc-500 mb-10">Configure o carrossel da Home e os slots de publicidade em tempo real.</p>
 
-                             {/* CONTEUDO E GALLERY MOCK */}
-                             <div>
-                               <div className="flex items-center justify-between mb-2">
-                                 <label className="text-xs font-black text-zinc-500 uppercase tracking-widest">Postagem: Blocos de Construção</label>
-                                 <span className="text-[10px] bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded shadow-sm">Liberdade Criativa ON</span>
-                               </div>
-                               <RichTextEditor content={conteudo} onChange={setConteudo} />
-                             </div>
-                             
-                             <div className="bg-zinc-50 rounded-xl p-4 border border-zinc-200 border-dashed">
-                               <p className="text-xs font-bold text-zinc-500 mb-2">Bloco Extra: Adicionar Mídia à Postagem (Avançado - Em Breve API de Dropzone para múltiplas fotos / Galeria)</p>
-                               <button className="text-sm font-bold text-zinc-700 hover:text-zinc-900 border border-zinc-300 bg-white px-4 py-2 rounded-lg shadow-sm w-full md:w-auto">
-                                 + Carga de Galeria Extra Upload
-                               </button>
-                             </div>
+                       <section className="space-y-6">
+                          <div className="flex items-center justify-between">
+                             <h4 className="font-black text-zinc-800 text-sm uppercase tracking-widest">HeroBanner Home (Até 5 itens)</h4>
+                             <button 
+                               onClick={() => setHeroBanners([...heroBanners, { image: "", duration: 5000, scale: "object-cover", animation: "fade" }])}
+                               className="text-[10px] font-black bg-blue-50 text-blue-600 px-3 py-1 rounded-full border border-blue-100 hover:bg-blue-600 hover:text-white transition-all shadow-sm"
+                             >
+                               + ADICIONAR BANNER
+                             </button>
                           </div>
-                      </div>
-                   </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                             {heroBanners.map((item: any, idx: number) => (
+                                <div key={idx} className="bg-zinc-50 border border-zinc-200 rounded-xl p-4 relative group">
+                                   <button 
+                                     onClick={() => setHeroBanners(heroBanners.filter((_: any, i: number) => i !== idx))}
+                                     className="absolute top-2 right-2 p-1 text-zinc-400 hover:text-red-500 transition-colors"
+                                   >
+                                      <Trash2 size={14} />
+                                   </button>
+                                   <div className="flex gap-4">
+                                      <div className="w-20 h-20 bg-zinc-200 rounded-lg overflow-hidden shrink-0">
+                                         {item.image ? <img src={item.image} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-zinc-400"><Monitor size={20}/></div>}
+                                      </div>
+                                      <div className="flex-1 space-y-2">
+                                         <input type="text" value={item.image} onChange={e => {
+                                            const newBanners = [...heroBanners];
+                                            newBanners[idx].image = e.target.value;
+                                            setHeroBanners(newBanners);
+                                         }} placeholder="URL da Imagem..." className="w-full text-[10px] p-2 border border-zinc-200 rounded bg-white outline-none" />
+                                         <div className="flex gap-2">
+                                            <select value={item.scale} onChange={e => {
+                                               const newBanners = [...heroBanners];
+                                               newBanners[idx].scale = e.target.value;
+                                               setHeroBanners(newBanners);
+                                            }} className="text-[9px] font-bold p-1 border border-zinc-200 rounded bg-white outline-none">
+                                               <option value="object-cover">Cover</option>
+                                               <option value="object-contain">Contain</option>
+                                            </select>
+                                            <input type="number" value={item.duration} onChange={e => {
+                                               const newBanners = [...heroBanners];
+                                               newBanners[idx].duration = Number(e.target.value);
+                                               setHeroBanners(newBanners);
+                                            }} className="w-16 text-[9px] font-bold p-1 border border-zinc-200 rounded bg-white outline-none" />
+                                         </div>
+                                      </div>
+                                   </div>
+                                </div>
+                             ))}
+                          </div>
+                       </section>
 
-                   {/* BARRA LATERAL DA PUBLICAÇÃO */}
-                   <aside className="space-y-6">
-                      <div className="bg-white border border-zinc-200 rounded-2xl shadow-sm overflow-hidden">
-                         <div className="bg-zinc-50 px-5 py-4 border-b border-zinc-200">
-                           <h4 className="font-black text-zinc-800 text-sm">Capa e Metadados</h4>
-                         </div>
-                         <div className="p-5 space-y-6">
-                           <div>
-                              <label className="block text-[11px] font-black text-zinc-500 uppercase tracking-widest mb-2">Foto Principal (URL Externa provisória)</label>
-                              <div className="w-full h-36 bg-zinc-100 rounded-xl border border-zinc-200 mb-3 overflow-hidden">
-                                {imagemUrl ? <img src={imagemUrl} alt="Preview" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-zinc-300"><Palette size={24}/></div>}
-                              </div>
-                              <input type="text" value={imagemUrl} onChange={e => setImagemUrl(e.target.value)} placeholder="https://imagem..." className="w-full text-xs font-medium px-3 py-2 border border-zinc-200 rounded-lg outline-none focus:border-blue-500 shadow-sm" />
-                           </div>
+                       <section className="mt-12 space-y-6 pt-10 border-t border-zinc-100">
+                          <h4 className="font-black text-zinc-800 text-sm uppercase tracking-widest">Publicidade (Slots Home)</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                             {[adSlot1, adSlot2].map((slot, idx) => (
+                                <div key={idx} className="bg-zinc-50 border border-zinc-200 rounded-2xl p-6 space-y-4">
+                                   <div className="flex items-center justify-between">
+                                      <span className="text-[10px] font-black text-zinc-400">SLOT 0{idx+1}</span>
+                                      <label className="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" checked={slot.visible} onChange={e => {
+                                           const setter = idx === 0 ? setAdSlot1 : setAdSlot2;
+                                           setter({ ...slot, visible: e.target.checked });
+                                        }} className="sr-only peer" />
+                                        <div className="w-9 h-5 bg-zinc-200 peer-focus:outline-none rounded-full peer peer-checked:bg-blue-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
+                                      </label>
+                                   </div>
+                                   <input type="text" value={slot.image_url} onChange={e => {
+                                      const setter = idx === 0 ? setAdSlot1 : setAdSlot2;
+                                      setter({ ...slot, image_url: e.target.value });
+                                   }} placeholder="URL Banner Publicitário..." className="w-full text-xs p-3 border border-zinc-200 rounded-xl bg-white" />
+                                   <input type="text" value={slot.link} onChange={e => {
+                                      const setter = idx === 0 ? setAdSlot1 : setAdSlot2;
+                                      setter({ ...slot, link: e.target.value });
+                                   }} placeholder="Link de Destino (https://...)" className="w-full text-xs p-3 border border-zinc-200 rounded-xl bg-white" />
+                                </div>
+                             ))}
+                          </div>
+                       </section>
+
+                       <div className="mt-10 flex justify-end">
+                          <button 
+                            onClick={() => saveConfig({ hero_banner_items: heroBanners, ad_slot_1: adSlot1, ad_slot_2: adSlot2 })} 
+                            disabled={savingConfig} 
+                            className="bg-zinc-900 hover:bg-zinc-800 text-white font-bold px-10 py-4 rounded-2xl shadow-xl transition-all flex items-center gap-2"
+                          >
+                             {savingConfig ? <Loader2 className="animate-spin" size={18} /> : <Palette size={18} />} Publicar Identidade Visual
+                          </button>
+                       </div>
+                    </div>
+                </div>
+             )}
+
+             {/* 3.2 ABA BRANDING & UI */}
+             {activeTab === 'branding' && (
+                <div className="space-y-8 animate-in slide-in-from-bottom-4 fade-in duration-500">
+                    <div className="bg-white border border-zinc-200 shadow-sm rounded-2xl p-6 md:p-10">
+                       <h3 className="font-black text-2xl text-zinc-900 mb-2 flex items-center gap-3">
+                          <TypeIcon className="text-purple-600" /> Interface & Design System
+                       </h3>
+                       <p className="text-sm font-medium text-zinc-500 mb-10">Configure as variáveis visuais do portal. Isso afeta o Header, cores principais e a barra de alertas (Marquee).</p>
+                       
+                       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                         <div className="space-y-4">
+                           <h4 className="font-bold text-zinc-800 text-sm uppercase tracking-widest border-b pb-2">Logomarca & Branding</h4>
                            
-                           <div>
-                              <label className="block text-[11px] font-black text-zinc-500 uppercase tracking-widest mb-2">Vídeo do Repórter (Opcional - MP4 Upload)</label>
-                              <div className="border border-dashed border-zinc-300 bg-zinc-50 rounded-xl p-3 text-center cursor-pointer hover:bg-zinc-100 transition-colors relative">
-                                <input type="file" accept="video/*" onChange={e => setVideoFile(e.target.files?.[0] || null)} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-                                {videoFile ? <p className="text-xs font-bold text-blue-600 truncate">{videoFile.name}</p> : <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest py-2">Selecionar Arquivo de Vídeo</p>}
-                              </div>
-                           </div>
-                           
-                           <div>
-                              <label className="block text-[11px] font-black text-zinc-500 uppercase tracking-widest mb-2">Categoria Base</label>
-                              <select value={categoria} onChange={e => setCategoria(e.target.value)} className="w-full text-sm font-bold px-3 py-2.5 border border-zinc-200 rounded-lg outline-none focus:border-blue-500 shadow-sm cursor-pointer bg-white">
-                                 <option value="">(Sem categoria)</option>
-                                 <option value="Arapongas">Arapongas Mestre</option>
-                                 <option value="Esportes">Esportes</option>
-                                 <option value="Polícia">Policial Rápido</option>
-                                 <option value="Política">Política Local</option>
-                                 <option value="Geral">Notícias Gerais</option>
-                              </select>
-                           </div>
+                           <label className="block text-xs font-bold text-zinc-500 mt-4">Modo de Exibição do Logo</label>
+                           <select 
+                             value={uiSettings.logo_mode} 
+                             onChange={e => setUiSettings({...uiSettings, logo_mode: e.target.value})} 
+                             className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 text-sm font-bold text-zinc-700 outline-none"
+                           >
+                             <option value="image">Imagem (Arquivo PNG/SVG)</option>
+                             <option value="text">Texto Dinâmico (Tipografia Customizada)</option>
+                           </select>
 
-                           <div>
-                              <label className="block text-[11px] font-black text-zinc-500 uppercase tracking-widest mb-2">URL de SEO Automática (Slug)</label>
-                              <input type="text" value={slug} onChange={e => setSlug(e.target.value)} placeholder="meu-slug-perfeito" className="w-full text-sm font-mono text-zinc-600 px-3 py-2 border border-zinc-200 rounded-lg outline-none focus:border-zinc-400 bg-zinc-50" />
-                              <p className="text-[10px] text-zinc-400 font-medium mt-1">Dica: Use hifens para SEO. O painel cuidará do resto.</p>
+                           {uiSettings.logo_mode === "image" ? (
+                             <>
+                                <label className="block text-xs font-bold text-zinc-500 mt-4">URL da Logomarca (.png, .svg)</label>
+                                <input type="text" value={uiSettings.logo_url || ""} onChange={e => setUiSettings({...uiSettings, logo_url: e.target.value})} placeholder="Ex: https://..." className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3 text-sm" />
+                             </>
+                           ) : (
+                             <>
+                                <label className="block text-xs font-bold text-zinc-500 mt-4">Nome da Marca (Texto Front-end)</label>
+                                <input type="text" value={uiSettings.brand_name || ""} onChange={e => setUiSettings({...uiSettings, brand_name: e.target.value})} placeholder="Ex: NOSSA WEB TV" className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3 text-sm uppercase" />
+                             </>
+                           )}
+                           
+                           <label className="block text-xs font-bold text-zinc-500 mt-4">Cor Principal do Portal (Hexadecimal)</label>
+                           <div className="flex gap-3">
+                             <input type="color" value={uiSettings.primary_color || "#00AEE0"} onChange={e => setUiSettings({...uiSettings, primary_color: e.target.value})} className="w-12 h-12 rounded-lg cursor-pointer border-0 p-0" />
+                             <input type="text" value={uiSettings.primary_color || "#00AEE0"} onChange={e => setUiSettings({...uiSettings, primary_color: e.target.value})} className="flex-1 bg-white border border-zinc-200 rounded-xl px-4 py-3 text-sm uppercase font-mono" />
                            </div>
                          </div>
-                      </div>
+                         
+                         <div className="space-y-4">
+                           <h4 className="font-bold text-zinc-800 text-sm uppercase tracking-widest border-b pb-2">Top Marquee (Alerta Urgente)</h4>
+                           <label className="block text-xs font-bold text-zinc-500 mt-4">Mensagem de Segurança (Breaking News)</label>
+                           <input type="text" value={uiSettings.breaking_news_alert?.text || ""} onChange={e => setUiSettings({...uiSettings, breaking_news_alert: {...uiSettings.breaking_news_alert, text: e.target.value}})} placeholder="Deixe em branco para o Radar Regional..." className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3 text-sm" />
+                           
+                           <label className="block text-xs font-bold text-zinc-500 mt-4">Cor de Fundo do Header Alerta</label>
+                           <div className="flex gap-3">
+                             <input type="color" value={uiSettings.breaking_news_alert?.color || "#e11d48"} onChange={e => setUiSettings({...uiSettings, breaking_news_alert: {...uiSettings.breaking_news_alert, color: e.target.value}})} className="w-12 h-12 rounded-lg cursor-pointer border-0 p-0" />
+                             <input type="text" value={uiSettings.breaking_news_alert?.color || "#e11d48"} onChange={e => setUiSettings({...uiSettings, breaking_news_alert: {...uiSettings.breaking_news_alert, color: e.target.value}})} className="flex-1 bg-white border border-zinc-200 rounded-xl px-4 py-3 text-sm uppercase font-mono" />
+                           </div>
+                         </div>
+                       </div>
+                       
+                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8 p-6 bg-zinc-50 rounded-2xl border border-zinc-200">
+                          <div className="flex flex-col gap-2">
+                             <span className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">App: Clima Meteorológico</span>
+                             <label className="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" checked={uiSettings.widgets_visibility?.weather !== false} onChange={e => setUiSettings({...uiSettings, widgets_visibility: {...uiSettings.widgets_visibility, weather: e.target.checked}})} className="sr-only peer" />
+                                <div className="w-9 h-5 bg-zinc-200 peer-focus:outline-none rounded-full peer peer-checked:bg-blue-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
+                                <span className="ml-3 text-xs font-bold text-zinc-700">Renderizar</span>
+                             </label>
+                          </div>
+                          <div className="flex flex-col gap-2">
+                             <span className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">App: Giro 24h</span>
+                             <label className="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" checked={uiSettings.widgets_visibility?.giro24h !== false} onChange={e => setUiSettings({...uiSettings, widgets_visibility: {...uiSettings.widgets_visibility, giro24h: e.target.checked}})} className="sr-only peer" />
+                                <div className="w-9 h-5 bg-zinc-200 peer-focus:outline-none rounded-full peer peer-checked:bg-blue-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
+                                <span className="ml-3 text-xs font-bold text-zinc-700">Renderizar</span>
+                             </label>
+                          </div>
+                          <div className="flex flex-col gap-2">
+                             <span className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">App: Plantão Policial</span>
+                             <label className="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" checked={uiSettings.widgets_visibility?.plantao !== false} onChange={e => setUiSettings({...uiSettings, widgets_visibility: {...uiSettings.widgets_visibility, plantao: e.target.checked}})} className="sr-only peer" />
+                                <div className="w-9 h-5 bg-zinc-200 peer-focus:outline-none rounded-full peer peer-checked:bg-blue-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
+                                <span className="ml-3 text-xs font-bold text-zinc-700">Renderizar</span>
+                             </label>
+                          </div>
+                       </div>
 
-                      <button onClick={publishNews} disabled={savingConfig || uploadingVideo} className="w-full bg-zinc-900 hover:bg-zinc-800 disabled:opacity-50 text-white font-bold text-sm uppercase tracking-widest py-4 rounded-2xl shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2">
-                         {uploadingVideo ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />}
-                         {uploadingVideo ? "Fazendo Upload..." : "PUBLICAR NA PLATAFORMA"}
-                      </button>
-                   </aside>
+                       <div className="mt-10 flex justify-end">
+                          <button 
+                            onClick={() => saveConfig({ ui_settings: uiSettings })} 
+                            disabled={savingConfig} 
+                            className="bg-purple-600 hover:bg-purple-700 text-white font-bold px-10 py-4 rounded-2xl shadow-xl transition-all flex items-center gap-2"
+                          >
+                             {savingConfig ? <Loader2 className="animate-spin" size={18} /> : <TypeIcon size={18} />} Publicar Layout no App
+                          </button>
+                       </div>
+                    </div>
                 </div>
              )}
 
@@ -635,9 +757,10 @@ export default function AdminPage() {
                                         </td>
                                         <td className="p-4"><span className="bg-zinc-200 text-zinc-700 px-2.5 py-1 rounded-full text-[10px] font-black uppercase">{noticia.categoria || 'Sem Base'}</span></td>
                                         <td className="p-4 text-zinc-500 text-xs">{new Date(noticia.created_at).toLocaleDateString('pt-BR')}</td>
-                                        <td className="p-4 text-right flex items-center justify-end gap-1">
-                                           <a href={`/noticia/${noticia.slug}`} target="_blank" className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"><Eye size={16}/></a>
-                                           <button onClick={() => deletarNoticia(noticia.id, noticia.titulo)} className="p-2 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"><Trash2 size={16}/></button>
+                                        <td className="p-4 text-right flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                           <a href={`/noticia/${noticia.slug}`} target="_blank" className="p-2 text-zinc-400 hover:text-zinc-900 bg-white border border-zinc-100 rounded-lg shadow-sm transition-all"><Eye size={16}/></a>
+                                           <Link href={`/admin/editar/${noticia.id}`} className="p-2 text-zinc-400 hover:text-blue-600 bg-white border border-zinc-100 rounded-lg shadow-sm transition-all"><Pencil size={16}/></Link>
+                                           <button onClick={() => deletarNoticia(noticia.id, noticia.titulo)} className="p-2 text-zinc-400 hover:text-red-600 bg-white border border-zinc-100 rounded-lg shadow-sm transition-all"><Trash2 size={16}/></button>
                                         </td>
                                      </tr>
                                   ))

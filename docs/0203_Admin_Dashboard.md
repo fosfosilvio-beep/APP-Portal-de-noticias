@@ -32,9 +32,16 @@ Centro de controle para jornalistas e administradores do portal.
 - **Estilização de Títulos**: Controles para escolher Fonte, Peso e Cor para Título e Subtítulo.
 - Suporte a upload de vídeo para o Storage do Supabase.
 
-### 5. Configurações do Portal
-- Upload de banners publicitários (Home e Vertical).
-- Definição de links de destino.
+### 5. Configurações de Aparência (Identidade & Ads)
+- Gerenciamento de 5 Slots de HeroBanner (Carrossel Home) com preview e suporte a animações / textos.
+- Upload de banners publicitários fixos (Ad Slots Consolidados).
+
+### 6. Interface & Design System (Branding)
+- Variável Global `ui_settings` (`JSONB` em `configuracao_portal`) controlando a estética sem impactar o layout do código base.
+- Controle de Alternância de Logo: Modo Imagem vs Modo Tipográfico Dinâmico (`brand_name` e `font_family`).
+- Variáveis de Cores (Ex: Cor principal do portal interpolada em tempo real).
+- Breaking News Alerta (Texto no top marquee mudando com base na gravidade / cor).
+- Toggle Widgets de UX (Oculta ou Mostra: Clima Meteorológico, Plantão Policial, e Barra Giro 24h).
 
 ---
 Status: Documentado

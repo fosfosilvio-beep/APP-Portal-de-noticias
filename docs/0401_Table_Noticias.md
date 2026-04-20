@@ -20,6 +20,7 @@ Armazena todas as matérias jornalísticas publicadas no portal.
 | `mostrar_na_home_recentes` | BOOLEAN | Define se deve aparecer no feed de recentes da home. |
 | `audio_url` | TEXT (URL) | URL do áudio gerado pelo Google TTS (Cache). |
 | `audio_content_hash` | TEXT | Hash do conteúdo usado para invalidar o cache do áudio. |
+| `seo_tags` | TEXT | Tags de palavras-chave para indexação. |
 
 
 ## RLS (Row Level Security)

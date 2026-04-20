@@ -9,6 +9,15 @@ interface HeaderProps {
   config?: {
     logo_url?: string;
     tema_cor?: string;
+    ui_settings?: {
+      logo_mode?: "text" | "image";
+      logo_url?: string;
+      brand_name?: string;
+      font_family?: string;
+      font_weight?: string;
+      primary_color?: string;
+      breaking_news_alert?: { text?: string; speed?: string; color?: string };
+    };
   };
   categoriaAtiva?: string;
   setCategoriaAtiva?: (cat: string) => void;
@@ -36,33 +45,34 @@ export default function Header({
               onClick={() => setCategoriaAtiva?.('Início')} 
               className="relative cursor-pointer outline-none group flex items-center gap-4"
             >
-               {/* 1. Logo Redonda */}
-               <div className="relative shrink-0">
-                 <img 
-                   src={config?.logo_url || "/logo.png"} 
-                   alt="Nossa Web TV" 
-                   className="h-14 sm:h-16 w-auto object-contain transition-transform group-hover:scale-105 rounded-full drop-shadow-md"
-                   onError={(e) => {
-                     e.currentTarget.style.display = 'none';
-                     e.currentTarget.parentElement!.innerHTML = `
-                       <div class="flex items-center gap-3">
-                         <div class="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-tr from-cyan-600 to-blue-800 rounded-full flex items-center justify-center text-white font-black text-xl shadow-inner border-2 border-white">TV</div>
-                       </div>`;
-                   }}
-                 />
-               </div>
-
-               {/* 2. Logo em Texto Oficial */}
-               <div className="hidden sm:flex items-center relative shrink-0">
-                 <Image 
-                   src="/logo-texto.png"
-                   alt="NOSSAWEB TV"
-                   width={400}
-                   height={100}
-                   className="h-12 sm:h-16 w-auto object-contain transition-transform group-hover:scale-[1.02]"
-                   priority
-                 />
-               </div>
+               {config?.ui_settings?.logo_mode === "text" || !config?.ui_settings?.logo_url ? (
+                  // LOGO EM TEXTO COM VARIÁVEIS DO PAINEL
+                  <div className="flex items-center gap-2">
+                     <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-black text-xl shadow-inner border border-white"
+                          style={{ background: config?.ui_settings?.primary_color || '#00AEE0' }}>
+                        A
+                     </div>
+                     <span 
+                       className="hidden sm:inline-block uppercase tracking-wider" 
+                       style={{ 
+                          fontFamily: config?.ui_settings?.font_family || 'Inter, sans-serif',
+                          fontWeight: config?.ui_settings?.font_weight?.replace('font-', '') || '900', // support classes mapped to weights
+                          color: config?.ui_settings?.primary_color || '#00AEE0'
+                       }}
+                     >
+                        {config?.ui_settings?.brand_name || 'NOSSA WEB TV'}
+                     </span>
+                  </div>
+               ) : (
+                 // LOGO EM IMAGEM CUSTOMIZADA
+                 <div className="relative shrink-0 flex items-center gap-3">
+                   <img 
+                     src={config?.ui_settings?.logo_url || config?.logo_url || "/logo.png"} 
+                     alt={config?.ui_settings?.brand_name || "Nossa Web TV"} 
+                     className="h-12 sm:h-14 w-auto object-contain transition-transform group-hover:scale-[1.02]"
+                   />
+                 </div>
+               )}
             </Link>
           </div>
           
@@ -109,21 +119,38 @@ export default function Header({
         </div>
       </header>
 
-      {/* MARQUEE AZUL CIANO (RADAR REGIONAL) */}
-      <div className="bg-gradient-to-r from-[#005a78] to-[#00AEE0] text-white border-b border-cyan-800 w-full overflow-hidden flex items-center h-9 shadow-sm">
-         <div className="container mx-auto px-4 lg:px-8 flex items-center">
-            <span className="font-black text-[9px] uppercase tracking-widest bg-cyan-950/40 border border-cyan-400/20 px-3 py-1 rounded shadow-inner z-10 shrink-0">Radar Regional</span>
-            <div className="w-full flex whitespace-nowrap overflow-hidden pr-4 ml-4">
-              <div className="animate-marquee flex gap-10 opacity-90 text-[11px] font-bold uppercase tracking-tight">
-                 <span>Arapongas/PR - Em Tempo Real...</span>
-                 <span className="text-cyan-200">•</span>
-                 <span>Ouça nossa programação e acompanhe o portal 24 horas por dia.</span>
-                 <span className="text-cyan-200">•</span>
-                 <span>Líder de audiência e credibilidade no norte do Paraná.</span>
+      {/* MARQUEE AZUL CIANO (RADAR REGIONAL) OU CUSTOMIZADO */}
+      {config?.ui_settings?.breaking_news_alert?.text ? (
+        <div className="w-full overflow-hidden flex items-center h-9 shadow-sm" style={{ backgroundColor: config.ui_settings.breaking_news_alert.color || '#e11d48' }}>
+           <div className="container mx-auto px-4 lg:px-8 flex items-center">
+              <span className="font-black text-[9px] uppercase tracking-widest bg-black/20 border border-white/20 text-white px-3 py-1 rounded shadow-inner z-10 shrink-0">Breaking News</span>
+              <div className="w-full flex whitespace-nowrap overflow-hidden pr-4 ml-4">
+                <div className={`animate-marquee flex gap-10 opacity-90 text-[11px] font-bold uppercase tracking-tight text-white`}>
+                   <span>{config.ui_settings.breaking_news_alert.text}</span>
+                   <span className="text-white/50">•</span>
+                   <span>{config.ui_settings.breaking_news_alert.text}</span>
+                   <span className="text-white/50">•</span>
+                   <span>{config.ui_settings.breaking_news_alert.text}</span>
+                </div>
               </div>
-            </div>
-         </div>
-      </div>
+           </div>
+        </div>
+      ) : (
+        <div className="bg-gradient-to-r from-[#005a78] to-[#00AEE0] text-white border-b border-cyan-800 w-full overflow-hidden flex items-center h-9 shadow-sm">
+           <div className="container mx-auto px-4 lg:px-8 flex items-center">
+              <span className="font-black text-[9px] uppercase tracking-widest bg-cyan-950/40 border border-cyan-400/20 px-3 py-1 rounded shadow-inner z-10 shrink-0">Radar Regional</span>
+              <div className="w-full flex whitespace-nowrap overflow-hidden pr-4 ml-4">
+                <div className="animate-marquee flex gap-10 opacity-90 text-[11px] font-bold uppercase tracking-tight">
+                   <span>Arapongas/PR - Em Tempo Real...</span>
+                   <span className="text-cyan-200">•</span>
+                   <span>Ouça nossa programação e acompanhe o portal 24 horas por dia.</span>
+                   <span className="text-cyan-200">•</span>
+                   <span>Líder de audiência e credibilidade no norte do Paraná.</span>
+                </div>
+              </div>
+           </div>
+        </div>
+      )}
     </div>
   );
 }
