@@ -163,7 +163,8 @@ export default function AdminPage() {
 
       return publicUrl;
     } catch (err: any) {
-      alert("Erro no upload: " + err.message);
+      console.error("Erro detalhado no upload:", err);
+      alert("Erro no upload (RLS/Permissões): " + (err.message || "Erro desconhecido"));
       return null;
     } finally {
       setUploadingMedia(false);
