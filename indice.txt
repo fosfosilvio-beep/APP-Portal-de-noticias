@@ -17,9 +17,12 @@ Toda a documentação técnica vive na pasta /docs.
 - /docs/0206_Privacidade.md (Política de Privacidade /privacidade)
 - /docs/0207_Termos_Servico.md (Termos de Serviço /termos)
 - /docs/0208_AudioPlayer.md (Componente AudioPlayer)
+- /docs/0209_FallbackImage.md (Wrapper Nativo p/ Fallback Visual)
+- /docs/0210_PlantaoPolicialWidget.md (Sidebar Widget Plantão)
 
 [03XX] - LÓGICA DE ESTADO E HOOKS
 - /docs/0301_Supabase_Client.md (Padrões de Fetching e Cliente Supabase)
+- /docs/0302_SettingsStore.md (Global Zustand State p/ Enterprise Branding)
 
 [04XX] - BACKEND, SUPABASE E ESTRUTURA DE DADOS
 - /docs/0401_Table_Noticias.md (Tabela de Notícias)
