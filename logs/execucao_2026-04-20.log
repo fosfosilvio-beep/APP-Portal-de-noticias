@@ -1,0 +1,8 @@
+[2026-04-20 15:15:00] INFO: Refatoração do Hero Section da Home iniciada.
+[2026-04-20 15:16:00] INFO: Removido `dead code` de vinculação de notícias (`noticias.mostrar_no_player`) no `SmartPlayer.tsx`.
+[2026-04-20 15:16:20] INFO: Lógica de prioridade atualizada: 1. `configuracao_portal.is_live`, 2. `biblioteca_webtv`, 3. `biblioteca_lives`.
+[2026-04-20 15:17:00] INFO: Refatorado `LiveChat.tsx` integrando suporte dinâmico para YouTube Live (iframe nativo) e Fallback para Facebook Comments via `liveUrl`.
+[2026-04-20 15:18:00] INFO: Adicionado `onLiveChange` callback ao player para propagação de estado em tempo real.
+[2026-04-20 15:18:15] INFO: Layout Home configurado com bifurcação. CSS transition aplicada (`translate-y`, `max-h`, `opacity`) para alternar entre "Player + LiveChat (Ao Vivo)" e "Player + VideoCarousel (Biblioteca)".
+[2026-04-20 15:18:30] INFO: Documentação `0201_Home.md` atualizada conforme as Leis de Modularidade e Rastreabilidade Sincronizada.
+[2026-04-20 15:18:40] INFO: Tarefa finalizada. A arquitetura obedece a lei estrita de prioridade e de fallback on-demand.

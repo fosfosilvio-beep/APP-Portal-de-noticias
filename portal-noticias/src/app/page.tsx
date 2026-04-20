@@ -1,13 +1,12 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useCallback, useState } from "react";
 import SmartPlayer from "../components/SmartPlayer";
 import LiveChat from "../components/LiveChat";
 import AutomatedNewsFeed from "../components/AutomatedNewsFeed";
 import { supabase } from "../lib/supabase";
-import { Play, Search, Film, Calendar, Tag, ChevronRight } from "lucide-react";
+import { Play, Search, Film, Calendar, Tag, ChevronRight, Tv, Radio } from "lucide-react";
 import Header from "../components/Header";
 import VideoCarousel from "../components/VideoCarousel";
 
@@ -16,12 +15,19 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isLive, setIsLive] = useState(false);
+  const [liveUrl, setLiveUrl] = useState<string | null>(null);
   const [bibliotecaLives, setBibliotecaLives] = useState<any[]>([]);
   const [searchBiblioteca, setSearchBiblioteca] = useState("");
-  
+
   const [categoriaAtiva, setCategoriaAtiva] = useState("Início");
   const [config, setConfig] = useState<any>(null);
   const [selectedVideoUrl, setSelectedVideoUrl] = useState<string | null>(null);
+
+  // Callback sincronizado com o SmartPlayer (Realtime)
+  const handleLiveChange = useCallback((live: boolean, url: string | null) => {
+    setIsLive(live);
+    setLiveUrl(url);
+  }, []);
 
   // Single Fetch com Fallback de Segurança + Configuração do Portal
   useEffect(() => {
@@ -143,22 +149,78 @@ export default function Home() {
               {categoriaAtiva === "Início" ? (
                 <div className="flex flex-col space-y-16 animate-in fade-in slide-in-from-bottom-4 duration-1000">
                   
-                  {/* SEÇÃO 1: HERO PLAYER (DESTAQUE CENTRAL) */}
+                  {/* SEÇÃO 1: HERO PLAYER — BIFURCAÇÃO LIVE / BIBLIOTECA */}
                   <section className="w-full flex flex-col gap-6">
-                     <div className="w-full bg-slate-950 rounded-3xl overflow-hidden shadow-2xl shadow-slate-900/50 border border-slate-800">
-                        <SmartPlayer customVideoUrl={selectedVideoUrl || undefined} />
-                     </div>
 
-                     {/* CARROSSEL DE VÍDEOS (ACERVO) */}
-                     <div className="bg-slate-900/40 backdrop-blur-sm rounded-3xl p-6 border border-white/5 shadow-inner">
-                        <VideoCarousel 
-                          activeUrl={selectedVideoUrl} 
+                    {/* ── MODO LIVE: Player + Chat lateral ── */}
+                    <div
+                      className={`w-full transition-all duration-700 ease-in-out overflow-hidden ${
+                        isLive ? "max-h-[800px] opacity-100 translate-y-0" : "max-h-0 opacity-0 -translate-y-4 pointer-events-none"
+                      }`}
+                    >
+                      {/* Banner de alerta ativo */}
+                      <div className="flex items-center gap-3 bg-red-600/10 border border-red-500/20 rounded-2xl px-5 py-3 mb-4">
+                        <span className="relative flex h-3 w-3 shrink-0">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
+                          <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600" />
+                        </span>
+                        <p className="text-red-400 font-black text-xs uppercase tracking-widest">
+                          Transmissão ao Vivo em andamento — Assista agora!
+                        </p>
+                        <Tv className="ml-auto text-red-500/60 shrink-0" size={18} />
+                      </div>
+
+                      {/* Player + Chat lado a lado */}
+                      <div className="flex flex-col lg:flex-row gap-4">
+                        {/* Player ocupa ~65% */}
+                        <div className="relative w-full lg:w-[65%] bg-slate-950 rounded-3xl overflow-hidden shadow-2xl shadow-red-900/20 border border-red-900/30">
+                          <SmartPlayer
+                            customVideoUrl={undefined}
+                            onLiveChange={handleLiveChange}
+                          />
+                        </div>
+
+                        {/* Chat ocupa ~35% */}
+                        <div className="w-full lg:w-[35%] min-h-[340px] lg:min-h-0">
+                          <LiveChat liveUrl={liveUrl} />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* ── MODO BIBLIOTECA: Player + Carrossel ── */}
+                    <div
+                      className={`w-full flex flex-col gap-6 transition-all duration-700 ease-in-out overflow-hidden ${
+                        !isLive ? "max-h-[1200px] opacity-100 translate-y-0" : "max-h-0 opacity-0 translate-y-4 pointer-events-none"
+                      }`}
+                    >
+                      {/* Label Biblioteca */}
+                      <div className="flex items-center gap-3 bg-cyan-500/5 border border-cyan-500/15 rounded-2xl px-5 py-3">
+                        <Radio className="text-cyan-500/70 shrink-0" size={16} />
+                        <p className="text-cyan-600/80 font-black text-xs uppercase tracking-widest">
+                          Biblioteca Web TV — Podcasts &amp; Programas
+                        </p>
+                      </div>
+
+                      {/* Player principal da Biblioteca */}
+                      <div className="relative w-full bg-slate-950 rounded-3xl overflow-hidden shadow-2xl shadow-slate-900/50 border border-slate-800">
+                        <SmartPlayer
+                          customVideoUrl={selectedVideoUrl || undefined}
+                          onLiveChange={handleLiveChange}
+                        />
+                      </div>
+
+                      {/* Carrossel de Vídeos */}
+                      <div className="bg-slate-900/40 backdrop-blur-sm rounded-3xl p-6 border border-white/5 shadow-inner">
+                        <VideoCarousel
+                          activeUrl={selectedVideoUrl}
                           onVideoSelect={(url) => {
                             setSelectedVideoUrl(url);
-                            window.scrollTo({ top: 120, behavior: 'smooth' });
-                          }} 
+                            window.scrollTo({ top: 120, behavior: "smooth" });
+                          }}
                         />
-                     </div>
+                      </div>
+                    </div>
+
                   </section>
 
                   {/* SEÇÃO 2: GRID DE NOTÍCIAS (3x3 CRONOLÓGICO) */}
