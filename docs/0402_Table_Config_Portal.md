@@ -15,6 +15,11 @@ Gerencia o estado global do portal, incluindo status de transmissão e espaços 
 | `banner_vertical_noticia` | TEXT (URL) | URL do banner lateral fixo. |
 | `link_vertical_noticia` | TEXT (URL) | Link de destino do banner lateral. |
 | `live_last_ended_at` | TIMESTAMP | Registro de quando a última live foi encerrada. |
+| `openrouter_api_key` | TEXT | Chave de autorização para o Copiloto IA no painel admin. |
+| `facebook_page_url` | TEXT | URL da página FB para importação do widget na Home. |
+| `youtube_channel_url` | TEXT | URL do Canal/Playlist Base para a seção Biblioteca. |
+| `url_live_youtube` | TEXT | Link do player caso a live seja pelo YouTube. |
+| `mostrar_live_facebook` | BOOLEAN | Chave secundária para forçar a prioridade do Módulo Live para o FB em vez do YT. |
 
 ## Uso no Frontend
 - Utilizado na Home para alternar layouts (Bento vs Cinema).

@@ -10,6 +10,8 @@ export interface ConfiguracaoPortal {
   id?: number;
   is_live: boolean;
   url_live_facebook: string | null;
+  url_live_youtube: string | null;
+  mostrar_live_facebook: boolean;
   fake_viewers_boost: number;
   live_last_ended_at?: string | null;
 }
@@ -105,7 +107,7 @@ export default function SmartPlayer({ customVideoUrl, onLiveChange }: SmartPlaye
 
       const { data, error } = await supabase
         .from("configuracao_portal")
-        .select("id, is_live, url_live_facebook, fake_viewers_boost, live_last_ended_at")
+        .select("id, is_live, url_live_facebook, url_live_youtube, mostrar_live_facebook, fake_viewers_boost, live_last_ended_at")
         .limit(1)
         .single();
 
@@ -142,7 +144,8 @@ export default function SmartPlayer({ customVideoUrl, onLiveChange }: SmartPlaye
           } else {
             setVideoAutomatico(null);
           }
-          onLiveChange?.(newConf.is_live, newConf.url_live_facebook);
+          const activeUrl = newConf.mostrar_live_facebook ? newConf.url_live_facebook : newConf.url_live_youtube;
+          onLiveChange?.(newConf.is_live, activeUrl || newConf.url_live_facebook);
         }
       )
       .subscribe();
@@ -175,9 +178,13 @@ export default function SmartPlayer({ customVideoUrl, onLiveChange }: SmartPlaye
   }
 
   const isAcervo = !config.is_live && (customVideoUrl || videoAutomatico);
+  
+  // Lógica de Bifurcação de Sinal
   const activeVideoUrl = config.is_live
-    ? config.url_live_facebook
+    ? (config.mostrar_live_facebook ? (config.url_live_facebook || config.url_live_youtube) : (config.url_live_youtube || config.url_live_facebook))
     : (customVideoUrl || videoAutomatico);
+
+  const isLiveOnYoutube = config.is_live && detectLivePlatform(activeVideoUrl) === "youtube";
 
   return (
     <div className="w-full mx-auto font-sans">
@@ -209,10 +216,10 @@ export default function SmartPlayer({ customVideoUrl, onLiveChange }: SmartPlaye
         className="relative w-full overflow-hidden rounded-2xl bg-black shadow-2xl shadow-black/40"
         style={{ paddingTop: "56.25%" }}
       >
-        {config.is_live && config.url_live_facebook ? (
+        {config.is_live && activeVideoUrl ? (
           <iframe
-            key={config.url_live_facebook}
-            src={convertEmbedUrl(config.url_live_facebook)}
+            key={activeVideoUrl}
+            src={convertEmbedUrl(activeVideoUrl)}
             className="absolute top-0 left-0 w-full h-full border-0 transition-opacity duration-700"
             allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
             allowFullScreen

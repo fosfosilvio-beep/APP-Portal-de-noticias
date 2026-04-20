@@ -8,10 +8,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "O conteúdo para processamento é obrigatório." }, { status: 400 });
     }
 
-    const apiKey = process.env.OPENROUTER_API_KEY;
+    // Tenta buscar a API Key do Supabase primeiro (Configuração do Painel)
+    // Importante: Importar o cliente aqui ou garantir que esteja disponível
+    const { createClient } = await import("@supabase/supabase-js");
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+      process.env.SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
+    );
+
+    const { data: config } = await supabase.from("configuracao_portal").select("openrouter_api_key").limit(1).single();
+    
+    // Fallback para variável de ambiente se o banco não estiver configurado ou vazio
+    const apiKey = config?.openrouter_api_key || process.env.OPENROUTER_API_KEY;
     
     if (!apiKey) {
-      return NextResponse.json({ error: "Chave da API do OpenRouter não encontrada no servidor." }, { status: 400 });
+      return NextResponse.json({ error: "Configuração de IA (OpenRouter API Key) não encontrada no painel administrativo nem no servidor." }, { status: 400 });
     }
 
     const systemPrompt = `
