@@ -13,7 +13,7 @@ const handler = NextAuth({
       clientSecret: process.env.FACEBOOK_CLIENT_SECRET || "",
     }),
   ],
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || "n0ssa-web-tv-fallback-secret-key-123",
   pages: {
     signIn: "/auth/signin", // Opcional: página customizada depois
   },
