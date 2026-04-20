@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useCallback, useState } from "react";
 import SmartPlayer from "../components/SmartPlayer";
 import LiveChat from "../components/LiveChat";
@@ -123,16 +124,30 @@ export default function Home() {
         setCategoriaAtiva={setCategoriaAtiva}
       />
 
+      {/* ENTERPRISE COLOR INJECTION */}
+      <style jsx global>{`
+        :root {
+          --primary-color: ${config?.ui_settings?.primary_color || '#00AEE0'};
+        }
+        .text-primary { color: var(--primary-color); }
+        .bg-primary { background-color: var(--primary-color); }
+        .border-primary { border-color: var(--primary-color); }
+      `}</style>
+
       <main className="container mx-auto px-4 lg:px-8 py-8 flex-grow">
         
         {loading ? (
-           <div className="w-full h-[60vh] flex flex-col items-center justify-center">
-             <div className="flex space-x-2">
-                <div className="w-4 h-4 bg-cyan-600 rounded-full animate-bounce"></div>
-                <div className="w-4 h-4 bg-cyan-600 rounded-full animate-bounce [animation-delay:-.3s]"></div>
-                <div className="w-4 h-4 bg-cyan-600 rounded-full animate-bounce [animation-delay:-.5s]"></div>
-             </div>
-             <span className="text-slate-500 font-bold uppercase tracking-widest mt-6 text-sm">Atualizando Central...</span>
+           <div className="w-full flex-1 flex flex-col gap-6 animate-pulse">
+              <div className="bg-slate-800/50 w-full h-[400px] rounded-3xl border border-white/5"></div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                 <div className="bg-slate-800/40 h-64 rounded-2xl border border-white/5"></div>
+                 <div className="bg-slate-800/40 h-64 rounded-2xl border border-white/5"></div>
+                 <div className="bg-slate-800/40 h-64 rounded-2xl border border-white/5"></div>
+                 <div className="col-span-1 md:col-span-3 h-10 flex space-x-2 justify-center mt-4">
+                    <div className="w-2 h-2 bg-slate-600 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-slate-600 rounded-full animate-bounce [animation-delay:-.3s]"></div>
+                 </div>
+              </div>
            </div>
         ) : error ? (
            <div className="bg-red-50 border border-red-200 rounded-2xl p-8 text-center max-w-lg mx-auto mt-20 shadow-sm">
@@ -173,17 +188,73 @@ export default function Home() {
                           <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600" />
                         </span>
                         <p className="text-red-400 font-black text-xs uppercase tracking-widest">
-                          Transmissão ao Vivo em andamento — Assista agora!
-                        </p>
-                        <Tv className="ml-auto text-red-500/60 shrink-0" size={18} />
+                  {/* SEÇÃO 1: HERO & LIVE */}
+                  <div className="flex flex-col space-y-12">
+                    
+                    {/* HeroBanner Condicional */}
+                    {config?.ui_settings?.widgets_visibility?.herobanner !== false && (
+                      <HeroBanner 
+                        items={config?.hero_banner_items || []} 
+                        duration={config?.ui_settings?.hero_duration}
+                        transition={config?.ui_settings?.hero_transition}
+                      />
+                    )}
+
+                    <section className="w-full flex flex-col gap-8">
+
+                      {/* ── MODO LIVE: Player + Chat lateral ── */}
+                      <div
+                        className={`w-full transition-all duration-700 ease-in-out overflow-hidden ${
+                          isLive ? "max-h-[800px] opacity-100 translate-y-0" : "max-h-0 opacity-0 -translate-y-4 pointer-events-none"
+                        }`}
+                      >
+                        {/* Banner de alerta ativo */}
+                        <div className="flex items-center gap-3 bg-red-600/10 border border-red-500/20 rounded-2xl px-5 py-3 mb-4">
+                          <span className="relative flex h-3 w-3 shrink-0">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
+                            <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600" />
+                          </span>
+                          <p className="text-red-400 font-black text-xs uppercase tracking-widest">
+                            Transmissão ao Vivo em andamento — Assista agora!
+                          </p>
+                          <Tv className="ml-auto text-red-500/60 shrink-0" size={18} />
+                        </div>
+
+                        {/* Player + Chat lado a lado */}
+                        <div className="flex flex-col lg:flex-row gap-4">
+                          {/* Player ocupa ~65% */}
+                          <div className="relative w-full lg:w-[65%] bg-slate-950 rounded-3xl overflow-hidden shadow-2xl shadow-red-900/20 border border-red-900/30">
+                            <SmartPlayer
+                              customVideoUrl={undefined}
+                              onLiveChange={handleLiveChange}
+                            />
+                          </div>
+
+                          {/* Chat ocupa ~35% */}
+                          <div className="w-full lg:w-[35%] min-h-[340px] lg:min-h-0">
+                            <LiveChat liveUrl={liveUrl} />
+                          </div>
+                        </div>
                       </div>
 
-                      {/* Player + Chat lado a lado */}
-                      <div className="flex flex-col lg:flex-row gap-4">
-                        {/* Player ocupa ~65% */}
-                        <div className="relative w-full lg:w-[65%] bg-slate-950 rounded-3xl overflow-hidden shadow-2xl shadow-red-900/20 border border-red-900/30">
+                      {/* ── MODO BIBLIOTECA: Player + Carrossel ── */}
+                      <div
+                        className={`w-full flex flex-col gap-6 transition-all duration-700 ease-in-out overflow-hidden ${
+                          !isLive ? "max-h-[1200px] opacity-100 translate-y-0" : "max-h-0 opacity-0 translate-y-4 pointer-events-none"
+                        }`}
+                      >
+                        {/* Label Biblioteca */}
+                        <div className="flex items-center gap-3 bg-cyan-500/5 border border-cyan-500/15 rounded-2xl px-5 py-3">
+                          <Radio className="text-cyan-500/70 shrink-0" size={16} />
+                          <p className="text-cyan-600/80 font-black text-xs uppercase tracking-widest">
+                            Biblioteca Web TV — Podcasts &amp; Programas
+                          </p>
+                        </div>
+
+                        {/* Player principal da Biblioteca */}
+                        <div className="relative w-full bg-slate-950 rounded-3xl overflow-hidden shadow-2xl shadow-slate-900/50 border border-slate-800">
                           <SmartPlayer
-                            customVideoUrl={undefined}
+                            customVideoUrl={selectedVideoUrl || undefined}
                             onLiveChange={handleLiveChange}
                           />
                         </div>
@@ -248,16 +319,18 @@ export default function Home() {
                            <Link 
                               key={noticia.id} 
                               href={`/noticia/${noticia.slug || noticia.id}`} 
-                              className="group flex flex-col transition-all duration-300 bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-cyan-900/10 hover:-translate-y-1 hover:border-zinc-700"
+                              className="group flex flex-col transition-all duration-300 bg-slate-900/60 backdrop-blur-md border border-white/5 rounded-2xl overflow-hidden shadow-lg hover:shadow-cyan-900/20 hover:-translate-y-1 hover:border-white/10"
                            >
                               {/* Thumbnail Universal */}
-                              <div className="relative aspect-[16/10] w-full overflow-hidden bg-zinc-800 isolate">
-                                 <img 
+                              <div className="relative aspect-[16/10] w-full overflow-hidden bg-slate-800 isolate">
+                                 <Image 
                                     src={noticia.imagem_capa || `https://picsum.photos/seed/${noticia.id}/600/400`} 
                                     alt={noticia.titulo} 
-                                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out z-0"
+                                    fill
+                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                    className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out z-0"
                                  />
-                                 <div className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-[#09090b] via-[#09090b]/60 to-transparent z-10"></div>
+                                 <div className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-black/90 via-black/40 to-transparent z-10 pointer-events-none"></div>
                                  
                                  {/* Ícone Play Minimalista com Glow (Apenas para vídeos) */}
                                  {(noticia.video_url || noticia.mostrar_no_player) && (
@@ -270,7 +343,7 @@ export default function Home() {
 
                                  {/* Tag de Categoria */}
                                  <div className="absolute top-4 left-4 z-20">
-                                    <span className="bg-zinc-900/80 backdrop-blur-md text-zinc-100 text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-lg border border-zinc-700/50">
+                                    <span className="bg-slate-900/80 backdrop-blur-md text-slate-50 text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-lg border border-white/10">
                                        {noticia.categoria || "Geral"}
                                     </span>
                                  </div>
@@ -278,11 +351,11 @@ export default function Home() {
                                  {/* Conteúdo do Card em Overlay Flutuante */}
                                  <div className="absolute bottom-0 left-0 w-full p-5 flex flex-col flex-1 z-30">
                                     <div className="flex items-center gap-2 mb-2">
-                                       <span className="text-[9px] text-zinc-400 font-bold uppercase tracking-widest bg-zinc-950/60 px-2 py-0.5 rounded-full border border-zinc-800">
+                                       <span className="text-[9px] text-slate-300 font-bold uppercase tracking-widest bg-black/60 backdrop-blur-sm px-2 py-0.5 rounded-full border border-white/5">
                                           {new Date(noticia.created_at).toLocaleDateString()}
                                        </span>
                                     </div>
-                                    <h3 className="text-xl font-bold text-zinc-100 leading-snug group-hover:text-cyan-400 transition-colors line-clamp-3 text-shadow-sm">
+                                    <h3 className="text-xl font-bold text-slate-50 leading-snug group-hover:text-cyan-400 transition-colors line-clamp-3 text-shadow-sm">
                                        {noticia.titulo}
                                     </h3>
                                  </div>

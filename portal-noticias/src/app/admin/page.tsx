@@ -13,7 +13,7 @@ import RichTextEditor from "../../components/RichTextEditor";
 import NewsEditorForm from "../../components/admin/NewsEditorForm";
 import { 
   Plus, Pencil, Layout, Monitor, Trash, 
-  CheckCircle2, XCircle, Info, Smartphone 
+  CheckCircle2, XCircle, Info, Smartphone, Upload, Check, ChevronDown
 } from "lucide-react";
 
 interface StyleConfig {
@@ -60,6 +60,9 @@ export default function AdminPage() {
   const [viewersBoost, setViewersBoost] = useState(0);
   const [savingConfig, setSavingConfig] = useState(false);
   const [totalNoticias, setTotalNoticias] = useState(0);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [uploadingMedia, setUploadingMedia] = useState(false);
 
   // Estados de Branding & UI (ui_settings)
   const [uiSettings, setUiSettings] = useState<any>({
@@ -140,6 +143,36 @@ export default function AdminPage() {
     } catch (err) {
       console.error("Erro ao buscar config. Verifique se adicionou as colunas no Supabase.", err);
     }
+  const handleFileUpload = async (file: File, path: string) => {
+    try {
+      setUploadingMedia(true);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+      const filePath = `${path}/${fileName}`;
+
+      const { data, error } = await supabase.storage
+        .from('media')
+        .upload(filePath, file);
+
+      if (error) throw error;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('media')
+        .getPublicUrl(filePath);
+
+      return publicUrl;
+    } catch (err: any) {
+      alert("Erro no upload: " + err.message);
+      return null;
+    } finally {
+      setUploadingMedia(false);
+    }
+  };
+
+  const notify = (msg: string) => {
+    setToastMessage(msg);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
   };
 
   const handleLogin = (e: React.FormEvent) => {
@@ -158,9 +191,9 @@ export default function AdminPage() {
       if (!supabase) return;
       const { error } = await supabase.from("configuracao_portal").update(fieldsToUpdate).eq("id", 1);
       if (error) throw error;
-      alert("✅ Configurações atualizadas e injetadas no portal em tempo real!");
+      notify("🚀 Configurações Publicadas com Sucesso!");
     } catch (err: any) {
-      alert("❌ Erro ao salvar configuração. Você adicionou esta nova coluna no banco de dados Supabase?\n\nError: " + err.message);
+      alert("❌ Erro ao salvar: " + err.message);
     } finally {
       setSavingConfig(false);
     }
@@ -455,84 +488,151 @@ export default function AdminPage() {
                        <p className="text-sm font-medium text-zinc-500 mb-10">Configure o carrossel da Home e os slots de publicidade em tempo real.</p>
 
                        <section className="space-y-6">
-                          <div className="flex items-center justify-between">
-                             <h4 className="font-black text-zinc-800 text-sm uppercase tracking-widest">HeroBanner Home (Até 5 itens)</h4>
-                             <button 
-                               onClick={() => setHeroBanners([...heroBanners, { image: "", duration: 5000, scale: "object-cover", animation: "fade" }])}
-                               className="text-[10px] font-black bg-blue-50 text-blue-600 px-3 py-1 rounded-full border border-blue-100 hover:bg-blue-600 hover:text-white transition-all shadow-sm"
-                             >
-                               + ADICIONAR BANNER
-                             </button>
-                          </div>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                             {heroBanners.map((item: any, idx: number) => (
-                                <div key={idx} className="bg-zinc-50 border border-zinc-200 rounded-xl p-4 relative group">
-                                   <button 
-                                     onClick={() => setHeroBanners(heroBanners.filter((_: any, i: number) => i !== idx))}
-                                     className="absolute top-2 right-2 p-1 text-zinc-400 hover:text-red-500 transition-colors"
-                                   >
-                                      <Trash2 size={14} />
-                                   </button>
-                                   <div className="flex gap-4">
-                                      <div className="w-20 h-20 bg-zinc-200 rounded-lg overflow-hidden shrink-0">
-                                         {item.image ? <img src={item.image} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-zinc-400"><Monitor size={20}/></div>}
-                                      </div>
-                                      <div className="flex-1 space-y-2">
-                                         <input type="text" value={item.image} onChange={e => {
-                                            const newBanners = [...heroBanners];
-                                            newBanners[idx].image = e.target.value;
-                                            setHeroBanners(newBanners);
-                                         }} placeholder="URL da Imagem..." className="w-full text-[10px] p-2 border border-zinc-200 rounded bg-white outline-none" />
-                                         <div className="flex gap-2">
-                                            <select value={item.scale} onChange={e => {
-                                               const newBanners = [...heroBanners];
-                                               newBanners[idx].scale = e.target.value;
-                                               setHeroBanners(newBanners);
-                                            }} className="text-[9px] font-bold p-1 border border-zinc-200 rounded bg-white outline-none">
-                                               <option value="object-cover">Cover</option>
-                                               <option value="object-contain">Contain</option>
-                                            </select>
-                                            <input type="number" value={item.duration} onChange={e => {
-                                               const newBanners = [...heroBanners];
-                                               newBanners[idx].duration = Number(e.target.value);
-                                               setHeroBanners(newBanners);
-                                            }} className="w-16 text-[9px] font-bold p-1 border border-zinc-200 rounded bg-white outline-none" />
-                                         </div>
-                                      </div>
-                                   </div>
-                                </div>
-                             ))}
-                          </div>
-                       </section>
+                           <div className="flex items-center justify-between border-b border-zinc-100 pb-4">
+                              <div>
+                                 <h4 className="font-black text-zinc-800 text-sm uppercase tracking-widest">Carrossel Hero Principal</h4>
+                                 <p className="text-[10px] text-zinc-500 font-bold">Gerencie até 5 banners rotativos. Use imagens 1920x600 para melhor resultado.</p>
+                              </div>
+                              <button onClick={() => {
+                                 if(heroBanners.length < 5) setHeroBanners([...heroBanners, { image: "", link: "", legend: "", scale: "object-cover" }]);
+                              }} className="bg-zinc-100 hover:bg-zinc-200 text-zinc-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase flex items-center gap-2 transition-all">
+                                 <Plus size={14} /> Adicionar Slide
+                              </button>
+                           </div>
+
+                           <div className="grid grid-cols-1 gap-6">
+                              {heroBanners.map((banner, index) => (
+                                 <div key={index} className="bg-zinc-50 border border-zinc-200 rounded-3xl p-6 flex flex-col md:flex-row gap-6 relative group isolate">
+                                    <button onClick={() => setHeroBanners(heroBanners.filter((_, i) => i !== index))} className="absolute -top-3 -right-3 bg-red-100 text-red-600 p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all z-20">
+                                       <Trash size={16} />
+                                    </button>
+                                    
+                                    <div className="w-full md:w-64 h-40 bg-zinc-200 rounded-2xl overflow-hidden relative border border-zinc-300 shrink-0">
+                                       {banner.image ? (
+                                          <img src={banner.image} alt="Slide Preview" className={`w-full h-full ${banner.scale === 'object-cover' ? 'object-cover' : 'object-contain bg-zinc-800'}`} />
+                                       ) : (
+                                          <div className="w-full h-full flex flex-col items-center justify-center text-zinc-400 gap-2">
+                                             <Smartphone size={24} />
+                                             <span className="text-[8px] font-black uppercase tracking-widest">Sem Imagem</span>
+                                          </div>
+                                       )}
+                                       <label className="absolute inset-0 bg-black/60 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
+                                          <Upload size={20} className="text-white" />
+                                          <input type="file" accept="image/*" className="hidden" onChange={async e => {
+                                             const file = e.target.files?.[0];
+                                             if(file) {
+                                                const url = await handleFileUpload(file, 'banners');
+                                                if(url) {
+                                                   const newBanners = [...heroBanners];
+                                                   newBanners[index].image = url;
+                                                   setHeroBanners(newBanners);
+                                                }
+                                             }
+                                          }} />
+                                       </label>
+                                    </div>
+                                    
+                                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                       <div className="space-y-4">
+                                          <div>
+                                             <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1 block">Link de Destino</label>
+                                             <input type="text" value={banner.link || ""} onChange={e => {
+                                                const newBanners = [...heroBanners];
+                                                newBanners[index].link = e.target.value;
+                                                setHeroBanners(newBanners);
+                                             }} placeholder="https://..." className="w-full text-xs font-bold p-3 border border-zinc-200 rounded-xl bg-white outline-none focus:border-blue-500 transition-all" />
+                                          </div>
+                                          <div>
+                                             <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1 block">Legenda Curta</label>
+                                             <input type="text" value={banner.legend || ""} onChange={e => {
+                                                const newBanners = [...heroBanners];
+                                                newBanners[index].legend = e.target.value;
+                                                setHeroBanners(newBanners);
+                                             }} placeholder="Ex: Notícia em Destaque..." className="w-full text-xs font-bold p-3 border border-zinc-200 rounded-xl bg-white outline-none focus:border-blue-500 transition-all" />
+                                          </div>
+                                       </div>
+                                       <div className="space-y-4">
+                                          <div>
+                                             <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1 block">Escala da Imagem</label>
+                                             <select value={banner.scale || "object-cover"} onChange={e => {
+                                                const newBanners = [...heroBanners];
+                                                newBanners[index].scale = e.target.value;
+                                                setHeroBanners(newBanners);
+                                             }} className="w-full text-xs font-black p-3 border border-zinc-200 rounded-xl bg-white outline-none cursor-pointer">
+                                                <option value="object-cover">Preencher (Cover)</option>
+                                                <option value="object-contain">Inteira (Contain)</option>
+                                             </select>
+                                          </div>
+                                          <div className="bg-white border border-zinc-100 rounded-xl p-3 flex items-center justify-between">
+                                             <span className="text-[9px] font-black text-zinc-400 uppercase">Status</span>
+                                             <CheckCircle2 size={16} className={banner.image ? "text-emerald-500" : "text-zinc-300"} />
+                                          </div>
+                                       </div>
+                                    </div>
+                                 </div>
+                              ))}
+                              {heroBanners.length === 0 && (
+                                 <div className="py-12 border-2 border-dashed border-zinc-200 rounded-3xl text-center space-y-2">
+                                    <Smartphone className="mx-auto text-zinc-200" size={48} />
+                                    <p className="text-zinc-400 font-bold text-sm">Nenhum banner ativo. A Home exibirá o placeholder padrão.</p>
+                                 </div>
+                              )}
+                           </div>
+                        </section>
 
                        <section className="mt-12 space-y-6 pt-10 border-t border-zinc-100">
-                          <h4 className="font-black text-zinc-800 text-sm uppercase tracking-widest">Publicidade (Slots Home)</h4>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                             {[adSlot1, adSlot2].map((slot, idx) => (
-                                <div key={idx} className="bg-zinc-50 border border-zinc-200 rounded-2xl p-6 space-y-4">
-                                   <div className="flex items-center justify-between">
-                                      <span className="text-[10px] font-black text-zinc-400">SLOT 0{idx+1}</span>
-                                      <label className="relative inline-flex items-center cursor-pointer">
-                                        <input type="checkbox" checked={slot.visible} onChange={e => {
-                                           const setter = idx === 0 ? setAdSlot1 : setAdSlot2;
-                                           setter({ ...slot, visible: e.target.checked });
-                                        }} className="sr-only peer" />
-                                        <div className="w-9 h-5 bg-zinc-200 peer-focus:outline-none rounded-full peer peer-checked:bg-blue-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
-                                      </label>
-                                   </div>
-                                   <input type="text" value={slot.image_url} onChange={e => {
-                                      const setter = idx === 0 ? setAdSlot1 : setAdSlot2;
-                                      setter({ ...slot, image_url: e.target.value });
-                                   }} placeholder="URL Banner Publicitário..." className="w-full text-xs p-3 border border-zinc-200 rounded-xl bg-white" />
-                                   <input type="text" value={slot.link} onChange={e => {
-                                      const setter = idx === 0 ? setAdSlot1 : setAdSlot2;
-                                      setter({ ...slot, link: e.target.value });
-                                   }} placeholder="Link de Destino (https://...)" className="w-full text-xs p-3 border border-zinc-200 rounded-xl bg-white" />
-                                </div>
-                             ))}
-                          </div>
-                       </section>
+                           <h4 className="font-black text-zinc-800 text-sm uppercase tracking-widest">Publicidade (Slots Home)</h4>
+                           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                              {[adSlot1, adSlot2].map((slot, idx) => (
+                                 <div key={idx} className="bg-zinc-50 border border-zinc-200 rounded-3xl p-6 space-y-6">
+                                    <div className="flex items-center justify-between">
+                                       <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">SLOT 0{idx+1}</span>
+                                       <label className="relative inline-flex items-center cursor-pointer">
+                                         <input type="checkbox" checked={slot.visible} onChange={e => {
+                                            const setter = idx === 0 ? setAdSlot1 : setAdSlot2;
+                                            setter({ ...slot, visible: e.target.checked });
+                                         }} className="sr-only peer" />
+                                         <div className="w-9 h-5 bg-zinc-200 peer-focus:outline-none rounded-full peer peer-checked:bg-blue-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
+                                       </label>
+                                    </div>
+
+                                    <div className="aspect-[16/6] bg-zinc-200 rounded-2xl overflow-hidden relative border border-zinc-300 group">
+                                       {slot.image_url ? (
+                                          <img src={slot.image_url} alt="Ad Preview" className="w-full h-full object-cover" />
+                                       ) : (
+                                          <div className="w-full h-full flex flex-col items-center justify-center text-zinc-400 gap-2">
+                                             <Layout size={24} />
+                                             <span className="text-[8px] font-black uppercase tracking-widest">Sem Arte</span>
+                                          </div>
+                                       )}
+                                       <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
+                                          <Upload size={20} className="text-white" />
+                                          <input type="file" accept="image/*" className="hidden" onChange={async e => {
+                                             const file = e.target.files?.[0];
+                                             if(file) {
+                                                const url = await handleFileUpload(file, 'ads');
+                                                if(url) {
+                                                   const setter = idx === 0 ? setAdSlot1 : setAdSlot2;
+                                                   setter({ ...slot, image_url: url });
+                                                }
+                                             }
+                                          }} />
+                                       </label>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                       <div>
+                                          <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1 block">Link de Destino</label>
+                                          <input type="text" value={slot.link || ""} onChange={e => {
+                                             const setter = idx === 0 ? setAdSlot1 : setAdSlot2;
+                                             setter({ ...slot, link: e.target.value });
+                                          }} placeholder="https://..." className="w-full text-xs font-bold p-3 border border-zinc-200 rounded-xl bg-white outline-none focus:border-blue-500 transition-all" />
+                                       </div>
+                                    </div>
+                                 </div>
+                              ))}
+                           </div>
+                        </section>
 
                        <div className="mt-10 flex justify-end">
                           <button 
@@ -557,37 +657,87 @@ export default function AdminPage() {
                        <p className="text-sm font-medium text-zinc-500 mb-10">Configure as variáveis visuais do portal. Isso afeta o Header, cores principais e a barra de alertas (Marquee).</p>
                        
                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                         <div className="space-y-4">
-                           <h4 className="font-bold text-zinc-800 text-sm uppercase tracking-widest border-b pb-2">Logomarca & Branding</h4>
-                           
-                           <label className="block text-xs font-bold text-zinc-500 mt-4">Modo de Exibição do Logo</label>
-                           <select 
-                             value={uiSettings.logo_mode} 
-                             onChange={e => setUiSettings({...uiSettings, logo_mode: e.target.value})} 
-                             className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 text-sm font-bold text-zinc-700 outline-none"
-                           >
-                             <option value="image">Imagem (Arquivo PNG/SVG)</option>
-                             <option value="text">Texto Dinâmico (Tipografia Customizada)</option>
-                           </select>
+                          <div className="space-y-6">
+                            <h4 className="font-bold text-zinc-800 text-sm uppercase tracking-widest border-b pb-2">Logomarca & Branding</h4>
+                            
+                            <div>
+                               <label className="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2">Modo de Exibição</label>
+                               <div className="flex bg-zinc-100 p-1 rounded-xl gap-1">
+                                  <button onClick={() => setUiSettings({...uiSettings, logo_mode: 'image'})} className={`flex-1 py-2 rounded-lg text-xs font-black uppercase transition-all ${uiSettings.logo_mode === 'image' ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-400 hover:text-zinc-600'}`}>Imagem</button>
+                                  <button onClick={() => setUiSettings({...uiSettings, logo_mode: 'text'})} className={`flex-1 py-2 rounded-lg text-xs font-black uppercase transition-all ${uiSettings.logo_mode === 'text' ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-400 hover:text-zinc-600'}`}>Texto</button>
+                               </div>
+                            </div>
 
-                           {uiSettings.logo_mode === "image" ? (
-                             <>
-                                <label className="block text-xs font-bold text-zinc-500 mt-4">URL da Logomarca (.png, .svg)</label>
-                                <input type="text" value={uiSettings.logo_url || ""} onChange={e => setUiSettings({...uiSettings, logo_url: e.target.value})} placeholder="Ex: https://..." className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3 text-sm" />
-                             </>
-                           ) : (
-                             <>
-                                <label className="block text-xs font-bold text-zinc-500 mt-4">Nome da Marca (Texto Front-end)</label>
-                                <input type="text" value={uiSettings.brand_name || ""} onChange={e => setUiSettings({...uiSettings, brand_name: e.target.value})} placeholder="Ex: NOSSA WEB TV" className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3 text-sm uppercase" />
-                             </>
-                           )}
-                           
-                           <label className="block text-xs font-bold text-zinc-500 mt-4">Cor Principal do Portal (Hexadecimal)</label>
-                           <div className="flex gap-3">
-                             <input type="color" value={uiSettings.primary_color || "#00AEE0"} onChange={e => setUiSettings({...uiSettings, primary_color: e.target.value})} className="w-12 h-12 rounded-lg cursor-pointer border-0 p-0" />
-                             <input type="text" value={uiSettings.primary_color || "#00AEE0"} onChange={e => setUiSettings({...uiSettings, primary_color: e.target.value})} className="flex-1 bg-white border border-zinc-200 rounded-xl px-4 py-3 text-sm uppercase font-mono" />
-                           </div>
-                         </div>
+                            {uiSettings.logo_mode === "image" ? (
+                              <div className="space-y-4">
+                                 <label className="block text-[10px] font-black text-zinc-400 uppercase tracking-widest">Arquivo da Logomarca</label>
+                                 <div className="w-full h-32 bg-zinc-50 border-2 border-dashed border-zinc-200 rounded-2xl flex flex-col items-center justify-center relative group overflow-hidden">
+                                    {uiSettings.logo_url ? (
+                                       <img src={uiSettings.logo_url} alt="Logo Preview" className="max-h-20 object-contain" />
+                                    ) : (
+                                       <div className="text-zinc-300 flex flex-col items-center gap-1">
+                                          <Smartphone size={32} />
+                                          <span className="text-[10px] font-bold uppercase">PNG/SVG Transparente</span>
+                                       </div>
+                                    )}
+                                    <label className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
+                                       <Upload size={24} className="text-white" />
+                                       <input type="file" accept="image/*" className="hidden" onChange={async e => {
+                                          const file = e.target.files?.[0];
+                                          if(file) {
+                                             const url = await handleFileUpload(file, 'branding');
+                                             if(url) setUiSettings({...uiSettings, logo_url: url});
+                                          }
+                                       }} />
+                                    </label>
+                                 </div>
+                              </div>
+                            ) : (
+                              <div className="space-y-4 animate-in fade-in duration-300">
+                                 <div>
+                                    <label className="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Nome da Marca</label>
+                                    <input type="text" value={uiSettings.brand_name || ""} onChange={e => setUiSettings({...uiSettings, brand_name: e.target.value})} placeholder="Ex: NOSSA WEB TV" className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3 text-sm font-black uppercase" />
+                                 </div>
+                                 <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                       <label className="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Peso</label>
+                                       <select value={uiSettings.font_weight || "900"} onChange={e => setUiSettings({...uiSettings, font_weight: e.target.value})} className="w-full bg-white border border-zinc-200 rounded-xl px-3 py-2 text-xs font-bold">
+                                          <option value="300">Light</option>
+                                          <option value="400">Regular</option>
+                                          <option value="700">Bold</option>
+                                          <option value="900">Black</option>
+                                       </select>
+                                    </div>
+                                    <div>
+                                       <label className="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Tamanho (px)</label>
+                                       <input type="number" value={uiSettings.font_size || 24} onChange={e => setUiSettings({...uiSettings, font_size: parseInt(e.target.value)})} className="w-full bg-white border border-zinc-200 rounded-xl px-3 py-2 text-xs font-bold" />
+                                    </div>
+                                 </div>
+                              </div>
+                            )}
+                            
+                            <div>
+                               <label className="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2">Configuração Global do HeroBanner</label>
+                               <div className="grid grid-cols-2 gap-3 bg-zinc-50 border border-zinc-200 rounded-2xl p-4">
+                                  <div>
+                                     <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">Pausa (ms)</label>
+                                     <input type="number" value={uiSettings.hero_duration || 5000} onChange={e => setUiSettings({...uiSettings, hero_duration: parseInt(e.target.value)})} className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-1.5 text-xs font-bold" />
+                                  </div>
+                                  <div>
+                                     <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">Transição (ms)</label>
+                                     <input type="number" value={uiSettings.hero_transition || 1000} onChange={e => setUiSettings({...uiSettings, hero_transition: parseInt(e.target.value)})} className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-1.5 text-xs font-bold" />
+                                  </div>
+                               </div>
+                            </div>
+
+                            <div>
+                               <label className="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2">Cor Principal (Enterprise Injection)</label>
+                               <div className="flex gap-3">
+                                 <input type="color" value={uiSettings.primary_color || "#00AEE0"} onChange={e => setUiSettings({...uiSettings, primary_color: e.target.value})} className="w-12 h-12 rounded-2xl cursor-pointer border-0 p-0 overflow-hidden shadow-sm hover:scale-105 transition-transform" />
+                                 <input type="text" value={uiSettings.primary_color || "#00AEE0"} onChange={e => setUiSettings({...uiSettings, primary_color: e.target.value})} className="flex-1 bg-white border border-zinc-200 rounded-xl px-4 py-3 text-sm uppercase font-mono font-bold text-zinc-600" />
+                               </div>
+                            </div>
+                          </div>
                          
                          <div className="space-y-4">
                            <h4 className="font-bold text-zinc-800 text-sm uppercase tracking-widest border-b pb-2">Top Marquee (Alerta Urgente)</h4>
@@ -783,6 +933,18 @@ export default function AdminPage() {
            </div>
         </div>
       </main>
+
+      {/* TOAST SYSTEM */}
+      {showToast && (
+         <div className="fixed bottom-8 right-8 z-[100] animate-in slide-in-from-right-8 fade-in duration-300">
+            <div className="bg-zinc-900 text-white px-6 py-4 rounded-2xl shadow-2xl border border-white/10 flex items-center gap-3">
+               <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500">
+                  <Check size={18} />
+               </div>
+               <span className="text-sm font-bold">{toastMessage}</span>
+            </div>
+         </div>
+      )}
     </div>
   );
 }

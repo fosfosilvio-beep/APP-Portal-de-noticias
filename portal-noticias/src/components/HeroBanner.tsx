@@ -13,19 +13,19 @@ interface HeroItem {
   category?: string;
 }
 
-export default function HeroBanner({ items }: { items: HeroItem[] }) {
+export default function HeroBanner({ items, duration, transition }: { items: HeroItem[], duration?: number, transition?: number }) {
   const [current, setCurrent] = useState(0);
 
   useEffect(() => {
     if (!items || items.length <= 1) return;
     
-    const duration = items[current]?.duration || 5000;
+    const slideDuration = items[current]?.duration || duration || 5000;
     const timer = setTimeout(() => {
       setCurrent((prev) => (prev + 1) % items.length);
-    }, duration);
+    }, slideDuration);
 
     return () => clearTimeout(timer);
-  }, [current, items]);
+  }, [current, items, duration]);
 
   if (!items || items.length === 0) return null;
 
@@ -34,7 +34,8 @@ export default function HeroBanner({ items }: { items: HeroItem[] }) {
       {items.map((item, idx) => (
         <div
           key={idx}
-          className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
+          style={{ transitionDuration: `${transition || 1000}ms` }}
+          className={`absolute inset-0 transition-all ease-in-out ${
             idx === current ? "opacity-100 scale-100 z-10" : "opacity-0 scale-105 z-0"
           }`}
         >
