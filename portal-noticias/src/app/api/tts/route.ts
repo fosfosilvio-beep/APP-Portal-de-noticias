@@ -9,17 +9,22 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // Configuração do Cliente Google TTS
-// Tenta carregar das variáveis de ambiente individuais (Vercel) ou usa as credenciais padrão do ambiente
 let clientOptions: any = {};
 
-if (process.env.GOOGLE_PRIVATE_KEY && process.env.GOOGLE_CLIENT_EMAIL && process.env.GOOGLE_PROJECT_ID) {
+if (process.env.GOOGLE_CREDENTIALS_JSON) {
+  try {
+    const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON);
+    clientOptions.credentials = credentials;
+    clientOptions.projectId = credentials.project_id;
+  } catch (e) {
+    console.error("[TTS] Erro ao parsear GOOGLE_CREDENTIALS_JSON:", e);
+  }
+} else if (process.env.GOOGLE_PRIVATE_KEY && process.env.GOOGLE_CLIENT_EMAIL && process.env.GOOGLE_PROJECT_ID) {
   clientOptions.credentials = {
     client_email: process.env.GOOGLE_CLIENT_EMAIL,
     private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, "\n"),
   };
   clientOptions.projectId = process.env.GOOGLE_PROJECT_ID;
-} else if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
-    // Opcional: Se a variável apontar para um arquivo físico
 }
 
 const client = new textToSpeech.TextToSpeechClient(clientOptions);
