@@ -17,8 +17,9 @@ import { useSettingsStore } from "../../store/settingsStore";
 import { 
   Plus, Pencil, Layout, Monitor, Trash, 
   CheckCircle2, XCircle, Info, Smartphone, Upload, Check, ChevronDown, Megaphone,
-  Mic2, Play
+  Mic2, Play, Clock
 } from "lucide-react";
+import { getYouTubeID, timeToSeconds } from "@/lib/utils/videoUtils";
 
 interface StyleConfig {
   font: string;
@@ -1232,6 +1233,9 @@ function PodcastManager() {
   const [epTitulo, setEpTitulo] = useState("");
   const [epVideoUrl, setEpVideoUrl] = useState("");
   const [epThumbUrl, setEpThumbUrl] = useState("");
+  const [epStartTime, setEpStartTime] = useState("00:00:00");
+  const [epEndTime, setEpEndTime] = useState("");
+  const [uploadingThumb, setUploadingThumb] = useState(false);
 
   useEffect(() => {
     fetchPodcasts();
@@ -1272,19 +1276,54 @@ function PodcastManager() {
     setLoading(false);
   };
 
+  const handleEpThumbUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingThumb(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `episodes/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('podcast-covers')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('podcast-covers')
+        .getPublicUrl(filePath);
+
+      setEpThumbUrl(publicUrl);
+    } catch (error: any) {
+      alert("Erro no upload: " + error.message);
+    } finally {
+      setUploadingThumb(false);
+    }
+  };
+
   const handleSaveEpisodio = async () => {
     if (!selectedPodcast || !epTitulo || !epVideoUrl) return alert("Campos obrigatórios");
     setLoading(true);
+
+    const startSeconds = timeToSeconds(epStartTime);
+    const endSeconds = epEndTime ? timeToSeconds(epEndTime) : null;
+
     const epData = {
       podcast_id: selectedPodcast.id,
       titulo: epTitulo,
       video_url: epVideoUrl,
-      thumbnail_url: epThumbUrl
+      thumbnail_url: epThumbUrl,
+      start_time: startSeconds,
+      end_time: endSeconds
     };
 
     const { error } = await supabase.from("episodios").insert(epData);
     if (!error) {
       setEpTitulo(""); setEpVideoUrl(""); setEpThumbUrl("");
+      setEpStartTime("00:00:00"); setEpEndTime("");
       setShowEpForm(false);
       fetchEpisodios(selectedPodcast.id);
     }
@@ -1368,16 +1407,69 @@ function PodcastManager() {
                               <label className="text-[10px] font-black text-zinc-500 uppercase mb-1 block">Título do Episódio</label>
                               <input type="text" value={epTitulo} onChange={e => setEpTitulo(e.target.value)} placeholder="Ex: Episódio #01 - Entrevista com..." className="w-full text-sm font-bold p-3 border border-zinc-200 rounded-xl text-zinc-900 outline-none" />
                            </div>
-                           <div>
-                              <label className="text-[10px] font-black text-zinc-500 uppercase mb-1 block">Link do Vídeo (YT/Vimeo/Direct)</label>
-                              <input type="text" value={epVideoUrl} onChange={e => setEpVideoUrl(e.target.value)} placeholder="https://..." className="w-full text-xs font-bold p-3 border border-zinc-200 rounded-xl text-zinc-900 outline-none" />
+                           <div className="md:col-span-2">
+                              <label className="text-[10px] font-black text-zinc-500 uppercase mb-1 block">Link do Vídeo (YouTube)</label>
+                              <input type="text" value={epVideoUrl} onChange={e => setEpVideoUrl(e.target.value)} placeholder="https://youtube.com/watch?v=..." className="w-full text-xs font-bold p-3 border border-zinc-200 rounded-xl text-zinc-900 outline-none" />
+                              
+                              {/* YOUTUBE PREVIEW */}
+                              {getYouTubeID(epVideoUrl) && (
+                                <div className="mt-4 rounded-xl overflow-hidden border border-zinc-200 shadow-lg bg-black aspect-video relative">
+                                  <iframe 
+                                    src={`https://www.youtube.com/embed/${getYouTubeID(epVideoUrl)}?start=${timeToSeconds(epStartTime)}`} 
+                                    className="w-full h-full" 
+                                    frameBorder="0" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                    allowFullScreen
+                                  ></iframe>
+                                </div>
+                              )}
                            </div>
+                           
                            <div>
-                              <label className="text-[10px] font-black text-zinc-500 uppercase mb-1 block">Capa/Thumbnail (Opcional)</label>
-                              <input type="text" value={epThumbUrl} onChange={e => setEpThumbUrl(e.target.value)} placeholder="https://..." className="w-full text-xs font-bold p-3 border border-zinc-200 rounded-xl text-zinc-900 outline-none" />
+                              <label className="text-[10px] font-black text-zinc-500 uppercase mb-1 block">Capa/Thumbnail</label>
+                              <div className="flex items-center gap-4">
+                                <label className="flex-1 cursor-pointer">
+                                  <div className="border-2 border-dashed border-zinc-300 rounded-xl p-3 text-center hover:border-blue-500 transition-all bg-white">
+                                    {uploadingThumb ? (
+                                      <Loader2 className="animate-spin mx-auto text-blue-600" size={18} />
+                                    ) : epThumbUrl ? (
+                                      <div className="flex items-center justify-center gap-2 text-emerald-600 text-[10px] font-black uppercase">
+                                        <Check size={14} /> Imagem Carregada
+                                      </div>
+                                    ) : (
+                                      <div className="flex items-center justify-center gap-2 text-zinc-400 text-[10px] font-black uppercase">
+                                        <Upload size={14} /> Selecionar Imagem
+                                      </div>
+                                    )}
+                                  </div>
+                                  <input type="file" accept="image/*" className="hidden" onChange={handleEpThumbUpload} />
+                                </label>
+                                {epThumbUrl && (
+                                  <div className="w-12 h-12 rounded-lg bg-zinc-200 overflow-hidden border border-zinc-300">
+                                    <img src={epThumbUrl} className="w-full h-full object-cover" />
+                                  </div>
+                                )}
+                              </div>
+                           </div>
+
+                           <div className="flex gap-3">
+                              <div className="flex-1">
+                                <label className="text-[10px] font-black text-zinc-500 uppercase mb-1 block">Tempo Inicial</label>
+                                <div className="relative">
+                                  <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" size={14} />
+                                  <input type="text" value={epStartTime} onChange={e => setEpStartTime(e.target.value)} placeholder="00:00:00" className="w-full text-xs font-bold p-3 pl-10 border border-zinc-200 rounded-xl text-zinc-900 outline-none" />
+                                </div>
+                              </div>
+                              <div className="flex-1">
+                                <label className="text-[10px] font-black text-zinc-500 uppercase mb-1 block">Tempo Final (Skip)</label>
+                                <div className="relative">
+                                  <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" size={14} />
+                                  <input type="text" value={epEndTime} onChange={e => setEpEndTime(e.target.value)} placeholder="Opcional" className="w-full text-xs font-bold p-3 pl-10 border border-zinc-200 rounded-xl text-zinc-900 outline-none" />
+                                </div>
+                              </div>
                            </div>
                         </div>
-                        <button onClick={handleSaveEpisodio} disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white font-black text-xs px-8 py-3 rounded-xl uppercase tracking-widest shadow-lg shadow-blue-600/20">
+                        <button onClick={handleSaveEpisodio} disabled={loading || uploadingThumb} className="bg-blue-600 hover:bg-blue-700 text-white font-black text-xs px-8 py-3 rounded-xl uppercase tracking-widest shadow-lg shadow-blue-600/20 w-full md:w-auto">
                            {loading ? <Loader2 size={16} className="animate-spin mx-auto" /> : "Publicar Episódio"}
                         </button>
                      </div>

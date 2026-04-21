@@ -22,14 +22,20 @@ export interface ConfiguracaoPortal {
 // ─────────────────────────────────────────────────────────────────────────────
 // Utilitário: converte URL "raw" → URL de embed
 // ─────────────────────────────────────────────────────────────────────────────
-export const convertEmbedUrl = (rawUrl: string | null): string => {
+export const convertEmbedUrl = (rawUrl: string | null, startTime?: number, endTime?: number): string => {
   if (!rawUrl) return "";
   if (rawUrl.includes("youtube.com") || rawUrl.includes("youtu.be")) {
     let videoId = "";
     if (rawUrl.includes("watch?v=")) videoId = rawUrl.split("watch?v=")[1]?.split("&")[0];
     else if (rawUrl.includes("youtu.be/")) videoId = rawUrl.split("youtu.be/")[1]?.split("?")[0];
     else if (rawUrl.includes("/live/")) videoId = rawUrl.split("/live/")[1]?.split("?")[0];
-    if (videoId) return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0`;
+    
+    if (videoId) {
+      let embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0`;
+      if (startTime) embedUrl += `&start=${startTime}`;
+      if (endTime) embedUrl += `&end=${endTime}`;
+      return embedUrl;
+    }
   }
   if (rawUrl.includes("facebook.com") && !rawUrl.includes("plugins/video.php")) {
     return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(rawUrl)}&show_text=false&width=auto`;
@@ -49,13 +55,15 @@ export const detectLivePlatform = (url: string | null): "youtube" | "facebook" |
 // ─────────────────────────────────────────────────────────────────────────────
 interface SmartPlayerProps {
   customVideoUrl?: string;
+  startTime?: number;
+  endTime?: number;
   onLiveChange?: (isLive: boolean, liveUrl: string | null) => void;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Componente
 // ─────────────────────────────────────────────────────────────────────────────
-export default function SmartPlayer({ customVideoUrl, onLiveChange }: SmartPlayerProps) {
+export default function SmartPlayer({ customVideoUrl, startTime, endTime, onLiveChange }: SmartPlayerProps) {
   const [config, setConfig] = useState<ConfiguracaoPortal | null>(null);
   const [loading, setLoading] = useState(true);
   const [videoAutomatico, setVideoAutomatico] = useState<string | null>(null);
@@ -156,7 +164,8 @@ export default function SmartPlayer({ customVideoUrl, onLiveChange }: SmartPlaye
       : (config.url_live_youtube || config.url_live_facebook))
     : (customVideoUrl || videoAutomatico);
 
-  const embedUrl = config?.is_live && activeVideoUrl ? convertEmbedUrl(activeVideoUrl) : null;
+  const isYouTube = detectLivePlatform(activeVideoUrl) === 'youtube';
+  const embedUrl = activeVideoUrl ? convertEmbedUrl(activeVideoUrl, startTime, endTime) : null;
 
   // ── KEY FORCING: atualiza a key APENAS quando a URL muda de fato ───────────
   const prevUrlRef = useRef<string | null>(null);
@@ -256,20 +265,20 @@ export default function SmartPlayer({ customVideoUrl, onLiveChange }: SmartPlaye
           </div>
         )}
 
-        {/* LIVE iframe — key forcing garante unmount completo ao trocar URL */}
-        {config.is_live && embedUrl && (
+        {/* IFRAME PLAYER (YouTube ou Facebook) */}
+        {((config.is_live && embedUrl) || (isAcervo && isYouTube && embedUrl)) && (
           <iframe
             key={playerKey}
             src={embedUrl}
             className="w-full h-full border-0"
             allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
             allowFullScreen
-            title="Transmissão ao vivo – Nossa Web TV"
+            title={config.is_live ? "Transmissão ao vivo – Nossa Web TV" : "Episódio de Podcast"}
           />
         )}
 
-        {/* ACERVO video tag — key forcing idem */}
-        {isAcervo && activeVideoUrl && (
+        {/* NATIVE VIDEO PLAYER (Direto do Storage ou URL Raw) */}
+        {isAcervo && !isYouTube && activeVideoUrl && (
           <video
             key={playerKey}
             src={activeVideoUrl}

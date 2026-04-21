@@ -24,13 +24,15 @@ interface Episodio {
   video_url: string;
   thumbnail_url: string;
   data_publicacao: string;
+  start_time: number;
+  end_time: number | null;
 }
 
 export default function BibliotecaPage() {
   const [podcasts, setPodcasts] = useState<Podcast[]>([]);
   const [selectedPodcast, setSelectedPodcast] = useState<Podcast | null>(null);
   const [episodios, setEpisodios] = useState<Episodio[]>([]);
-  const [selectedVideoUrl, setSelectedVideoUrl] = useState<string | null>(null);
+  const [selectedEpisodio, setSelectedEpisodio] = useState<Episodio | null>(null);
   const [loading, setLoading] = useState(true);
   const [config, setConfig] = useState<any>(null);
 
@@ -77,10 +79,11 @@ export default function BibliotecaPage() {
         .order("data_publicacao", { ascending: false });
       
       setEpisodios(data || []);
+      setEpisodios(data || []);
       if (data && data.length > 0) {
-        setSelectedVideoUrl(data[0].video_url); // Linka o vídeo mais recente no player mestre
+        setSelectedEpisodio(data[0]); // Linka o episódio mais recente no player mestre
       } else {
-        setSelectedVideoUrl(null);
+        setSelectedEpisodio(null);
       }
     } catch (err) {
       console.error("Erro ao carregar episódios:", err);
@@ -146,7 +149,11 @@ export default function BibliotecaPage() {
                 {/* Lado Esquerdo: Player Principal */}
                 <div className="flex-1 min-w-0">
                    <div className="aspect-video w-full bg-black rounded-3xl overflow-hidden shadow-2xl border border-zinc-800">
-                      <SmartPlayer customVideoUrl={selectedVideoUrl || undefined} />
+                      <SmartPlayer 
+                        customVideoUrl={selectedEpisodio?.video_url || undefined} 
+                        startTime={selectedEpisodio?.start_time} 
+                        endTime={selectedEpisodio?.end_time || undefined} 
+                      />
                    </div>
                 </div>
 
@@ -199,9 +206,12 @@ export default function BibliotecaPage() {
                     {episodios.slice(0, 6).map((ep) => (
                       <div 
                         key={ep.id}
-                        onClick={() => setSelectedVideoUrl(ep.video_url)}
+                        onClick={() => {
+                          setSelectedEpisodio(ep);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
                         className={`group relative bg-zinc-900 border transition-all duration-300 rounded-3xl overflow-hidden cursor-pointer hover:scale-[1.02] ${
-                          selectedVideoUrl === ep.video_url ? "border-blue-500 ring-4 ring-blue-500/10" : "border-zinc-800 hover:border-zinc-700"
+                          selectedEpisodio?.id === ep.id ? "border-blue-500 ring-4 ring-blue-500/10" : "border-zinc-800 hover:border-zinc-700"
                         }`}
                       >
                          <div className="aspect-video relative overflow-hidden bg-zinc-800">
