@@ -24,35 +24,19 @@ export interface ConfiguracaoPortal {
 // ─────────────────────────────────────────────────────────────────────────────
 export const convertEmbedUrl = (rawUrl: string | null): string => {
   if (!rawUrl) return "";
-
-  // YouTube (watch, youtu.be e live direto)
   if (rawUrl.includes("youtube.com") || rawUrl.includes("youtu.be")) {
     let videoId = "";
-    if (rawUrl.includes("watch?v=")) {
-      videoId = rawUrl.split("watch?v=")[1]?.split("&")[0];
-    } else if (rawUrl.includes("youtu.be/")) {
-      videoId = rawUrl.split("youtu.be/")[1]?.split("?")[0];
-    } else if (rawUrl.includes("/live/")) {
-      videoId = rawUrl.split("/live/")[1]?.split("?")[0];
-    }
-    if (videoId) {
-      return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0`;
-    }
+    if (rawUrl.includes("watch?v=")) videoId = rawUrl.split("watch?v=")[1]?.split("&")[0];
+    else if (rawUrl.includes("youtu.be/")) videoId = rawUrl.split("youtu.be/")[1]?.split("?")[0];
+    else if (rawUrl.includes("/live/")) videoId = rawUrl.split("/live/")[1]?.split("?")[0];
+    if (videoId) return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0`;
   }
-
-  // Facebook
-  if (rawUrl.includes("facebook.com")) {
-    if (!rawUrl.includes("plugins/video.php")) {
-      return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(rawUrl)}&show_text=false&width=auto`;
-    }
+  if (rawUrl.includes("facebook.com") && !rawUrl.includes("plugins/video.php")) {
+    return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(rawUrl)}&show_text=false&width=auto`;
   }
-
   return rawUrl;
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Helpers: detectar plataforma da live
-// ─────────────────────────────────────────────────────────────────────────────
 export const detectLivePlatform = (url: string | null): "youtube" | "facebook" | "unknown" => {
   if (!url) return "unknown";
   if (url.includes("youtube.com") || url.includes("youtu.be")) return "youtube";
@@ -77,13 +61,12 @@ export default function SmartPlayer({ customVideoUrl, onLiveChange }: SmartPlaye
   const [videoAutomatico, setVideoAutomatico] = useState<string | null>(null);
   const [displayViewers, setDisplayViewers] = useState(0);
 
-  // ── Estado do embed URL: controlado por React, não por DOM imperativo ──────
-  // Isso é o coração do fix do áudio duplicado.
-  // Ao setar null, o React desmonta o <iframe> de forma limpa, parando o áudio.
-  // Ao setar uma nova URL, ele monta um iframe completamente novo e isolado.
-  const [embedUrl, setEmbedUrl] = useState<string | null>(null);
+  // ── KEY FORCING: a chave para erradicar áudio fantasma ─────────────────────
+  // Ao mudar playerKey, React desmonta o nó DOM antigo (iframe) por completo
+  // e instancia um novo do zero. Nenhum useEffect de cleanup manual necessário.
+  const [playerKey, setPlayerKey] = useState(Date.now());
 
-  // channelId estável — não recria a cada re-render (root cause do áudio duplo)
+  // channelId estável via useRef — não recria subscription a cada re-render
   const channelIdRef = useRef(`smart_player_${Math.random().toString(36).substring(2, 9)}`);
 
   // ─── Fallback chain ────────────────────────────────────────────────────────
@@ -95,10 +78,7 @@ export default function SmartPlayer({ customVideoUrl, onLiveChange }: SmartPlaye
       .limit(1)
       .maybeSingle();
 
-    if (acervo?.url_video) {
-      setVideoAutomatico(acervo.url_video);
-      return;
-    }
+    if (acervo?.url_video) { setVideoAutomatico(acervo.url_video); return; }
 
     const { data: lives } = await supabase
       .from("biblioteca_lives")
@@ -113,16 +93,14 @@ export default function SmartPlayer({ customVideoUrl, onLiveChange }: SmartPlaye
   const fetchConfig = useCallback(async () => {
     try {
       if (!supabase) throw new Error("Client Supabase não encontrado.");
-
       const { data, error } = await supabase
         .from("configuracao_portal")
         .select("id, is_live, url_live_facebook, url_live_youtube, mostrar_live_facebook, fake_viewers_boost, live_last_ended_at, titulo_live, descricao_live, organic_views_enabled")
         .limit(1)
         .single();
 
-      if (error) {
-        console.error("[SmartPlayer] Erro ao buscar configuração:", error);
-      } else if (data) {
+      if (error) console.error("[SmartPlayer] Erro:", error);
+      else if (data) {
         setConfig(data);
         if (!data.is_live) await resolverFallback();
         onLiveChange?.(data.is_live, data.url_live_facebook);
@@ -134,10 +112,9 @@ export default function SmartPlayer({ customVideoUrl, onLiveChange }: SmartPlaye
     }
   }, [resolverFallback, onLiveChange]);
 
-  // ─── Inicialização + Realtime (channelId estável via useRef) ───────────────
+  // ─── Inicialização + Realtime ──────────────────────────────────────────────
   useEffect(() => {
     fetchConfig();
-
     if (!supabase) return;
 
     const channel = supabase
@@ -148,24 +125,16 @@ export default function SmartPlayer({ customVideoUrl, onLiveChange }: SmartPlaye
         async (payload) => {
           const newConf = payload.new as ConfiguracaoPortal;
           setConfig(newConf);
-          if (!newConf.is_live) {
-            await resolverFallback();
-            setVideoAutomatico(null); // Reseta antes de resolver
-          } else {
-            setVideoAutomatico(null);
-          }
-          const activeUrl = newConf.mostrar_live_facebook
-            ? newConf.url_live_facebook
-            : newConf.url_live_youtube;
+          setVideoAutomatico(null);
+          if (!newConf.is_live) await resolverFallback();
+          const activeUrl = newConf.mostrar_live_facebook ? newConf.url_live_facebook : newConf.url_live_youtube;
           onLiveChange?.(newConf.is_live, activeUrl || newConf.url_live_facebook);
         }
       )
       .subscribe();
 
-    // Cleanup: remove o canal do Realtime ao desmontar
     return () => { supabase.removeChannel(channel); };
-  // fetchConfig e resolverFallback são memoizados com useCallback — safe
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ─── Bifurcação de Sinal ───────────────────────────────────────────────────
@@ -176,30 +145,16 @@ export default function SmartPlayer({ customVideoUrl, onLiveChange }: SmartPlaye
       : (config.url_live_youtube || config.url_live_facebook))
     : (customVideoUrl || videoAutomatico);
 
-  // ─── FIX CRÍTICO: Gerencia o embedUrl via estado React ──────────────────────
-  // REGRA: Quando activeVideoUrl muda, PRIMEIRO seta null (desmonta o iframe = para áudio),
-  // DEPOIS seta a nova URL (monta iframe limpo). Isso elimina o áudio fantasma.
+  const embedUrl = config?.is_live && activeVideoUrl ? convertEmbedUrl(activeVideoUrl) : null;
+
+  // ── KEY FORCING: atualiza a key APENAS quando a URL muda de fato ───────────
+  const prevUrlRef = useRef<string | null>(null);
   useEffect(() => {
-    if (!activeVideoUrl || !config?.is_live) {
-      // Modo Acervo: usa tag <video> controlada pelo React nativamente
-      setEmbedUrl(null);
-      return;
+    if (activeVideoUrl !== prevUrlRef.current) {
+      prevUrlRef.current = activeVideoUrl ?? null;
+      setPlayerKey(Date.now());
     }
-
-    // Step 1: Destruição — seta null para desmontagem limpa do iframe anterior
-    setEmbedUrl(null);
-
-    // Step 2: Recriação com micro-delay para garantir desmontagem
-    const timer = setTimeout(() => {
-      setEmbedUrl(convertEmbedUrl(activeVideoUrl));
-    }, 80);
-
-    return () => {
-      clearTimeout(timer);
-      // Cleanup ao sair: para o áudio zerando o src antes do unmount
-      setEmbedUrl(null);
-    };
-  }, [activeVideoUrl, config?.is_live]);
+  }, [activeVideoUrl]);
 
   // ─── Simulação de Viewers ──────────────────────────────────────────────────
   useEffect(() => {
@@ -218,7 +173,6 @@ export default function SmartPlayer({ customVideoUrl, onLiveChange }: SmartPlaye
         return newVal;
       });
     }, 5000);
-
     return () => clearInterval(interval);
   }, [config?.fake_viewers_boost, config?.is_live, config?.organic_views_enabled]);
 
@@ -226,75 +180,89 @@ export default function SmartPlayer({ customVideoUrl, onLiveChange }: SmartPlaye
   if (loading) {
     return (
       <div className="w-full min-w-0">
-        <div className="w-full aspect-video animate-pulse rounded-2xl bg-slate-800" />
+        <div className="w-full aspect-video animate-pulse rounded-xl bg-slate-200" />
       </div>
     );
   }
 
   if (!config) {
     return (
-      <div className="w-full min-w-0 aspect-video relative overflow-hidden rounded-2xl bg-zinc-900">
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
-          <h3 className="text-zinc-400 text-xl font-medium">Player indisponível no momento.</h3>
-          <p className="text-zinc-600 text-sm mt-2">Nossas transmissões retornam em breve.</p>
+      <div className="w-full min-w-0 overflow-hidden rounded-xl bg-white shadow-sm border border-slate-200">
+        <div className="w-full aspect-video bg-zinc-900 flex flex-col items-center justify-center text-center p-6">
+          <h3 className="text-zinc-400 text-xl font-medium">Player indisponível</h3>
+          <p className="text-zinc-600 text-sm mt-2">Retornamos em breve.</p>
         </div>
       </div>
     );
   }
 
+  // ─────────────────────────────────────────────────────────────────────────────
+  // RENDER — Estrutura DESACOPLADA: overlays FORA do container do vídeo.
+  // ─────────────────────────────────────────────────────────────────────────────
   return (
-    // min-w-0 + overflow-hidden: garante que o player nunca transborde o flex pai
-    <div className="w-full min-w-0 font-sans overflow-hidden">
+    <div className="w-full min-w-0 overflow-hidden rounded-xl bg-white shadow-sm border border-slate-200 font-sans">
 
-      {/* ── CONTAINER PRINCIPAL: aspect-video = 16:9 perfeito, overflow-hidden ── */}
-      <div className="relative w-full aspect-video overflow-hidden rounded-2xl bg-black shadow-2xl shadow-black/40">
+      {/* ═══ BARRA DE STATUS — COMPLETAMENTE FORA DO PLAYER ═══ */}
+      {config.is_live && (
+        <div className="flex flex-row justify-between items-center px-3 sm:px-4 py-2.5 border-b border-red-100 bg-red-50">
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2.5 w-2.5 shrink-0">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-600" />
+            </span>
+            <span className="bg-red-600 text-white px-2.5 py-1 text-[10px] sm:text-xs rounded-full font-black uppercase tracking-wider">
+              REC · {displayViewers.toLocaleString("pt-BR")}
+            </span>
+          </div>
+          <span className="bg-gradient-to-r from-orange-500 to-pink-600 text-white px-3 py-1 text-[10px] sm:text-xs rounded-full font-black uppercase tracking-widest">
+            EXCLUSIVO
+          </span>
+        </div>
+      )}
 
-        {/* ── PLACEHOLDER: exibido quando não há URL ── */}
+      {isAcervo && (
+        <div className="flex items-center gap-2 px-3 sm:px-4 py-2.5 border-b border-cyan-100 bg-cyan-50">
+          <div className="w-2 h-2 rounded-full bg-cyan-500 shadow-[0_0_6px_rgba(6,182,212,0.6)]" />
+          <span className="text-cyan-700 text-[10px] sm:text-xs font-black uppercase tracking-widest">
+            {customVideoUrl ? "Reproduzindo Agora" : "Acervo Regional"}
+          </span>
+        </div>
+      )}
+
+      {/* ═══ CONTAINER DO VÍDEO — LIMPO, SEM NENHUM OVERLAY ═══ */}
+      <div className="relative w-full aspect-video bg-black">
+
+        {/* Placeholder — sem vídeo */}
         {!activeVideoUrl && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-zinc-900 overflow-hidden">
-            <div className="absolute inset-0 opacity-40">
-              <img
-                src="https://images.unsplash.com/photo-1585829365295-ab7cd400c167?auto=format&fit=crop&w=1600&q=80"
-                alt="Capa Nossa Web TV"
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent" />
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-zinc-900">
+            <div className="bg-white/10 backdrop-blur-sm p-5 rounded-full mb-4 border border-white/10">
+              <svg className="w-10 h-10 sm:w-12 sm:h-12 text-white/60" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" />
+              </svg>
             </div>
-            <div className="relative z-10 flex flex-col items-center text-center p-6">
-              <div className="bg-white/10 backdrop-blur-sm p-5 rounded-full mb-4 border border-white/10">
-                <svg className="w-12 h-12 text-white/60" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M8 5v14l11-7z" />
-                </svg>
-              </div>
-              <h3 className="text-white text-lg sm:text-2xl font-bold mb-2 tracking-tight">Portal Nossa Web TV</h3>
-              <p className="text-gray-400 text-xs sm:text-sm max-w-md">
-                Nenhuma transmissão ao vivo. Acompanhe nossas notícias abaixo.
-              </p>
-            </div>
+            <h3 className="text-white text-base sm:text-xl font-bold mb-1">Portal Nossa Web TV</h3>
+            <p className="text-gray-500 text-xs sm:text-sm">Nenhuma transmissão no momento.</p>
           </div>
         )}
 
-        {/* ── LIVE: iframe controlado por estado React (FIX de áudio duplo) ──
-            Quando embedUrl é null, o React DESMONTA o iframe completamente,
-            parando qualquer áudio residual antes de montar o próximo.
-        ── */}
+        {/* LIVE iframe — key forcing garante unmount completo ao trocar URL */}
         {config.is_live && embedUrl && (
           <iframe
-            key={embedUrl}                    // key vinculada à URL, não ao tempo
+            key={playerKey}
             src={embedUrl}
-            className="absolute top-0 left-0 w-full h-full border-0"
+            className="w-full h-full border-0"
             allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
             allowFullScreen
             title="Transmissão ao vivo – Nossa Web TV"
           />
         )}
 
-        {/* ── ACERVO: tag <video> nativa do React — sem manipulação DOM ── */}
+        {/* ACERVO video tag — key forcing idem */}
         {isAcervo && activeVideoUrl && (
           <video
-            key={activeVideoUrl}
+            key={playerKey}
             src={activeVideoUrl}
-            className="absolute top-0 left-0 w-full h-full object-contain bg-black"
+            className="w-full h-full object-contain bg-black"
             controls
             autoPlay={!!customVideoUrl}
             muted={!customVideoUrl}
@@ -302,60 +270,19 @@ export default function SmartPlayer({ customVideoUrl, onLiveChange }: SmartPlaye
             playsInline
           />
         )}
+      </div>
 
-        {/* ── OVERLAYS: estritamente DENTRO do container relative ── */}
-
-        {/* Barra de selos — topo */}
-        <div className="absolute top-2 sm:top-4 left-2 sm:left-4 right-2 sm:right-4 z-20 flex justify-between items-start pointer-events-none">
-          <div className="flex flex-col gap-1.5 sm:gap-2">
-            {config.is_live && (
-              <div className="flex items-center gap-1.5 bg-red-600/90 backdrop-blur-md px-2 sm:px-3 py-1 sm:py-1.5 rounded-full shadow-lg border border-red-500/50 w-fit pointer-events-auto">
-                <span className="relative flex h-2 w-2 shrink-0">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-300 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
-                </span>
-                <span className="text-white font-black text-[10px] sm:text-xs tracking-wider uppercase">
-                  REC <span className="mx-1 text-red-200">·</span> {displayViewers.toLocaleString("pt-BR")}
-                </span>
-              </div>
-            )}
-            {isAcervo && (
-              <div className="flex items-center gap-1.5 bg-slate-900/80 backdrop-blur-md px-2 sm:px-3 py-1 rounded-full shadow-md border border-white/10 w-fit pointer-events-auto">
-                <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
-                <span className="text-white font-bold text-[9px] sm:text-[10px] tracking-widest uppercase">
-                  {customVideoUrl ? "REPRODUZINDO" : "ACERVO REGIONAL"}
-                </span>
-              </div>
-            )}
-          </div>
-
-          {config.is_live && (
-            <div className="bg-gradient-to-r from-orange-500 to-pink-600 px-2 sm:px-4 py-1 sm:py-1.5 rounded-full shadow-lg border border-white/20 pointer-events-auto">
-              <span className="text-white font-black text-[9px] sm:text-[11px] tracking-widest uppercase drop-shadow-md">
-                EXCLUSIVO
-              </span>
-            </div>
+      {/* ═══ RODAPÉ DE METADADOS — FORA DO PLAYER ═══ */}
+      {config.is_live && (config.titulo_live || config.descricao_live) && (
+        <div className="px-4 py-3 sm:py-4 bg-slate-900 border-t border-slate-800">
+          {config.titulo_live && (
+            <h2 className="text-white font-black text-sm sm:text-lg leading-tight mb-0.5">{config.titulo_live}</h2>
+          )}
+          {config.descricao_live && (
+            <p className="text-slate-400 text-xs sm:text-sm font-medium line-clamp-2">{config.descricao_live}</p>
           )}
         </div>
-
-        {/* Metadados da live — rodapé */}
-        {config.is_live && (config.titulo_live || config.descricao_live) && (
-          <div className="absolute bottom-2 sm:bottom-6 left-2 sm:left-6 right-2 sm:right-6 z-20 pointer-events-none transition-all duration-500 animate-in fade-in slide-in-from-bottom-2">
-            <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 p-3 sm:p-5 rounded-xl sm:rounded-2xl max-w-xl shadow-2xl">
-              {config.titulo_live && (
-                <h4 className="text-white font-black text-sm sm:text-lg leading-tight mb-1 drop-shadow-md">
-                  {config.titulo_live}
-                </h4>
-              )}
-              {config.descricao_live && (
-                <p className="text-zinc-300 text-[10px] sm:text-xs font-medium line-clamp-2 opacity-90">
-                  {config.descricao_live}
-                </p>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
+      )}
     </div>
   );
 }
