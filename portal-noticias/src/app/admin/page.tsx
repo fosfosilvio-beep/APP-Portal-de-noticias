@@ -19,7 +19,7 @@ import {
   CheckCircle2, XCircle, Info, Smartphone, Upload, Check, ChevronDown, Megaphone,
   Mic2, Play, Clock
 } from "lucide-react";
-import { getYouTubeID, timeToSeconds } from "@/lib/utils/videoUtils";
+import { getYouTubeID, timeToSeconds } from "../../lib/utils/videoUtils";
 
 interface StyleConfig {
   font: string;
