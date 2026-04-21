@@ -1233,6 +1233,7 @@ function PodcastManager() {
   const [epTitulo, setEpTitulo] = useState("");
   const [epVideoUrl, setEpVideoUrl] = useState("");
   const [epThumbUrl, setEpThumbUrl] = useState("");
+  const [epConvidados, setEpConvidados] = useState("");
   const [epStartTime, setEpStartTime] = useState("00:00:00");
   const [epEndTime, setEpEndTime] = useState("");
   const [uploadingThumb, setUploadingThumb] = useState(false);
@@ -1316,13 +1317,14 @@ function PodcastManager() {
       titulo: epTitulo,
       video_url: epVideoUrl,
       thumbnail_url: epThumbUrl,
+      convidados: epConvidados,
       start_time: startSeconds,
       end_time: endSeconds
     };
 
     const { error } = await supabase.from("episodios").insert(epData);
     if (!error) {
-      setEpTitulo(""); setEpVideoUrl(""); setEpThumbUrl("");
+      setEpTitulo(""); setEpVideoUrl(""); setEpThumbUrl(""); setEpConvidados("");
       setEpStartTime("00:00:00"); setEpEndTime("");
       setShowEpForm(false);
       fetchEpisodios(selectedPodcast.id);
@@ -1406,6 +1408,10 @@ function PodcastManager() {
                            <div className="md:col-span-2">
                               <label className="text-[10px] font-black text-zinc-500 uppercase mb-1 block">Título do Episódio</label>
                               <input type="text" value={epTitulo} onChange={e => setEpTitulo(e.target.value)} placeholder="Ex: Episódio #01 - Entrevista com..." className="w-full text-sm font-bold p-3 border border-zinc-200 rounded-xl text-zinc-900 outline-none" />
+                           </div>
+                           <div className="md:col-span-2">
+                              <label className="text-[10px] font-black text-zinc-500 uppercase mb-1 block">Convidados (Separados por vírgula)</label>
+                              <input type="text" value={epConvidados} onChange={e => setEpConvidados(e.target.value)} placeholder="Ex: Davi, Vitor, Dr. Roberto" className="w-full text-xs font-bold p-3 border border-zinc-200 rounded-xl text-zinc-900 outline-none" />
                            </div>
                            <div className="md:col-span-2">
                               <label className="text-[10px] font-black text-zinc-500 uppercase mb-1 block">Link do Vídeo (YouTube)</label>
