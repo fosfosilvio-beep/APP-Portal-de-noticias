@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useSettingsStore } from "../store/settingsStore";
 import NotificationBell from "./NotificationBell";
+import LoginModal from "./LoginModal";
 import { supabase } from "../lib/supabase";
 import { useEffect, useState } from "react";
 import { User, LogOut, Menu, X, ChevronRight } from "lucide-react";
@@ -39,6 +40,7 @@ export default function Header({
   const { ui } = useSettingsStore();
   const [session, setSession] = useState<any>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
@@ -171,7 +173,10 @@ export default function Header({
                     </button>
                   </div>
                 ) : (
-                  <button className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-zinc-200 transition-colors">
+                  <button 
+                    onClick={() => setIsLoginModalOpen(true)}
+                    className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-zinc-200 transition-colors"
+                  >
                     <User size={13} /> Entrar
                   </button>
                 )}
@@ -282,8 +287,11 @@ export default function Header({
               </button>
             </div>
           ) : (
-            <button className="w-full flex items-center justify-center gap-2 bg-white text-black px-4 py-3 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-zinc-200 transition-colors">
-              <User size={16} /> Entrar com Google
+            <button 
+              onClick={() => setIsLoginModalOpen(true)}
+              className="w-full flex items-center justify-center gap-2 bg-white text-black px-4 py-3 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-zinc-200 transition-colors"
+            >
+              <User size={16} /> Entrar com Redes Sociais
             </button>
           )}
         </div>
@@ -323,6 +331,11 @@ export default function Header({
           <p className="text-center text-zinc-700 text-[10px] font-bold mt-3 uppercase tracking-widest">Nossa Web TV © 2025</p>
         </div>
       </div>
+      
+      <LoginModal 
+        isOpen={isLoginModalOpen} 
+        onClose={() => setIsLoginModalOpen(false)} 
+      />
     </>
   );
 }

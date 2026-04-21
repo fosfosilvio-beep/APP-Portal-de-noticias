@@ -1237,6 +1237,7 @@ function PodcastManager() {
   const [epStartTime, setEpStartTime] = useState("00:00:00");
   const [epEndTime, setEpEndTime] = useState("");
   const [uploadingThumb, setUploadingThumb] = useState(false);
+  const [uploadingPodFoto, setUploadingPodFoto] = useState(false);
 
   useEffect(() => {
     fetchPodcasts();
@@ -1275,6 +1276,34 @@ function PodcastManager() {
       fetchPodcasts();
     }
     setLoading(false);
+  };
+
+  const handlePodFotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingPodFoto(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `presenters/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('podcast-covers')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('podcast-covers')
+        .getPublicUrl(filePath);
+
+      setPodFoto(publicUrl);
+    } catch (error: any) {
+      alert("Erro no upload: " + error.message);
+    } finally {
+      setUploadingPodFoto(false);
+    }
   };
 
   const handleEpThumbUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1362,7 +1391,25 @@ function PodcastManager() {
                   <div className="p-5 border-b border-zinc-100 bg-blue-50/30 space-y-3">
                      <input type="text" placeholder="Nome do Programa" value={podNome} onChange={e => setPodNome(e.target.value)} className="w-full text-xs font-bold p-2.5 border border-blue-200 rounded-lg text-zinc-900 outline-none placeholder:text-zinc-400" />
                      <input type="text" placeholder="Nome do Apresentador" value={podApresentador} onChange={e => setPodApresentador(e.target.value)} className="w-full text-xs font-bold p-2.5 border border-blue-200 rounded-lg text-zinc-900 outline-none placeholder:text-zinc-400" />
-                     <input type="text" placeholder="URL Foto Apresentador" value={podFoto} onChange={e => setPodFoto(e.target.value)} className="w-full text-xs font-bold p-2.5 border border-blue-200 rounded-lg text-zinc-900 outline-none placeholder:text-zinc-400" />
+                     
+                     <div className="space-y-2">
+                        <label className="text-[10px] font-black text-blue-600 uppercase tracking-widest block">Foto do Apresentador</label>
+                        <div className="flex items-center gap-3">
+                           {podFoto && <img src={podFoto} className="w-10 h-10 rounded-full object-cover border border-blue-200" />}
+                           <div className="flex-1 relative">
+                              <input 
+                                 type="file" 
+                                 accept="image/*" 
+                                 onChange={handlePodFotoUpload}
+                                 className="absolute inset-0 opacity-0 cursor-pointer z-10" 
+                              />
+                              <div className="w-full text-[10px] font-bold p-2.5 border border-dashed border-blue-200 rounded-lg text-blue-600 bg-white text-center">
+                                 {uploadingPodFoto ? "Enviando..." : podFoto ? "Alterar Foto" : "Selecionar Foto"}
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+
                      <input type="text" placeholder="Horário (ex: Segundas 20h)" value={podHorario} onChange={e => setPodHorario(e.target.value)} className="w-full text-xs font-bold p-2.5 border border-blue-200 rounded-lg text-zinc-900 outline-none placeholder:text-zinc-400" />
                      <textarea placeholder="Breve descrição..." value={podDesc} onChange={e => setPodDesc(e.target.value)} className="w-full text-xs font-bold p-2.5 border border-blue-200 rounded-lg text-zinc-900 outline-none h-20 resize-none placeholder:text-zinc-400" />
                      <button onClick={handleSavePodcast} disabled={loading} className="w-full bg-blue-600 text-white font-black text-[10px] py-2.5 rounded-lg uppercase tracking-widest">

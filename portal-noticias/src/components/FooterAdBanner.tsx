@@ -31,7 +31,7 @@ export default function FooterAdBanner({
             <img
               src={imageUrl}
               alt={altText}
-              className="w-full max-h-[120px] object-cover group-hover:scale-[1.01] transition-transform duration-700"
+              className="w-full h-20 sm:h-auto sm:max-h-[120px] object-cover group-hover:scale-[1.01] transition-transform duration-700"
             />
             {/* Overlay com selo de publicidade */}
             <div className="absolute top-2 right-3 flex items-center gap-1.5 bg-black/50 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10">

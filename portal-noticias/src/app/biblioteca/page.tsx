@@ -198,13 +198,24 @@ export default function BibliotecaPage() {
                   <button
                     key={pod.id}
                     onClick={() => setSelectedPodcast(pod)}
-                    className={`whitespace-nowrap px-6 py-2.5 rounded-full text-xs font-black uppercase tracking-widest transition-all ${
-                      selectedPodcast?.id === pod.id 
-                        ? "bg-blue-600 text-white shadow-[0_0_20px_#2563eb44]" 
-                        : "bg-zinc-900 text-zinc-500 hover:text-zinc-300 border border-zinc-800"
+                    className={`flex flex-col items-center gap-3 shrink-0 group transition-all ${
+                      selectedPodcast?.id === pod.id ? "opacity-100" : "opacity-60 hover:opacity-100"
                     }`}
                   >
-                    {pod.nome}
+                    <div className={`relative w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden border-4 transition-all ${
+                       selectedPodcast?.id === pod.id ? "border-blue-600 shadow-[0_0_15px_#2563eb66]" : "border-zinc-800"
+                    }`}>
+                       <img 
+                         src={pod.apresentador_foto_url || "https://ui-avatars.com/api/?name=" + pod.nome} 
+                         className="w-full h-full object-cover transition-transform group-hover:scale-110"
+                         alt={pod.nome}
+                       />
+                    </div>
+                    <span className={`text-[10px] font-black uppercase tracking-widest text-center max-w-[100px] truncate ${
+                      selectedPodcast?.id === pod.id ? "text-blue-500" : "text-zinc-500"
+                    }`}>
+                      {pod.nome}
+                    </span>
                   </button>
                 ))}
               </div>
@@ -272,17 +283,21 @@ export default function BibliotecaPage() {
                           <p className="text-xs font-bold text-white">{selectedEpisodio.convidados}</p>
                         </div>
                       )}
-                      <div className="w-full grid grid-cols-2 gap-3 pt-4 border-t border-zinc-800/50">
+                      <div className="w-full grid grid-cols-3 gap-2 pt-4 border-t border-zinc-800/50">
                          <div className="bg-zinc-800/50 p-3 rounded-2xl">
-                            <span className="text-[8px] font-black text-zinc-500 uppercase block">Episódios</span>
-                            <span className="text-xl font-black">{episodios.length}</span>
+                            <span className="text-[7px] font-black text-zinc-500 uppercase block">Episódios</span>
+                            <span className="text-lg font-black">{episodios.length}</span>
                          </div>
                          <div className="bg-zinc-800/50 p-3 rounded-2xl">
-                            <span className="text-[8px] font-black text-zinc-500 uppercase block">Horário</span>
-                            <span className="text-xs font-black truncate">{selectedPodcast.horario_exibicao || "A definir"}</span>
+                            <span className="text-[7px] font-black text-zinc-500 uppercase block">Horário</span>
+                            <span className="text-[10px] font-black truncate">{selectedPodcast.horario_exibicao || "A definir"}</span>
+                         </div>
+                         <div className="bg-zinc-800/50 p-3 rounded-2xl border border-blue-500/20 shadow-[0_0_10px_rgba(37,99,235,0.1)]">
+                            <span className="text-[7px] font-black text-blue-500 uppercase block">Views</span>
+                            <span className="text-lg font-black text-white">{selectedEpisodio?.view_count || 0}</span>
                          </div>
                       </div>
-                      <p className="text-zinc-400 text-sm italic line-clamp-3">
+                      <p className="text-zinc-400 text-sm mt-4 italic line-clamp-2">
                         "{selectedPodcast.descricao || "Acompanhe as principais pautas e entrevistas exclusivas em nosso podcast oficial."}"
                       </p>
                    </div>
@@ -345,7 +360,7 @@ export default function BibliotecaPage() {
                          comments.map(c => (
                             <div key={c.id} className="bg-zinc-950/50 p-4 rounded-2xl border border-white/5 animate-in slide-in-from-right-4">
                                <div className="flex items-center justify-between mb-2">
-                                  <span className="text-[9px] font-black text-blue-500 uppercase tracking-widest">Ouvinte Anônimo</span>
+                                  <span className="text-[9px] font-black text-blue-500 uppercase tracking-widest">Internauta Anônimo</span>
                                   <span className="text-[8px] font-bold text-zinc-600">{new Date(c.created_at).toLocaleTimeString()}</span>
                                </div>
                                <p className="text-xs text-zinc-400 leading-relaxed font-medium">{c.mensagem}</p>

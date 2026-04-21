@@ -30,8 +30,8 @@ export default function HeroBanner({ items, duration, transition }: { items: Her
   if (!items || items.length === 0) return null;
 
   return (
-    // FAIXA RETANGULAR WIDESCREEN — h-48 mobile / h-64 tablet / h-72 desktop
-    <div className="relative w-full h-48 md:h-64 lg:h-72 rounded-2xl lg:rounded-3xl overflow-hidden shadow-lg border border-slate-200 group">
+    // FAIXA RETANGULAR WIDESCREEN — Reduzida para formato "fino"
+    <div className="relative w-full h-32 md:h-44 lg:h-52 rounded-none lg:rounded-3xl overflow-hidden shadow-lg border-b border-slate-200 group">
       {items.map((item, idx) => (
         <div
           key={idx}

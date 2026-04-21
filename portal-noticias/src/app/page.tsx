@@ -128,7 +128,6 @@ export default function Home() {
         setCategoriaAtiva={setCategoriaAtiva}
       />
 
-      {/* ENTERPRISE COLOR INJECTION */}
       <style dangerouslySetInnerHTML={{ __html: `
         :root {
           --primary-color: ${config?.ui_settings?.primary_color || '#00AEE0'};
@@ -137,6 +136,13 @@ export default function Home() {
         .bg-primary { background-color: var(--primary-color); }
         .border-primary { border-color: var(--primary-color); }
       `}} />
+
+      {/* CARROSSEL HERO DINÂMICO (FULL-WIDTH) */}
+      {!loading && categoriaAtiva === "Início" && config?.hero_banner_items?.length > 0 && config?.ui_settings?.widgets_visibility?.herobanner !== false && (
+        <section className="w-full">
+           <HeroBanner items={config.hero_banner_items} />
+        </section>
+      )}
 
       <main className="container mx-auto px-4 lg:px-8 py-8 flex-grow">
         
@@ -169,12 +175,7 @@ export default function Home() {
               {categoriaAtiva === "Início" ? (
                 <div className="flex flex-col space-y-16 animate-in fade-in slide-in-from-bottom-4 duration-1000">
                   
-                  {/* CARROSSEL HERO DINÂMICO (NOVO) */}
-                  {config?.hero_banner_items?.length > 0 && config?.ui_settings?.widgets_visibility?.herobanner !== false && (
-                    <section className="w-full mb-4">
-                       <HeroBanner items={config.hero_banner_items} />
-                    </section>
-                  )}
+                  {/* HERO BANER REMOVIDO PARA CIMA DO MAIN (Ficou edge-to-edge) */}
                   
                   {/* SEÇÃO 1: HERO PLAYER — BIFURCAÇÃO LIVE (RESTRITO AO VIVO) */}
                   {isLive && (
@@ -221,7 +222,7 @@ export default function Home() {
                         </div>
                      </div>
 
-                     <div className="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 md:gap-5">
+                     <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 md:gap-5">
                         {todasNoticias.slice(0, 18).map((noticia, i) => (
                            <Link 
                               key={noticia.id} 
