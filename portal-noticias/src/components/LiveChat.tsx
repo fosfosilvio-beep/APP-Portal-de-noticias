@@ -56,7 +56,14 @@ export default function LiveChat({ liveUrl }: LiveChatProps) {
         .order("created_at", { ascending: false })
         .limit(50);
       
-      if (data) setMessages(data.reverse() as ChatMessage[]);
+      if (data) {
+        const formattedMessages = data.map((msg: any) => ({
+          ...msg,
+          profiles: Array.isArray(msg.profiles) ? msg.profiles[0] : msg.profiles
+        })) as ChatMessage[];
+        
+        setMessages(formattedMessages.reverse());
+      }
     };
 
     fetchMessages();
