@@ -72,6 +72,11 @@ const oswald = Oswald({
 export const metadata: Metadata = {
   title: "Nossa Web TV | Portal de Notícias",
   description: "O seu portal de notícias de Arapongas e região.",
+  other: {
+    "Cache-Control": "no-cache, no-store, must-revalidate",
+    "Pragma": "no-cache",
+    "Expires": "0",
+  },
 };
 
 import { Providers } from "../components/Providers";
@@ -99,7 +104,12 @@ export default function RootLayout({
       lang="pt-BR"
       className={`${fontVariables} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col font-sans">
+      <head>
+        <meta httpEquiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+        <meta httpEquiv="Pragma" content="no-cache" />
+        <meta httpEquiv="Expires" content="0" />
+      </head>
+      <body className="min-h-full flex flex-col font-sans overflow-x-hidden">
         <Providers>{children}</Providers>
       </body>
     </html>

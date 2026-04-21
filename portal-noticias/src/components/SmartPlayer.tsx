@@ -267,52 +267,7 @@ export default function SmartPlayer({ customVideoUrl, onLiveChange }: SmartPlaye
 
   return (
     <div className="w-full mx-auto font-sans">
-      {/* Overlay Top Bar (Esquerda e Direita) */}
-      <div className="absolute top-4 left-4 right-4 z-20 flex justify-between items-start pointer-events-none">
-         {/* Lado Esquerdo */}
-         <div className="flex flex-col gap-2">
-            {config.is_live && (
-              <div className="flex items-center gap-2 bg-red-600/90 backdrop-blur-md px-3 py-1.5 rounded-full shadow-lg border border-red-500/50 w-fit pointer-events-auto">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-300 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
-                </span>
-                <span className="text-white font-black text-xs tracking-wider uppercase">
-                  REC <span className="mx-1 text-red-200">·</span> {displayViewers.toLocaleString("pt-BR")}
-                </span>
-              </div>
-            )}
-            {isAcervo && (
-              <div className="flex items-center gap-2 bg-slate-900/80 backdrop-blur-md px-3 py-1 rounded-full shadow-md border border-white/10 w-fit pointer-events-auto">
-                <div className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
-                <span className="text-white font-bold text-[10px] tracking-widest uppercase">
-                  {customVideoUrl ? "REPRODUZINDO AGORA" : "ACERVO REGIONAL"}
-                </span>
-              </div>
-            )}
-         </div>
-
-         {/* Lado Direito (Exclusivo/Ao Vivo) */}
-         {config.is_live && (
-            <div className="bg-gradient-to-r from-orange-500 to-pink-600 px-4 py-1.5 rounded-full shadow-lg border border-white/20 pointer-events-auto">
-               <span className="text-white font-black text-[11px] tracking-widest uppercase drop-shadow-md">
-                 EXCLUSIVO
-               </span>
-            </div>
-         )}
-      </div>
-
-      {/* Overlay de Metadados (Live 2.0) - Backdrop Blur */}
-      {config.is_live && (config.titulo_live || config.descricao_live) && (
-        <div className="absolute bottom-6 left-6 right-6 z-20 pointer-events-none transition-all duration-500 animate-in fade-in slide-in-from-bottom-2">
-           <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 p-5 rounded-2xl max-w-xl shadow-2xl">
-              {config.titulo_live && <h4 className="text-white font-black text-lg leading-tight mb-1 drop-shadow-md">{config.titulo_live}</h4>}
-              {config.descricao_live && <p className="text-zinc-300 text-xs font-medium line-clamp-2 opacity-90">{config.descricao_live}</p>}
-           </div>
-        </div>
-      )}
-
-      {/* Área do player 16:9 */}
+      {/* Área do player 16:9 — TODOS os overlays ficam DENTRO deste container relative */}
       <div
         className="relative w-full overflow-hidden rounded-2xl bg-black shadow-2xl shadow-black/40"
         style={{ paddingTop: "56.25%" }}
@@ -335,10 +290,56 @@ export default function SmartPlayer({ customVideoUrl, onLiveChange }: SmartPlaye
                   <path d="M8 5v14l11-7z" />
                 </svg>
               </div>
-              <h3 className="text-white text-2xl font-bold mb-2 tracking-tight">Portal Nossa Web TV</h3>
-              <p className="text-gray-400 text-sm max-w-md">
+              <h3 className="text-white text-lg sm:text-2xl font-bold mb-2 tracking-tight">Portal Nossa Web TV</h3>
+              <p className="text-gray-400 text-xs sm:text-sm max-w-md">
                 Nenhuma transmissão ao vivo no momento. Acompanhe nossas notícias abaixo.
               </p>
+            </div>
+          </div>
+        )}
+
+        {/* Overlays within the player container */}
+        {/* Top Bar (Esquerda e Direita) */}
+        <div className="absolute top-2 sm:top-4 left-2 sm:left-4 right-2 sm:right-4 z-20 flex justify-between items-start pointer-events-none">
+          {/* Lado Esquerdo */}
+          <div className="flex flex-col gap-1.5 sm:gap-2">
+            {config.is_live && (
+              <div className="flex items-center gap-1.5 bg-red-600/90 backdrop-blur-md px-2 sm:px-3 py-1 sm:py-1.5 rounded-full shadow-lg border border-red-500/50 w-fit pointer-events-auto">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-300 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
+                </span>
+                <span className="text-white font-black text-[10px] sm:text-xs tracking-wider uppercase">
+                  REC <span className="mx-1 text-red-200">·</span> {displayViewers.toLocaleString("pt-BR")}
+                </span>
+              </div>
+            )}
+            {isAcervo && (
+              <div className="flex items-center gap-1.5 bg-slate-900/80 backdrop-blur-md px-2 sm:px-3 py-1 rounded-full shadow-md border border-white/10 w-fit pointer-events-auto">
+                <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
+                <span className="text-white font-bold text-[9px] sm:text-[10px] tracking-widest uppercase">
+                  {customVideoUrl ? "REPRODUZINDO" : "ACERVO REGIONAL"}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Lado Direito (Exclusivo/Ao Vivo) */}
+          {config.is_live && (
+            <div className="bg-gradient-to-r from-orange-500 to-pink-600 px-2 sm:px-4 py-1 sm:py-1.5 rounded-full shadow-lg border border-white/20 pointer-events-auto">
+              <span className="text-white font-black text-[9px] sm:text-[11px] tracking-widest uppercase drop-shadow-md">
+                EXCLUSIVO
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Overlay de Metadados (Live 2.0) */}
+        {config.is_live && (config.titulo_live || config.descricao_live) && (
+          <div className="absolute bottom-2 sm:bottom-6 left-2 sm:left-6 right-2 sm:right-6 z-20 pointer-events-none transition-all duration-500 animate-in fade-in slide-in-from-bottom-2">
+            <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 p-3 sm:p-5 rounded-xl sm:rounded-2xl max-w-xl shadow-2xl">
+              {config.titulo_live && <h4 className="text-white font-black text-sm sm:text-lg leading-tight mb-1 drop-shadow-md">{config.titulo_live}</h4>}
+              {config.descricao_live && <p className="text-zinc-300 text-[10px] sm:text-xs font-medium line-clamp-2 opacity-90">{config.descricao_live}</p>}
             </div>
           </div>
         )}

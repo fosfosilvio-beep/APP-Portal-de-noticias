@@ -120,7 +120,7 @@ export default function Home() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white text-slate-900 flex flex-col font-sans">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white text-slate-900 flex flex-col font-sans overflow-x-hidden">
       
       <Header 
         isLive={isLive} 
@@ -194,18 +194,18 @@ export default function Home() {
                         <Tv className="ml-auto text-red-500/60 shrink-0" size={18} />
                       </div>
 
-                      {/* Player + Chat lado a lado */}
-                      <div className="flex flex-col lg:flex-row gap-4">
-                        {/* Player ocupa ~65% */}
-                        <div className="relative w-full lg:w-[65%] bg-slate-950 rounded-3xl overflow-hidden shadow-2xl shadow-red-900/20 border border-red-900/30">
+                    {/* Player + Chat lado a lado */}
+                      <div className="flex flex-col lg:flex-row gap-4 mb-6">
+                        {/* Player com aspect-ratio 16:9 */}
+                        <div className="relative w-full lg:w-[65%] aspect-video bg-slate-950 rounded-2xl lg:rounded-3xl overflow-hidden shadow-2xl shadow-red-900/20 border border-red-900/30">
                           <SmartPlayer
                             customVideoUrl={undefined}
                             onLiveChange={handleLiveChange}
                           />
                         </div>
 
-                        {/* Chat ocupa ~35% — DESMONTADO quando isLive===false */}
-                        <div className="w-full lg:w-[35%] min-h-[340px] lg:min-h-0 text-white">
+                        {/* Chat ocupa ~35% no desktop, altura mínima no mobile */}
+                        <div className="w-full lg:w-[35%] min-h-[320px] lg:min-h-0">
                           <LiveChat liveUrl={liveUrl} />
                         </div>
                       </div>
@@ -226,8 +226,8 @@ export default function Home() {
                         </p>
                       </div>
 
-                      {/* Player principal da Biblioteca */}
-                      <div className="relative w-full bg-slate-950 rounded-3xl overflow-hidden shadow-2xl shadow-slate-900/50 border border-slate-800">
+                      {/* Player principal da Biblioteca — aspect 16:9 */}
+                      <div className="relative w-full aspect-video bg-slate-950 rounded-2xl lg:rounded-3xl overflow-hidden shadow-2xl shadow-slate-900/50 border border-slate-800 mb-6">
                         <SmartPlayer
                           customVideoUrl={selectedVideoUrl || undefined}
                           onLiveChange={handleLiveChange}
