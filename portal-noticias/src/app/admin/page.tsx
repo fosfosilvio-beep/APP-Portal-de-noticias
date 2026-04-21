@@ -112,7 +112,13 @@ export default function AdminPage() {
     if (activeTab === 'ao-vivo') {
       const fetchChat = async () => {
          const { data } = await supabase.from('live_messages').select('id, conteudo, created_at, profiles(nome_completo)').order('created_at', { ascending: false }).limit(40);
-         if (data) setChatMessages(data.reverse());
+         if (data) {
+            const formatted = data.map((m: any) => ({
+               ...m,
+               profiles: Array.isArray(m.profiles) ? m.profiles[0] : m.profiles
+            }));
+            setChatMessages(formatted.reverse());
+         }
       };
       fetchChat();
       const ch = supabase.channel('admin_live_chat')
