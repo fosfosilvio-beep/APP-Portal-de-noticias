@@ -260,15 +260,15 @@ export default function Home() {
                         </div>
                      </div>
 
-                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
+                     <div className="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 md:gap-5">
                         {todasNoticias.slice(0, 18).map((noticia, i) => (
                            <Link 
                               key={noticia.id} 
                               href={`/noticia/${noticia.slug || noticia.id}`} 
-                              className="group flex flex-col transition-all duration-300 bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:shadow-cyan-900/10 hover:-translate-y-1"
+                              className="group flex flex-col transition-all duration-300 bg-white border border-slate-200 rounded-xl sm:rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:shadow-cyan-900/10 hover:-translate-y-1"
                            >
-                              {/* Thumbnail Universal */}
-                              <div className="relative aspect-video w-full overflow-hidden bg-slate-800 isolate">
+                              {/* Thumbnail — reduzido para mobile */}
+                              <div className="relative aspect-[4/3] sm:aspect-video w-full overflow-hidden bg-slate-800 isolate">
                                  <FallbackImage 
                                     src={noticia.imagem_capa} 
                                     alt={noticia.titulo} 
@@ -278,39 +278,39 @@ export default function Home() {
                                  />
                                  <div className="absolute inset-x-0 bottom-0 h-[80%] bg-gradient-to-t from-black/95 via-black/40 to-transparent z-10 pointer-events-none"></div>
                                  
-                                 {/* Ícone Play Minimalista com Glow (Apenas para vídeos) */}
+                                 {/* Play icon — menor no mobile */}
                                  {(noticia.video_url || noticia.mostrar_no_player) && (
                                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-                                      <div className="w-12 h-12 rounded-full bg-slate-900/60 backdrop-blur-xl border border-white/20 flex items-center justify-center text-white scale-0 group-hover:scale-100 transition-all duration-300 shadow-2xl">
-                                         <Play size={22} fill="currentColor" className="text-white drop-shadow-[0_0_10px_#00AEE0]" />
+                                      <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-slate-900/60 backdrop-blur-xl border border-white/20 flex items-center justify-center text-white scale-0 group-hover:scale-100 transition-all duration-300 shadow-2xl">
+                                         <Play size={14} fill="currentColor" className="text-white drop-shadow-[0_0_10px_#00AEE0] sm:w-5 sm:h-5" />
                                       </div>
                                    </div>
                                  )}
 
-                                 {/* Tag de Categoria */}
-                                 <div className="absolute top-4 left-4 z-20">
-                                    <span className="bg-slate-900/80 backdrop-blur-md text-slate-50 text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-lg border border-white/10">
+                                 {/* Tag compacta */}
+                                 <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-20">
+                                    <span className="bg-slate-900/80 backdrop-blur-md text-slate-50 text-[7px] sm:text-[9px] font-black uppercase tracking-widest px-1.5 sm:px-3 py-0.5 sm:py-1.5 rounded-full shadow-lg border border-white/10">
                                        {noticia.categoria || "Geral"}
                                     </span>
                                  </div>
 
-                                 {/* Badge Patrocinado */}
+                                 {/* Patrocinado */}
                                  {noticia.is_sponsored && (
-                                   <div className="absolute top-4 right-4 z-20">
-                                     <span className="bg-amber-500/90 backdrop-blur-sm text-white text-[8px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full shadow border border-amber-400/30">
-                                       ⭐ Patrocinado
+                                   <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-20">
+                                     <span className="bg-amber-500/90 text-white text-[7px] sm:text-[8px] font-black uppercase tracking-widest px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full shadow border border-amber-400/30">
+                                       ⭐
                                      </span>
                                    </div>
                                  )}
                                  
-                                 {/* Conteúdo do Card em Overlay Flutuante */}
-                                 <div className="absolute bottom-0 left-0 w-full p-5 flex flex-col flex-1 z-30">
-                                    <div className="flex items-center gap-2 mb-2">
-                                       <span className="text-[9px] text-slate-300 font-bold uppercase tracking-widest bg-black/60 backdrop-blur-sm px-2 py-0.5 rounded-full border border-white/5">
+                                 {/* Conteúdo sobre thumbnail */}
+                                 <div className="absolute bottom-0 left-0 w-full p-2 sm:p-4 flex flex-col z-30">
+                                    <div className="flex items-center gap-1 mb-1">
+                                       <span className="text-[7px] sm:text-[9px] text-slate-300 font-bold uppercase tracking-widest bg-black/60 backdrop-blur-sm px-1.5 py-0.5 rounded-full border border-white/5">
                                           {new Date(noticia.created_at).toLocaleDateString()}
                                        </span>
                                     </div>
-                                    <h3 className="text-xl font-bold text-slate-50 leading-snug group-hover:text-cyan-400 transition-colors line-clamp-3 text-shadow-sm">
+                                    <h3 className="text-xs sm:text-base md:text-lg font-bold text-slate-50 leading-snug group-hover:text-cyan-400 transition-colors line-clamp-2 sm:line-clamp-3">
                                        {noticia.titulo}
                                     </h3>
                                  </div>
@@ -346,13 +346,13 @@ export default function Home() {
                   </div>
 
                   {/* Grid de Cards */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                   <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-4">
                     {[...bibliotecaLives, ...todasNoticias.filter(n => n.video_url)].filter(item => 
                       (item.titulo || "").toLowerCase().includes(searchBiblioteca.toLowerCase()) || 
                       (item.tema || item.categoria || "").toLowerCase().includes(searchBiblioteca.toLowerCase())
                     ).map((item, idx) => (
                       <div key={item.id || idx} className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border border-slate-100 flex flex-col hover:-translate-y-2">
-                         <div className="relative h-44 overflow-hidden">
+                         <div className="relative h-28 sm:h-36 md:h-44 overflow-hidden">
                            <img 
                              src={item.thumbnail || item.imagem_capa || "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=400"} 
                              alt={item.titulo} 
@@ -369,13 +369,13 @@ export default function Home() {
                              </span>
                            </div>
                          </div>
-                         <div className="p-5 flex flex-col flex-1">
+                         <div className="p-3 sm:p-4 flex flex-col flex-1">
                            <div className="flex items-center gap-2 mb-2">
                              <span className="text-[10px] text-[#00AEE0] font-black uppercase tracking-widest flex items-center gap-1">
                                <Tag size={10} /> {item.tema || item.categoria || "Geral"}
                              </span>
                            </div>
-                           <h3 className="font-bold text-slate-800 text-sm leading-snug group-hover:text-[#00AEE0] transition-colors line-clamp-2 min-h-[2.5rem]">
+                           <h3 className="font-bold text-slate-800 text-xs sm:text-sm leading-snug group-hover:text-[#00AEE0] transition-colors line-clamp-2 min-h-[2rem]">
                              {item.titulo}
                            </h3>
                            <div className="mt-4 pt-4 border-t border-slate-50 flex items-center justify-between text-[10px] text-slate-400 font-bold uppercase tracking-tighter">
@@ -410,10 +410,10 @@ export default function Home() {
                          <p className="text-slate-500 text-lg font-medium">Nenhuma matéria registrada em {categoriaAtiva}.</p>
                       </div>
                    ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="grid grid-cols-2 md:grid-cols-2 gap-3 md:gap-6">
                          {noticiasDaCategoriaAtiva.map((noticia, i) => (
                             <Link key={noticia.id} href={`/noticia/${noticia.slug || noticia.id}`} className="group bg-white border border-slate-200 shadow-sm rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col">
-                               <div className="h-64 w-full relative overflow-hidden isolate bg-slate-100">
+                               <div className="h-32 sm:h-48 md:h-64 w-full relative overflow-hidden isolate bg-slate-100">
                                   <img src={noticia.imagem_capa || `https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=600&random=${i}`} alt="Capa" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 z-0" />
                                   <div className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-black via-black/80 to-transparent z-10"></div>
                                </div>
@@ -465,14 +465,14 @@ export default function Home() {
                     position="sidebar_right_1" 
                     fallback={
                       config?.ad_slot_1?.visible && config.ad_slot_1.image_url ? (
-                        <a href={config.ad_slot_1.link || "#"} target="_blank" className="group block relative w-full h-64 rounded-2xl overflow-hidden shadow-sm border border-slate-200 hover:border-cyan-200 transition-all duration-300">
-                           <img src={config.ad_slot_1.image_url} alt="Publicidade" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                        <a href={config.ad_slot_1.link || "#"} target="_blank" className="group block relative w-full max-h-48 sm:max-h-64 rounded-xl overflow-hidden shadow-sm border border-slate-200 hover:border-cyan-200 transition-all duration-300">
+                           <img src={config.ad_slot_1.image_url} alt="Publicidade" className="w-full h-full object-contain max-h-48 sm:max-h-64 group-hover:scale-105 transition-transform duration-700" />
                            <div className="absolute top-2 right-2">
                               <span className="bg-white/80 backdrop-blur-md text-slate-800 text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border border-slate-200 shadow-sm">Publicidade</span>
                            </div>
                         </a>
                       ) : (
-                        <div className="w-full bg-white rounded-2xl border border-dashed border-slate-300 h-64 flex flex-col items-center justify-center p-6 text-center group cursor-pointer hover:bg-slate-50 transition-colors shadow-sm">
+                        <div className="w-full bg-white rounded-xl border border-dashed border-slate-300 h-32 sm:h-48 flex flex-col items-center justify-center p-4 text-center group cursor-pointer hover:bg-slate-50 transition-colors shadow-sm">
                            <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 border border-slate-300 px-2 py-0.5 rounded">Espaço Publicitário</span>
                            <p className="text-slate-500 font-bold text-xs max-w-[180px]">Impacte milhares de leitores regionais com sua marca.</p>
                         </div>
@@ -547,14 +547,14 @@ export default function Home() {
                     position="sidebar_right_2" 
                     fallback={
                       config?.ad_slot_2?.visible && config.ad_slot_2.image_url ? (
-                        <a href={config.ad_slot_2.link || "#"} target="_blank" className="group block relative w-full h-[400px] rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-200">
-                           <img src={config.ad_slot_2.image_url} alt="Publicidade Vertical" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                        <a href={config.ad_slot_2.link || "#"} target="_blank" className="group block relative w-full max-h-48 sm:max-h-72 md:max-h-[400px] rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-200">
+                           <img src={config.ad_slot_2.image_url} alt="Publicidade Vertical" className="w-full h-full object-contain max-h-48 sm:max-h-72 md:max-h-[400px] group-hover:scale-105 transition-transform duration-700" />
                            <div className="absolute top-2 right-2">
                               <span className="bg-white/80 backdrop-blur-md text-slate-800 text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border border-slate-200 shadow-sm">Publicidade</span>
                            </div>
                         </a>
                       ) : (
-                        <div className="w-full bg-white rounded-2xl border border-dashed border-slate-200 h-[400px] flex flex-col items-center justify-center p-6 text-center group cursor-pointer hover:bg-slate-50 transition-colors shadow-sm">
+                        <div className="w-full bg-white rounded-xl border border-dashed border-slate-200 h-32 sm:h-48 md:h-[400px] flex flex-col items-center justify-center p-4 text-center group cursor-pointer hover:bg-slate-50 transition-colors shadow-sm">
                             <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 border border-slate-200 px-2 py-0.5 rounded">Banner Vertical</span>
                         </div>
                       )

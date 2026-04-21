@@ -39,7 +39,7 @@ export default function DynamicAdSlot({ position, className, fallback }: Dynamic
     loadAd();
   }, [position]);
 
-  if (loading) return <div className={`animate-pulse bg-slate-100 rounded-2xl ${className}`} />;
+  if (loading) return <div className={`animate-pulse bg-slate-100 rounded-xl h-32 ${className}`} />;
 
   if (!ad || !ad.codigo_html_ou_imagem) {
     return fallback || null;
@@ -48,7 +48,8 @@ export default function DynamicAdSlot({ position, className, fallback }: Dynamic
   const isHtml = ad.codigo_html_ou_imagem.includes("<") && ad.codigo_html_ou_imagem.includes(">");
 
   return (
-    <div className={`w-full overflow-hidden rounded-2xl border border-slate-200 transition-all duration-300 hover:shadow-lg ${className}`}>
+    // max-h-48 no mobile garante que o ad nunca ocupe 100% da viewport
+    <div className={`w-full overflow-hidden rounded-xl border border-slate-200 transition-all duration-300 hover:shadow-md max-h-48 sm:max-h-64 md:max-h-none ${className}`}>
       {isHtml ? (
         <div dangerouslySetInnerHTML={{ __html: ad.codigo_html_ou_imagem }} />
       ) : (
@@ -56,10 +57,10 @@ export default function DynamicAdSlot({ position, className, fallback }: Dynamic
           <img 
             src={ad.codigo_html_ou_imagem} 
             alt={ad.nome_slot} 
-            className="w-full h-auto object-cover group-hover:scale-[1.02] transition-transform duration-700" 
+            className="w-full h-full object-contain max-h-48 sm:max-h-64 md:max-h-none group-hover:scale-[1.02] transition-transform duration-500" 
           />
-          <div className="absolute top-2 right-2 bg-black/40 backdrop-blur-md px-2 py-1 rounded text-white text-[8px] font-black uppercase tracking-widest flex items-center gap-1">
-             Publicidade <ExternalLink size={10} />
+          <div className="absolute top-1.5 right-1.5 bg-black/40 backdrop-blur-md px-1.5 py-0.5 rounded text-white text-[7px] font-bold uppercase tracking-widest flex items-center gap-0.5">
+             Publicidade <ExternalLink size={8} />
           </div>
         </a>
       )}
