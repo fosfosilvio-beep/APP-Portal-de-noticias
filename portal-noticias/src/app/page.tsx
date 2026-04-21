@@ -13,6 +13,7 @@ import VideoCarousel from "../components/VideoCarousel";
 import HeroBanner from "../components/HeroBanner";
 import FallbackImage from "../components/FallbackImage";
 import PlantaoPolicialWidget from "../components/PlantaoPolicialWidget";
+import FooterAdBanner from "../components/FooterAdBanner";
 
 export default function Home() {
   const [todasNoticias, setTodasNoticias] = useState<any[]>([]);
@@ -178,11 +179,8 @@ export default function Home() {
                   <section className="w-full flex flex-col gap-6">
 
                     {/* ── MODO LIVE: Player + Chat lateral ── */}
-                    <div
-                      className={`w-full transition-all duration-700 ease-in-out overflow-hidden ${
-                        isLive ? "max-h-[800px] opacity-100 translate-y-0" : "max-h-0 opacity-0 -translate-y-4 pointer-events-none"
-                      }`}
-                    >
+                    {isLive ? (
+                    <div className="w-full transition-all duration-700 ease-in-out">
                       {/* Banner de alerta ativo */}
                       <div className="flex items-center gap-3 bg-red-600/10 border border-red-500/20 rounded-2xl px-5 py-3 mb-4">
                         <span className="relative flex h-3 w-3 shrink-0">
@@ -205,12 +203,13 @@ export default function Home() {
                           />
                         </div>
 
-                        {/* Chat ocupa ~35% */}
+                        {/* Chat ocupa ~35% — DESMONTADO quando isLive===false */}
                         <div className="w-full lg:w-[35%] min-h-[340px] lg:min-h-0 text-white">
                           <LiveChat liveUrl={liveUrl} />
                         </div>
                       </div>
                     </div>
+                    ) : null}
 
                     {/* ── MODO BIBLIOTECA: Player + Carrossel ── */}
                     <div
@@ -293,6 +292,15 @@ export default function Home() {
                                        {noticia.categoria || "Geral"}
                                     </span>
                                  </div>
+
+                                 {/* Badge Patrocinado */}
+                                 {noticia.is_sponsored && (
+                                   <div className="absolute top-4 right-4 z-20">
+                                     <span className="bg-amber-500/90 backdrop-blur-sm text-white text-[8px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full shadow border border-amber-400/30">
+                                       ⭐ Patrocinado
+                                     </span>
+                                   </div>
+                                 )}
                                  
                                  {/* Conteúdo do Card em Overlay Flutuante */}
                                  <div className="absolute bottom-0 left-0 w-full p-5 flex flex-col flex-1 z-30">
@@ -562,6 +570,13 @@ export default function Home() {
         )}
       </main>
       
+      {/* BANNER PUBLICITÁRIO RODAPÉ */}
+      <FooterAdBanner
+        imageUrl={config?.ad_slot_2?.image_url || config?.banner_anuncio_home}
+        link={config?.ad_slot_2?.link || config?.link_anuncio_home}
+        visible={true}
+      />
+
       {/* RODAPÉ */}
       <footer className="bg-[#0f172a] text-slate-400 py-12 mt-auto border-t-[5px] border-[#00AEE0] rounded-t-3xl">
         <div className="container mx-auto px-4 lg:px-8 flex flex-col md:flex-row justify-between items-center text-sm gap-6">

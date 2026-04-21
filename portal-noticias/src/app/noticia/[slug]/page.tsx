@@ -17,6 +17,7 @@ import Header from "../../../components/Header";
 import ShareBar from "../../../components/ShareBar";
 import NewsNarrator from "../../../components/NewsNarrator";
 import ArticleComments from "../../../components/ArticleComments";
+import FooterAdBanner from "../../../components/FooterAdBanner";
 
 export default function NoticiaDetalhe() {
   const params = useParams();
@@ -38,6 +39,20 @@ export default function NoticiaDetalhe() {
   useEffect(() => {
     fetchData();
   }, [slug]);
+
+  // Dispara o incremento de +1 real_view ao carregar a notícia
+  useEffect(() => {
+    if (!noticia?.id) return;
+    // Só dispara uma vez por sessão por notícia
+    const key = `viewed_${noticia.id}`;
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, "1");
+    fetch("/api/track-view", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ noticiaId: noticia.id }),
+    }).catch(() => null);
+  }, [noticia?.id]);
 
   // Efeito para capturar imagens e injetar eventos de clique
   useEffect(() => {
@@ -155,10 +170,20 @@ export default function NoticiaDetalhe() {
                   <span className="inline-block bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 uppercase tracking-widest rounded-sm self-start">
                     {noticia.categoria || "Notícia"}
                   </span>
+                  {noticia.is_sponsored && (
+                    <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-800 text-xs font-black px-3 py-1 uppercase tracking-widest rounded-sm self-start border border-amber-200">
+                      ⭐ Conteúdo Patrocinado
+                    </span>
+                  )}
                   <span className="text-sm text-zinc-500 flex items-center gap-1.5 font-medium">
                     <Clock size={16} />
                     Publicado em {formatDate(noticia.created_at || noticia.data_publicacao)}
                   </span>
+                  {(noticia.real_views ?? 0) > 0 && (
+                    <span className="text-xs text-zinc-400 flex items-center gap-1 font-medium">
+                      👁 {((noticia.real_views ?? 0) * 9).toLocaleString("pt-BR")} visualizações
+                    </span>
+                  )}
                 </div>
 
                 <h1 
@@ -287,6 +312,12 @@ export default function NoticiaDetalhe() {
           }}
         />
       )}
+
+      <FooterAdBanner
+        imageUrl={config?.ad_slot_1?.image_url || config?.banner_anuncio_home}
+        link={config?.ad_slot_1?.link || config?.link_anuncio_home}
+        visible={true}
+      />
 
       <footer className="bg-[#0f172a] text-slate-400 py-12 mt-auto border-t-[5px] border-[#00AEE0] rounded-t-3xl">
         <div className="container mx-auto px-4 lg:px-8 flex flex-col md:flex-row justify-between items-center text-sm gap-6">

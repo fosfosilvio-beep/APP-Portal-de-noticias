@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
 import { useSettingsStore } from "../store/settingsStore";
+import NotificationBell from "./NotificationBell";
 
 interface HeaderProps {
   isLive: boolean;
@@ -42,8 +42,8 @@ export default function Header({
 
   return (
     <div className="w-full flex flex-col font-sans sticky top-0 z-50">
-      {/* HEADER DE PORTAL PRO */}
-      <header className="bg-white border-b border-slate-200 shadow-sm w-full">
+      {/* HEADER PRINCIPAL — FUNDO PRETO */}
+      <header className="bg-black border-b border-zinc-800 shadow-lg w-full">
         <div className="container mx-auto px-4 lg:px-8 py-3 flex justify-between items-center">
           <div className="flex items-center">
             <Link 
@@ -54,7 +54,7 @@ export default function Header({
                {!logoUrl ? (
                   // LOGO EM TEXTO COM VARIÁVEIS DO PAINEL
                   <div className="flex items-center gap-2">
-                     <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-black text-xl shadow-inner border border-white"
+                     <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-black text-xl shadow-inner border border-white/20"
                           style={{ background: primaryColor }}>
                         {brandName.charAt(0)}
                      </div>
@@ -83,17 +83,17 @@ export default function Header({
             </Link>
           </div>
           
-          <nav className="flex items-center gap-4">
+          <nav className="flex items-center gap-3">
             {showNavigation && setCategoriaAtiva && (
-              <div className="hidden lg:flex space-x-1 shrink-0 items-center bg-slate-100 p-1.2 rounded-full border border-slate-200">
+              <div className="hidden lg:flex space-x-1 shrink-0 items-center bg-zinc-900 p-1.5 rounded-full border border-zinc-700">
                 {['Início', 'Arapongas', 'Esportes', 'Polícia', 'Política', 'Biblioteca'].map(cat => (
                   <button 
                     key={cat}
                     onClick={() => { setCategoriaAtiva(cat); window.scrollTo(0, 0); }} 
                     className={`cursor-pointer text-[11px] font-black transition-all uppercase tracking-widest px-4 py-2 rounded-full ${
                       categoriaAtiva === cat 
-                      ? 'bg-white text-slate-900 shadow-sm border border-slate-200/50' 
-                      : 'text-slate-500 hover:text-slate-800 hover:bg-white/50'
+                      ? 'bg-white text-zinc-900 shadow-sm' 
+                      : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
                     }`}
                   >
                     {cat}
@@ -105,20 +105,24 @@ export default function Header({
             {!showNavigation && (
               <Link 
                 href="/" 
-                className="hidden sm:flex text-slate-500 hover:text-[#00AEE0] font-bold transition-colors text-xs uppercase tracking-widest outline-none items-center gap-2 bg-slate-50 px-4 py-2 rounded-full border border-slate-200"
+                className="hidden sm:flex text-zinc-400 hover:text-white font-bold transition-colors text-xs uppercase tracking-widest outline-none items-center gap-2 bg-zinc-900 px-4 py-2 rounded-full border border-zinc-700"
               >
                 ← Voltar ao Início
               </Link>
             )}
 
+            {/* SINO DE NOTIFICAÇÕES IN-APP */}
+            <NotificationBell />
+
+            {/* INDICADOR AO VIVO */}
             <div className={`text-[10px] uppercase tracking-widest flex items-center gap-2 px-4 py-2 rounded-full border transition-all duration-500 shadow-sm ${
               isLive 
-              ? 'bg-red-50 text-red-600 border-red-100 font-black animate-pulse' 
-              : 'bg-slate-50 text-slate-400 border-slate-200 opacity-70 font-bold'
+              ? 'bg-red-900/40 text-red-400 border-red-800/60 font-black animate-pulse' 
+              : 'bg-zinc-900 text-zinc-500 border-zinc-700 opacity-70 font-bold'
             }`}>
               <span className="relative flex h-2 w-2">
                 {isLive && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>}
-                <span className={`relative inline-flex rounded-full h-2 w-2 ${isLive ? 'bg-red-600' : 'bg-slate-400'}`}></span>
+                <span className={`relative inline-flex rounded-full h-2 w-2 ${isLive ? 'bg-red-500' : 'bg-zinc-500'}`}></span>
               </span>
               {isLive ? "TV Ao Vivo" : "TV Offline"}
             </div>
@@ -126,13 +130,13 @@ export default function Header({
         </div>
       </header>
 
-      {/* MARQUEE AZUL CIANO (RADAR REGIONAL) OU CUSTOMIZADO */}
+      {/* MARQUEE — BREAKING NEWS OU RADAR REGIONAL */}
       {config?.ui_settings?.breaking_news_alert?.text ? (
         <div className="w-full overflow-hidden flex items-center h-9 shadow-sm" style={{ backgroundColor: config.ui_settings.breaking_news_alert.color || '#e11d48' }}>
            <div className="container mx-auto px-4 lg:px-8 flex items-center">
               <span className="font-black text-[9px] uppercase tracking-widest bg-black/20 border border-white/20 text-white px-3 py-1 rounded shadow-inner z-10 shrink-0">Breaking News</span>
               <div className="w-full flex whitespace-nowrap overflow-hidden pr-4 ml-4">
-                <div className={`animate-marquee flex gap-10 opacity-90 text-[11px] font-bold uppercase tracking-tight text-white`}>
+                <div className="animate-marquee flex gap-10 opacity-90 text-[11px] font-bold uppercase tracking-tight text-white">
                    <span>{config.ui_settings.breaking_news_alert.text}</span>
                    <span className="text-white/50">•</span>
                    <span>{config.ui_settings.breaking_news_alert.text}</span>

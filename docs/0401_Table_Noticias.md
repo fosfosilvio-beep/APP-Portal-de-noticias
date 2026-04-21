@@ -21,12 +21,27 @@ Armazena todas as matérias jornalísticas publicadas no portal.
 | `audio_url` | TEXT (URL) | URL do áudio gerado pelo Google TTS (Cache). |
 | `audio_content_hash` | TEXT | Hash do conteúdo usado para invalidar o cache do áudio. |
 | `seo_tags` | TEXT | Tags de palavras-chave para indexação. |
+| `is_sponsored` | BOOLEAN | Se `true`, exibe badge "Patrocinado" no card e na matéria. |
+| `sponsor_id` | UUID (FK, null) | Referência ao patrocinador (futuro: tabela sponsors). |
+| `real_views` | INTEGER | Contador de visualizações reais (+1 por acesso único/sessão). |
 
+## Lógica de Views (Bifurcação Frontend vs Admin)
+- **Banco de dados**: Guarda apenas `real_views` (incremento atômico via RPC `incrementar_views(uuid)`).
+- **Frontend público**: Exibe `real_views * 9` — número inflado para percepção de popularidade.
+- **Dashboard Admin (/admin/relatorios)**: Exibe `real_views` bruto, sem multiplicação.
+- **Captação**: API Route `/api/track-view` (POST) incrementa +1, uma vez por sessão por notícia (via `sessionStorage`).
+
+## Lógica de Publicidade
+- `is_sponsored`: Quando `true`, injeta badge âmbar "⭐ Patrocinado" no canto superior direito do card (Home) e na área de meta da matéria.
+- `sponsor_id`: Reservado para futura integração com tabela de anunciantes.
 
 ## RLS (Row Level Security)
 - **SELECT**: Público (Anon).
 - **INSERT/UPDATE/DELETE**: Restrito a usuários autenticados (Service Role/Admin via client).
 
+## Trigger Associado
+- `trg_nova_noticia`: Ao inserir (`INSERT`) uma nova notícia, dispara `fn_notificar_nova_noticia()` que cria um registro na tabela `notificacoes`.
+
 ---
-Status: Documentado
-Relacionado: [[0202] Noticia_Detalhe](../02XX/0202_Noticia_Detalhe.md)
+Status: Atualizado — Reengenharia 2026-04-21
+Relacionado: [[0202] Noticia_Detalhe](../02XX/0202_Noticia_Detalhe.md) | [[0405] Table_Notificacoes](0405_Table_Notificacoes.md)

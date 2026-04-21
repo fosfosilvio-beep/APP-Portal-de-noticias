@@ -252,7 +252,8 @@ export default function AdminPage() {
     { id: "facebook-insta", label: "Feeds Sociais", icon: <Globe size={18} /> },
     { id: "biblioteca", label: "Acervo de Biblioteca", icon: <Video size={18} /> },
     { id: "copiloto-ia", label: "Copiloto IA", icon: <Sparkles size={18} /> },
-    { id: "lista-noticias", label: "Auditoria de Notícias", icon: <List size={18} /> }
+    { id: "lista-noticias", label: "Auditoria de Notícias", icon: <List size={18} /> },
+    { id: "relatorios", label: "Relatórios de Views", icon: <Eye size={18} />, href: "/admin/relatorios" }
   ];
 
   return (
@@ -276,20 +277,33 @@ export default function AdminPage() {
           <div className="text-[11px] font-black text-zinc-600 uppercase tracking-widest px-3 mb-4">Core Modules</div>
           
           {menuItems.map(item => (
-            <button 
-              key={item.id} 
-              onClick={() => setActiveTab(item.id)} 
-              className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-bold transition-all duration-300 ${
-                activeTab === item.id 
-                  ? 'bg-zinc-800 text-white shadow-sm ring-1 ring-zinc-700' 
-                  : 'text-zinc-400 hover:bg-zinc-900 hover:text-white'
-              }`}
-            >
-              <div className={activeTab === item.id ? 'text-blue-400' : 'text-zinc-500'}>
-                {item.icon}
-              </div>
-              {item.label}
-            </button>
+            (item as any).href ? (
+              <Link
+                key={item.id}
+                href={(item as any).href}
+                target="_blank"
+                className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-bold transition-all duration-300 text-zinc-400 hover:bg-zinc-900 hover:text-white"
+              >
+                <div className="text-zinc-500">{item.icon}</div>
+                {item.label}
+                <span className="ml-auto text-[8px] text-zinc-600 uppercase tracking-widest">↗</span>
+              </Link>
+            ) : (
+              <button 
+                key={item.id} 
+                onClick={() => setActiveTab(item.id)} 
+                className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-bold transition-all duration-300 ${
+                  activeTab === item.id 
+                    ? 'bg-zinc-800 text-white shadow-sm ring-1 ring-zinc-700' 
+                    : 'text-zinc-400 hover:bg-zinc-900 hover:text-white'
+                }`}
+              >
+                <div className={activeTab === item.id ? 'text-blue-400' : 'text-zinc-500'}>
+                  {item.icon}
+                </div>
+                {item.label}
+              </button>
+            )
           ))}
         </nav>
         

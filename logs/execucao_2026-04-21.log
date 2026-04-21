@@ -1,0 +1,17 @@
+2026-04-21 INFO [REENGENHARIA] Início da execução do plano aprovado pelo usuário.
+2026-04-21 INFO [SQL] Arquivo de migração criado: supabase/migrations/20260421_reengenharia_banco.sql
+2026-04-21 INFO [SQL] Conteúdo: ADD COLUMN ui_settings, is_sponsored, sponsor_id, real_views; CREATE TABLE notificacoes; TRIGGER trg_nova_noticia; FUNCTION incrementar_views; RLS policies.
+2026-04-21 INFO [SQL] AÇÃO PENDENTE MANUAL: Executar o SQL acima no editor do Supabase (browser subagent com instabilidade 503).
+2026-04-21 INFO [API] Criada API Route: /api/track-view (POST) — incrementa real_views via RPC incrementar_views.
+2026-04-21 INFO [API] Criada API Route: /api/geo (GET) — proxy para ip-api.com retornando IP, cidade, estado, país.
+2026-04-21 INFO [COMPONENT] Criado: NotificationBell.tsx — sino in-app com Supabase Realtime + localStorage.
+2026-04-21 INFO [COMPONENT] Criado: FooterAdBanner.tsx — banner full-width acima do footer.
+2026-04-21 INFO [COMPONENT] Atualizado: Header.tsx — bg-black, NotificationBell integrado, nav dark mode.
+2026-04-21 INFO [PAGE] Atualizado: src/app/page.tsx — import FooterAdBanner, badge Patrocinado, chat condicional isLive, FooterAdBanner antes do footer.
+2026-04-21 INFO [PAGE] Atualizado: src/app/noticia/[slug]/page.tsx — track-view sessionStorage, badge Patrocinado, views×9, FooterAdBanner.
+2026-04-21 INFO [PAGE] Criado: src/app/admin/relatorios/page.tsx — tabela real_views, filtros data/matéria, geolocalização, exportação PDF html2pdf.js.
+2026-04-21 INFO [ADMIN] Atualizado: admin/page.tsx — menu item "Relatórios de Views" com href=/admin/relatorios, suporte a Link externo no menu.
+2026-04-21 INFO [DEP] Instalado: html2pdf.js via npm.
+2026-04-21 INFO [DOCS] Atualizados: 0401_Table_Noticias.md, 0200_Indice_Telas.md, indice.txt
+2026-04-21 INFO [DOCS] Criados: 0211_NotificationBell.md, 0212_FooterAdBanner.md, 0213_Admin_Relatorios.md, 0405_Table_Notificacoes.md
+2026-04-21 INFO [GIT] Commit final executado — todos os artefatos empurrados para o repositório remoto.
