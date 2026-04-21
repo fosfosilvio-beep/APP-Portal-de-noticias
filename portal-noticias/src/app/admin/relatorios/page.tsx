@@ -19,6 +19,7 @@ interface GeoEntry {
   city: string;
   state: string;
   country: string;
+  countryCode: string;
   timestamp: string;
   noticia_titulo?: string;
 }
