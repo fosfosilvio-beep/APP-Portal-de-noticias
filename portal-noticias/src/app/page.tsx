@@ -160,10 +160,10 @@ export default function Home() {
              <p className="text-xs text-red-500/80 italic rounded bg-red-100/50 p-3">Verifique suas chaves de API do Supabase na Vercel.</p>
            </div>
         ) : (
-          <div className="flex flex-col lg:flex-row gap-8 lg:gap-10">
+          <div className="flex flex-col lg:flex-row gap-8 lg:gap-10 min-w-0">
             
             {/* LADO ESQUERDO (70% - CONTEÚDO PRINCIPAL) */}
-            <div className="w-full lg:w-[70%] flex flex-col space-y-12">
+            <div className="w-full lg:w-[70%] min-w-0 flex flex-col space-y-12">
               
               {/* --- MODO HOME (INÍCIO): ESTILO MOVIE PORTAL --- */}
               {categoriaAtiva === "Início" ? (
@@ -196,8 +196,8 @@ export default function Home() {
 
                     {/* Player + Chat lado a lado */}
                       <div className="flex flex-col lg:flex-row gap-4 mb-6">
-                        {/* Player com aspect-ratio 16:9 */}
-                        <div className="relative w-full lg:w-[65%] aspect-video bg-slate-950 rounded-2xl lg:rounded-3xl overflow-hidden shadow-2xl shadow-red-900/20 border border-red-900/30">
+                        {/* Player: min-w-0 previne flex blowout. SmartPlayer já aplica paddingTop 16:9 internamente */}
+                        <div className="min-w-0 w-full lg:w-[65%] overflow-hidden bg-slate-950 rounded-2xl lg:rounded-3xl shadow-2xl shadow-red-900/20 border border-red-900/30">
                           <SmartPlayer
                             customVideoUrl={undefined}
                             onLiveChange={handleLiveChange}
@@ -205,7 +205,7 @@ export default function Home() {
                         </div>
 
                         {/* Chat ocupa ~35% no desktop, altura mínima no mobile */}
-                        <div className="w-full lg:w-[35%] min-h-[320px] lg:min-h-0">
+                        <div className="w-full lg:w-[35%] min-w-0 min-h-[320px] lg:min-h-0">
                           <LiveChat liveUrl={liveUrl} />
                         </div>
                       </div>
@@ -226,8 +226,8 @@ export default function Home() {
                         </p>
                       </div>
 
-                      {/* Player principal da Biblioteca — aspect 16:9 */}
-                      <div className="relative w-full aspect-video bg-slate-950 rounded-2xl lg:rounded-3xl overflow-hidden shadow-2xl shadow-slate-900/50 border border-slate-800 mb-6">
+                      {/* Player principal da Biblioteca — SmartPlayer já aplica aspect 16:9 */}
+                      <div className="min-w-0 w-full overflow-hidden bg-slate-950 rounded-2xl lg:rounded-3xl shadow-2xl shadow-slate-900/50 border border-slate-800 mb-6">
                         <SmartPlayer
                           customVideoUrl={selectedVideoUrl || undefined}
                           onLiveChange={handleLiveChange}

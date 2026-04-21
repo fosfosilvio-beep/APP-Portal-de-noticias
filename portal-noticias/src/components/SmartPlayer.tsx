@@ -266,8 +266,8 @@ export default function SmartPlayer({ customVideoUrl, onLiveChange }: SmartPlaye
   const isLiveOnYoutube = config.is_live && detectLivePlatform(activeVideoUrl) === "youtube";
 
   return (
-    <div className="w-full mx-auto font-sans">
-      {/* Área do player 16:9 — TODOS os overlays ficam DENTRO deste container relative */}
+    <div className="w-full min-w-0 mx-auto font-sans overflow-hidden">
+      {/* Área do player 16:9 — container relative com paddingTop hack */}
       <div
         className="relative w-full overflow-hidden rounded-2xl bg-black shadow-2xl shadow-black/40"
         style={{ paddingTop: "56.25%" }}
