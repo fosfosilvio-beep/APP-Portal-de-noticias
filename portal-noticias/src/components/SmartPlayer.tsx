@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { supabase } from "../lib/supabase";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -64,9 +64,7 @@ export const detectLivePlatform = (url: string | null): "youtube" | "facebook" |
 // Props
 // ─────────────────────────────────────────────────────────────────────────────
 interface SmartPlayerProps {
-  /** URL de vídeo selecionado manualmente no carrossel */
   customVideoUrl?: string;
-  /** Callback chamado quando o estado da live muda (para o pai sincronizar o chat) */
   onLiveChange?: (isLive: boolean, liveUrl: string | null) => void;
 }
 
@@ -79,9 +77,17 @@ export default function SmartPlayer({ customVideoUrl, onLiveChange }: SmartPlaye
   const [videoAutomatico, setVideoAutomatico] = useState<string | null>(null);
   const [displayViewers, setDisplayViewers] = useState(0);
 
-  // ─── Fallback chain (sem noticias.mostrar_no_player) ──────────────────────
-  const resolverFallback = async () => {
-    // 1. biblioteca_webtv (uploads manuais — maior fidelidade editorial)
+  // ── Estado do embed URL: controlado por React, não por DOM imperativo ──────
+  // Isso é o coração do fix do áudio duplicado.
+  // Ao setar null, o React desmonta o <iframe> de forma limpa, parando o áudio.
+  // Ao setar uma nova URL, ele monta um iframe completamente novo e isolado.
+  const [embedUrl, setEmbedUrl] = useState<string | null>(null);
+
+  // channelId estável — não recria a cada re-render (root cause do áudio duplo)
+  const channelIdRef = useRef(`smart_player_${Math.random().toString(36).substring(2, 9)}`);
+
+  // ─── Fallback chain ────────────────────────────────────────────────────────
+  const resolverFallback = useCallback(async () => {
     const { data: acervo } = await supabase
       .from("biblioteca_webtv")
       .select("url_video")
@@ -94,7 +100,6 @@ export default function SmartPlayer({ customVideoUrl, onLiveChange }: SmartPlaye
       return;
     }
 
-    // 2. biblioteca_lives (gravações de lives passadas)
     const { data: lives } = await supabase
       .from("biblioteca_lives")
       .select("url")
@@ -103,9 +108,9 @@ export default function SmartPlayer({ customVideoUrl, onLiveChange }: SmartPlaye
       .maybeSingle();
 
     setVideoAutomatico(lives?.url ?? null);
-  };
+  }, []);
 
-  const fetchConfig = async () => {
+  const fetchConfig = useCallback(async () => {
     try {
       if (!supabase) throw new Error("Client Supabase não encontrado.");
 
@@ -127,16 +132,16 @@ export default function SmartPlayer({ customVideoUrl, onLiveChange }: SmartPlaye
     } finally {
       setLoading(false);
     }
-  };
+  }, [resolverFallback, onLiveChange]);
 
+  // ─── Inicialização + Realtime (channelId estável via useRef) ───────────────
   useEffect(() => {
     fetchConfig();
 
     if (!supabase) return;
 
-    const channelId = `smart_player_config_${Math.random().toString(36).substring(2, 9)}`;
     const channel = supabase
-      .channel(channelId)
+      .channel(channelIdRef.current)
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "configuracao_portal" },
@@ -145,38 +150,71 @@ export default function SmartPlayer({ customVideoUrl, onLiveChange }: SmartPlaye
           setConfig(newConf);
           if (!newConf.is_live) {
             await resolverFallback();
+            setVideoAutomatico(null); // Reseta antes de resolver
           } else {
             setVideoAutomatico(null);
           }
-          const activeUrl = newConf.mostrar_live_facebook ? newConf.url_live_facebook : newConf.url_live_youtube;
+          const activeUrl = newConf.mostrar_live_facebook
+            ? newConf.url_live_facebook
+            : newConf.url_live_youtube;
           onLiveChange?.(newConf.is_live, activeUrl || newConf.url_live_facebook);
         }
       )
       .subscribe();
 
+    // Cleanup: remove o canal do Realtime ao desmontar
     return () => { supabase.removeChannel(channel); };
+  // fetchConfig e resolverFallback são memoizados com useCallback — safe
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ─── Lógica de Simulação Orgânica de Viewers ────────────────────────────────
+  // ─── Bifurcação de Sinal ───────────────────────────────────────────────────
+  const isAcervo = !config?.is_live && (customVideoUrl || videoAutomatico);
+  const activeVideoUrl = config?.is_live
+    ? (config.mostrar_live_facebook
+      ? (config.url_live_facebook || config.url_live_youtube)
+      : (config.url_live_youtube || config.url_live_facebook))
+    : (customVideoUrl || videoAutomatico);
+
+  // ─── FIX CRÍTICO: Gerencia o embedUrl via estado React ──────────────────────
+  // REGRA: Quando activeVideoUrl muda, PRIMEIRO seta null (desmonta o iframe = para áudio),
+  // DEPOIS seta a nova URL (monta iframe limpo). Isso elimina o áudio fantasma.
+  useEffect(() => {
+    if (!activeVideoUrl || !config?.is_live) {
+      // Modo Acervo: usa tag <video> controlada pelo React nativamente
+      setEmbedUrl(null);
+      return;
+    }
+
+    // Step 1: Destruição — seta null para desmontagem limpa do iframe anterior
+    setEmbedUrl(null);
+
+    // Step 2: Recriação com micro-delay para garantir desmontagem
+    const timer = setTimeout(() => {
+      setEmbedUrl(convertEmbedUrl(activeVideoUrl));
+    }, 80);
+
+    return () => {
+      clearTimeout(timer);
+      // Cleanup ao sair: para o áudio zerando o src antes do unmount
+      setEmbedUrl(null);
+    };
+  }, [activeVideoUrl, config?.is_live]);
+
+  // ─── Simulação de Viewers ──────────────────────────────────────────────────
   useEffect(() => {
     if (!config) return;
-    
-    // Inicialização
     setDisplayViewers(config.fake_viewers_boost || 0);
-
     if (!config.is_live || !config.organic_views_enabled) return;
 
     const interval = setInterval(() => {
       setDisplayViewers(prev => {
         const base = config.fake_viewers_boost || 0;
-        const variation = Math.floor(base * 0.05); // 5% oscillation
+        const variation = Math.floor(base * 0.05);
         const change = Math.floor(Math.random() * (variation * 2 + 1)) - variation;
         const newVal = prev + change;
-        
-        // Mantém dentro de um range razoável (±10% do base)
-        if (newVal < base - (variation * 2)) return base - variation;
-        if (newVal > base + (variation * 2)) return base + variation;
+        if (newVal < base - variation * 2) return base - variation;
+        if (newVal > base + variation * 2) return base + variation;
         return newVal;
       });
     }, 5000);
@@ -184,77 +222,18 @@ export default function SmartPlayer({ customVideoUrl, onLiveChange }: SmartPlaye
     return () => clearInterval(interval);
   }, [config?.fake_viewers_boost, config?.is_live, config?.organic_views_enabled]);
 
-  // Lógica de Bifurcação de Sinal (Movido para cima para o useEffect acessá-lo)
-  const isAcervo = !config?.is_live && (customVideoUrl || videoAutomatico);
-  const activeVideoUrl = config?.is_live
-    ? (config.mostrar_live_facebook ? (config.url_live_facebook || config.url_live_youtube) : (config.url_live_youtube || config.url_live_facebook))
-    : (customVideoUrl || videoAutomatico);
-
-  // ─── Injection Manual do Player (Evita áudio duplicado) ──────────────────────
-  const playerRef = React.useRef<HTMLDivElement>(null);
-  
-  useEffect(() => {
-    if (!playerRef.current) return;
-    const container = playerRef.current;
-    
-    // Função de limpeza estrita
-    const destroyPlayer = () => {
-       // Remove todos os elementos de mídia filhos previnindo background play
-       const iframes = container.querySelectorAll("iframe, video");
-       iframes.forEach(el => {
-         if (el.tagName.toLowerCase() === 'iframe') {
-           (el as HTMLIFrameElement).src = ''; 
-         } else if (el.tagName.toLowerCase() === 'video') {
-           (el as HTMLVideoElement).pause();
-           (el as HTMLVideoElement).removeAttribute('src');
-           (el as HTMLVideoElement).load();
-         }
-         el.remove();
-       });
-    };
-
-    destroyPlayer();
-
-    if (activeVideoUrl) {
-       // Recria a mídia de forma isolada
-       if (config?.is_live) {
-          const iframe = document.createElement("iframe");
-          iframe.src = convertEmbedUrl(activeVideoUrl);
-          iframe.className = "absolute top-0 left-0 w-full h-full border-0 transition-opacity duration-700";
-          iframe.allow = "autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share";
-          iframe.allowFullscreen = true;
-          iframe.title = "Transmissão ao vivo – Nossa Web TV";
-          container.appendChild(iframe);
-       } else {
-          const video = document.createElement("video");
-          video.src = activeVideoUrl;
-          video.className = "absolute top-0 left-0 w-full h-full object-contain bg-black";
-          video.controls = true;
-          video.autoplay = !!customVideoUrl;
-          video.muted = !customVideoUrl;
-          video.loop = !customVideoUrl;
-          container.appendChild(video);
-       }
-    }
-
-    return () => destroyPlayer();
-  }, [activeVideoUrl, config?.is_live, customVideoUrl]);
-
-  // ─── Estados de renderização ──────────────────────────────────────────────
+  // ─── Estados de renderização ───────────────────────────────────────────────
   if (loading) {
     return (
-      <div className="w-full flex justify-center">
-        <div
-          className="animate-pulse w-full rounded-2xl bg-slate-800"
-          style={{ paddingTop: "56.25%" }}
-        />
+      <div className="w-full min-w-0">
+        <div className="w-full aspect-video animate-pulse rounded-2xl bg-slate-800" />
       </div>
     );
   }
 
   if (!config) {
     return (
-      <div className="relative w-full overflow-hidden rounded-2xl bg-zinc-900" style={{ paddingTop: "56.25%" }}>
+      <div className="w-full min-w-0 aspect-video relative overflow-hidden rounded-2xl bg-zinc-900">
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
           <h3 className="text-zinc-400 text-xl font-medium">Player indisponível no momento.</h3>
           <p className="text-zinc-600 text-sm mt-2">Nossas transmissões retornam em breve.</p>
@@ -263,18 +242,15 @@ export default function SmartPlayer({ customVideoUrl, onLiveChange }: SmartPlaye
     );
   }
 
-  const isLiveOnYoutube = config.is_live && detectLivePlatform(activeVideoUrl) === "youtube";
-
   return (
-    <div className="w-full min-w-0 mx-auto font-sans overflow-hidden">
-      {/* Área do player 16:9 — container relative com paddingTop hack */}
-      <div
-        className="relative w-full overflow-hidden rounded-2xl bg-black shadow-2xl shadow-black/40"
-        style={{ paddingTop: "56.25%" }}
-        ref={playerRef}
-      >
+    // min-w-0 + overflow-hidden: garante que o player nunca transborde o flex pai
+    <div className="w-full min-w-0 font-sans overflow-hidden">
+
+      {/* ── CONTAINER PRINCIPAL: aspect-video = 16:9 perfeito, overflow-hidden ── */}
+      <div className="relative w-full aspect-video overflow-hidden rounded-2xl bg-black shadow-2xl shadow-black/40">
+
+        {/* ── PLACEHOLDER: exibido quando não há URL ── */}
         {!activeVideoUrl && (
-          /* Placeholder elegante quando não há vídeo */
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-zinc-900 overflow-hidden">
             <div className="absolute inset-0 opacity-40">
               <img
@@ -292,20 +268,49 @@ export default function SmartPlayer({ customVideoUrl, onLiveChange }: SmartPlaye
               </div>
               <h3 className="text-white text-lg sm:text-2xl font-bold mb-2 tracking-tight">Portal Nossa Web TV</h3>
               <p className="text-gray-400 text-xs sm:text-sm max-w-md">
-                Nenhuma transmissão ao vivo no momento. Acompanhe nossas notícias abaixo.
+                Nenhuma transmissão ao vivo. Acompanhe nossas notícias abaixo.
               </p>
             </div>
           </div>
         )}
 
-        {/* Overlays within the player container */}
-        {/* Top Bar (Esquerda e Direita) */}
+        {/* ── LIVE: iframe controlado por estado React (FIX de áudio duplo) ──
+            Quando embedUrl é null, o React DESMONTA o iframe completamente,
+            parando qualquer áudio residual antes de montar o próximo.
+        ── */}
+        {config.is_live && embedUrl && (
+          <iframe
+            key={embedUrl}                    // key vinculada à URL, não ao tempo
+            src={embedUrl}
+            className="absolute top-0 left-0 w-full h-full border-0"
+            allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+            allowFullScreen
+            title="Transmissão ao vivo – Nossa Web TV"
+          />
+        )}
+
+        {/* ── ACERVO: tag <video> nativa do React — sem manipulação DOM ── */}
+        {isAcervo && activeVideoUrl && (
+          <video
+            key={activeVideoUrl}
+            src={activeVideoUrl}
+            className="absolute top-0 left-0 w-full h-full object-contain bg-black"
+            controls
+            autoPlay={!!customVideoUrl}
+            muted={!customVideoUrl}
+            loop={!customVideoUrl}
+            playsInline
+          />
+        )}
+
+        {/* ── OVERLAYS: estritamente DENTRO do container relative ── */}
+
+        {/* Barra de selos — topo */}
         <div className="absolute top-2 sm:top-4 left-2 sm:left-4 right-2 sm:right-4 z-20 flex justify-between items-start pointer-events-none">
-          {/* Lado Esquerdo */}
           <div className="flex flex-col gap-1.5 sm:gap-2">
             {config.is_live && (
               <div className="flex items-center gap-1.5 bg-red-600/90 backdrop-blur-md px-2 sm:px-3 py-1 sm:py-1.5 rounded-full shadow-lg border border-red-500/50 w-fit pointer-events-auto">
-                <span className="relative flex h-2 w-2">
+                <span className="relative flex h-2 w-2 shrink-0">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-300 opacity-75" />
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
                 </span>
@@ -324,7 +329,6 @@ export default function SmartPlayer({ customVideoUrl, onLiveChange }: SmartPlaye
             )}
           </div>
 
-          {/* Lado Direito (Exclusivo/Ao Vivo) */}
           {config.is_live && (
             <div className="bg-gradient-to-r from-orange-500 to-pink-600 px-2 sm:px-4 py-1 sm:py-1.5 rounded-full shadow-lg border border-white/20 pointer-events-auto">
               <span className="text-white font-black text-[9px] sm:text-[11px] tracking-widest uppercase drop-shadow-md">
@@ -334,12 +338,20 @@ export default function SmartPlayer({ customVideoUrl, onLiveChange }: SmartPlaye
           )}
         </div>
 
-        {/* Overlay de Metadados (Live 2.0) */}
+        {/* Metadados da live — rodapé */}
         {config.is_live && (config.titulo_live || config.descricao_live) && (
           <div className="absolute bottom-2 sm:bottom-6 left-2 sm:left-6 right-2 sm:right-6 z-20 pointer-events-none transition-all duration-500 animate-in fade-in slide-in-from-bottom-2">
             <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 p-3 sm:p-5 rounded-xl sm:rounded-2xl max-w-xl shadow-2xl">
-              {config.titulo_live && <h4 className="text-white font-black text-sm sm:text-lg leading-tight mb-1 drop-shadow-md">{config.titulo_live}</h4>}
-              {config.descricao_live && <p className="text-zinc-300 text-[10px] sm:text-xs font-medium line-clamp-2 opacity-90">{config.descricao_live}</p>}
+              {config.titulo_live && (
+                <h4 className="text-white font-black text-sm sm:text-lg leading-tight mb-1 drop-shadow-md">
+                  {config.titulo_live}
+                </h4>
+              )}
+              {config.descricao_live && (
+                <p className="text-zinc-300 text-[10px] sm:text-xs font-medium line-clamp-2 opacity-90">
+                  {config.descricao_live}
+                </p>
+              )}
             </div>
           </div>
         )}
