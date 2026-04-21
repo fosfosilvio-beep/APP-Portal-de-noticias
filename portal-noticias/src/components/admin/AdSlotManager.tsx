@@ -110,7 +110,7 @@ function SortableAdItem({ slot, onToggle, onDelete, onUpdate, onUploadImage }: {
               onChange={(e) => onUpdate(slot.id, "codigo_html_ou_imagem", e.target.value)}
               rows={2}
               placeholder="Cole URL de imagem ou snippet HTML de iframe..."
-              className="w-full text-xs font-mono px-3 py-2 border border-slate-200 rounded-lg outline-none focus:border-blue-400 bg-slate-50 text-slate-700 resize-none"
+              className="w-full text-xs font-mono px-3 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent bg-slate-50 text-zinc-900 font-bold placeholder:text-zinc-500 resize-none transition-all"
             />
           </div>
           <div>
@@ -118,7 +118,7 @@ function SortableAdItem({ slot, onToggle, onDelete, onUpdate, onUploadImage }: {
             <select
               value={slot.posicao_html}
               onChange={(e) => onUpdate(slot.id, "posicao_html", e.target.value)}
-              className="w-full text-xs font-bold px-3 py-2 border border-slate-200 rounded-lg bg-white text-slate-800 outline-none focus:border-blue-400"
+              className="w-full text-xs font-bold px-3 py-2 border border-slate-200 rounded-lg bg-white text-zinc-900 outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent cursor-pointer transition-all"
             >
               <option value="header_top">Header — Topo</option>
               <option value="sidebar_right_1">Sidebar — Lateral 1</option>

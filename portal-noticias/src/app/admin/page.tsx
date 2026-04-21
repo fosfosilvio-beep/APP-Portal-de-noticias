@@ -520,30 +520,53 @@ export default function AdminPage() {
                                     </div>
                                   </div>
 
-                                  {/* Resto dos inputs (URLs, Titulos) do Orquestrador original... */}
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                     <div>
-                                       <label className="block text-xs font-black text-zinc-500 uppercase tracking-widest mb-1.5">Título do Overlay</label>
-                                       <input type="text" value={tituloLive} onChange={e => setTituloLive(e.target.value)} placeholder="AO VIVO: Titulo..." className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3 text-sm font-medium outline-none" />
-                                     </div>
-                                     <div>
-                                       <label className="block text-xs font-black text-zinc-500 uppercase tracking-widest mb-1.5">Descrição</label>
-                                       <input type="text" value={descricaoLive} onChange={e => setDescricaoLive(e.target.value)} placeholder="Acompanhe Agora!" className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3 text-sm font-medium outline-none" />
-                                     </div>
-                                  </div>
+                                      <div>
+                                        <label className="block text-xs font-black text-zinc-500 uppercase tracking-widest mb-1.5">Título do Overlay</label>
+                                        <input 
+                                          type="text" 
+                                          value={tituloLive} 
+                                          onChange={e => setTituloLive(e.target.value)} 
+                                          placeholder="AO VIVO: Titulo..." 
+                                          className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3 text-sm font-bold text-zinc-900 placeholder:text-zinc-500 outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all" 
+                                        />
+                                      </div>
+                                      <div>
+                                        <label className="block text-xs font-black text-zinc-500 uppercase tracking-widest mb-1.5">Descrição</label>
+                                        <input 
+                                          type="text" 
+                                          value={descricaoLive} 
+                                          onChange={e => setDescricaoLive(e.target.value)} 
+                                          placeholder="Acompanhe Agora!" 
+                                          className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3 text-sm font-bold text-zinc-900 placeholder:text-zinc-500 outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all" 
+                                        />
+                                      </div>
+                                   </div>
 
                                   <div className="grid grid-cols-1 gap-6 pt-4">
                                      <div className="space-y-4">
                                        <div className="flex items-center gap-2 text-zinc-800 font-bold mb-4">
                                           <MonitorPlay size={18} className="text-red-600" /> Fonte YouTube
                                        </div>
-                                       <input type="text" value={urlLiveYoutube} onChange={e => setUrlLiveYoutube(e.target.value)} placeholder="https://youtube.com/live/..." className="w-full bg-zinc-50 border border-zinc-200 focus:border-red-500 rounded-xl px-4 py-3 text-sm outline-none transition-all shadow-sm font-medium" />
+                                       <input 
+                                          type="text" 
+                                          value={urlLiveYoutube} 
+                                          onChange={e => setUrlLiveYoutube(e.target.value)} 
+                                          placeholder="https://youtube.com/live/..." 
+                                          className="w-full bg-zinc-50 border border-zinc-200 focus:ring-2 focus:ring-red-600 focus:border-transparent rounded-xl px-4 py-3 text-sm text-zinc-900 font-bold placeholder:text-zinc-500 outline-none transition-all shadow-sm" 
+                                        />
                                      </div>
                                      <div className="space-y-4">
                                        <div className="flex items-center gap-2 text-zinc-800 font-bold mb-4">
                                           <Globe size={18} className="text-blue-600" /> Fonte Facebook
                                        </div>
-                                       <input type="text" value={urlLiveFacebook} onChange={e => setUrlLiveFacebook(e.target.value)} placeholder="https://facebook.com/..." className="w-full bg-zinc-50 border border-zinc-200 focus:border-blue-500 rounded-xl px-4 py-3 text-sm outline-none transition-all shadow-sm font-medium" />
+                                       <input 
+                                          type="text" 
+                                          value={urlLiveFacebook} 
+                                          onChange={e => setUrlLiveFacebook(e.target.value)} 
+                                          placeholder="https://facebook.com/..." 
+                                          className="w-full bg-zinc-50 border border-zinc-200 focus:ring-2 focus:ring-blue-600 focus:border-transparent rounded-xl px-4 py-3 text-sm text-zinc-900 font-bold placeholder:text-zinc-500 outline-none transition-all shadow-sm" 
+                                        />
                                        <div className="flex items-center gap-3 pt-2">
                                           <input type="checkbox" id="showFb" checked={mostrarLiveFacebook} onChange={e => setMostrarLiveFacebook(e.target.checked)} className="w-4 h-4 accent-blue-600 cursor-pointer border-zinc-300 rounded" />
                                           <label htmlFor="showFb" className="text-xs font-bold text-zinc-700 cursor-pointer italic">Priorizar Facebook Live</label>
@@ -797,10 +820,16 @@ export default function AdminPage() {
                                     <div className="space-y-4">
                                        <div>
                                           <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1 block">Link de Destino</label>
-                                          <input type="text" value={slot.link || ""} onChange={e => {
-                                             const setter = idx === 0 ? setAdSlot1 : setAdSlot2;
-                                             setter({ ...slot, link: e.target.value });
-                                          }} placeholder="https://..." className="w-full text-xs font-bold p-3 border border-zinc-200 rounded-xl bg-white outline-none focus:border-blue-500 transition-all" />
+                                          <input 
+                                            type="text" 
+                                            value={slot.link || ""} 
+                                            onChange={e => {
+                                              const setter = idx === 0 ? setAdSlot1 : setAdSlot2;
+                                              setter({ ...slot, link: e.target.value });
+                                            }} 
+                                            placeholder="https://..." 
+                                            className="w-full text-xs font-bold p-3 border border-zinc-200 rounded-xl bg-white outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all text-zinc-900 placeholder:text-zinc-500 shadow-sm" 
+                                          />
                                        </div>
                                     </div>
                                  </div>
@@ -870,12 +899,22 @@ export default function AdminPage() {
                               <div className="space-y-4 animate-in fade-in duration-300">
                                  <div>
                                     <label className="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Nome da Marca</label>
-                                    <input type="text" value={uiSettings.brand_name || ""} onChange={e => setUiSettings({...uiSettings, brand_name: e.target.value})} placeholder="Ex: NOSSA WEB TV" className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3 text-sm font-black uppercase" />
+                                    <input 
+                                      type="text" 
+                                      value={uiSettings.brand_name || ""} 
+                                      onChange={e => setUiSettings({...uiSettings, brand_name: e.target.value})} 
+                                      placeholder="Ex: NOSSA WEB TV" 
+                                      className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3 text-sm font-black uppercase text-zinc-900 placeholder:text-zinc-500 focus:ring-2 focus:ring-purple-600 focus:border-transparent outline-none transition-all shadow-sm" 
+                                    />
                                  </div>
                                  <div className="grid grid-cols-3 gap-3">
                                     <div>
                                        <label className="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Fonte</label>
-                                       <select value={uiSettings.font_family || "Inter"} onChange={e => setUiSettings({...uiSettings, font_family: e.target.value})} className="w-full bg-white border border-zinc-200 rounded-xl px-3 py-2 text-xs font-bold">
+                                       <select 
+                                         value={uiSettings.font_family || "Inter"} 
+                                         onChange={e => setUiSettings({...uiSettings, font_family: e.target.value})} 
+                                         className="w-full bg-white border border-zinc-200 rounded-xl px-3 py-2 text-xs font-bold text-zinc-900 focus:ring-2 focus:ring-purple-600 focus:border-transparent outline-none transition-all cursor-pointer"
+                                       >
                                           <option value="Inter">Inter</option>
                                           <option value="Anton">Anton</option>
                                           <option value="Montserrat">Montserrat</option>
@@ -883,7 +922,11 @@ export default function AdminPage() {
                                     </div>
                                     <div>
                                        <label className="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Peso</label>
-                                       <select value={uiSettings.font_weight || "900"} onChange={e => setUiSettings({...uiSettings, font_weight: e.target.value})} className="w-full bg-white border border-zinc-200 rounded-xl px-3 py-2 text-xs font-bold">
+                                       <select 
+                                         value={uiSettings.font_weight || "900"} 
+                                         onChange={e => setUiSettings({...uiSettings, font_weight: e.target.value})} 
+                                         className="w-full bg-white border border-zinc-200 rounded-xl px-3 py-2 text-xs font-bold text-zinc-900 focus:ring-2 focus:ring-purple-600 focus:border-transparent outline-none transition-all cursor-pointer"
+                                       >
                                           <option value="300">Light</option>
                                           <option value="400">Regular</option>
                                           <option value="700">Bold</option>
@@ -903,11 +946,21 @@ export default function AdminPage() {
                                <div className="grid grid-cols-2 gap-3 bg-zinc-50 border border-zinc-200 rounded-2xl p-4">
                                   <div>
                                      <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">Pausa (ms)</label>
-                                     <input type="number" value={uiSettings.hero_duration || 5000} onChange={e => setUiSettings({...uiSettings, hero_duration: parseInt(e.target.value)})} className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-1.5 text-xs font-bold" />
+                                     <input 
+                                       type="number" 
+                                       value={uiSettings.hero_duration || 5000} 
+                                       onChange={e => setUiSettings({...uiSettings, hero_duration: parseInt(e.target.value)})} 
+                                       className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-1.5 text-xs font-bold text-zinc-900 focus:ring-2 focus:ring-blue-600 outline-none transition-all" 
+                                     />
                                   </div>
                                   <div>
                                      <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">Transição (ms)</label>
-                                     <input type="number" value={uiSettings.hero_transition || 1000} onChange={e => setUiSettings({...uiSettings, hero_transition: parseInt(e.target.value)})} className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-1.5 text-xs font-bold" />
+                                     <input 
+                                       type="number" 
+                                       value={uiSettings.hero_transition || 1000} 
+                                       onChange={e => setUiSettings({...uiSettings, hero_transition: parseInt(e.target.value)})} 
+                                       className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-1.5 text-xs font-bold text-zinc-900 focus:ring-2 focus:ring-blue-600 outline-none transition-all" 
+                                     />
                                   </div>
                                </div>
                             </div>
@@ -924,12 +977,23 @@ export default function AdminPage() {
                          <div className="space-y-4">
                            <h4 className="font-bold text-zinc-800 text-sm uppercase tracking-widest border-b pb-2">Top Marquee (Alerta Urgente)</h4>
                            <label className="block text-xs font-bold text-zinc-500 mt-4">Mensagem de Segurança (Breaking News)</label>
-                           <input type="text" value={uiSettings.breaking_news_alert?.text || ""} onChange={e => setUiSettings({...uiSettings, breaking_news_alert: {...uiSettings.breaking_news_alert, text: e.target.value}})} placeholder="Deixe em branco para o Radar Regional..." className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3 text-sm" />
+                           <input 
+                             type="text" 
+                             value={uiSettings.breaking_news_alert?.text || ""} 
+                             onChange={e => setUiSettings({...uiSettings, breaking_news_alert: {...uiSettings.breaking_news_alert, text: e.target.value}})} 
+                             placeholder="Deixe em branco para o Radar Regional..." 
+                             className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3 text-sm font-bold text-zinc-900 placeholder:text-zinc-500 focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none transition-all" 
+                           />
                            
                            <label className="block text-xs font-bold text-zinc-500 mt-4">Cor de Fundo do Header Alerta</label>
                            <div className="flex gap-3">
                              <input type="color" value={uiSettings.breaking_news_alert?.color || "#e11d48"} onChange={e => setUiSettings({...uiSettings, breaking_news_alert: {...uiSettings.breaking_news_alert, color: e.target.value}})} className="w-12 h-12 rounded-lg cursor-pointer border-0 p-0" />
-                             <input type="text" value={uiSettings.breaking_news_alert?.color || "#e11d48"} onChange={e => setUiSettings({...uiSettings, breaking_news_alert: {...uiSettings.breaking_news_alert, color: e.target.value}})} className="flex-1 bg-white border border-zinc-200 rounded-xl px-4 py-3 text-sm uppercase font-mono" />
+                             <input 
+                               type="text" 
+                               value={uiSettings.breaking_news_alert?.color || "#e11d48"} 
+                               onChange={e => setUiSettings({...uiSettings, breaking_news_alert: {...uiSettings.breaking_news_alert, color: e.target.value}})} 
+                               className="flex-1 bg-white border border-zinc-200 rounded-xl px-4 py-3 text-sm uppercase font-mono font-bold text-zinc-900 focus:ring-2 focus:ring-red-600 outline-none transition-all" 
+                             />
                            </div>
                          </div>
                        </div>

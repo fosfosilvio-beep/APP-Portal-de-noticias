@@ -271,7 +271,7 @@ export default function NewsEditorForm({ editId, onSuccess }: NewsEditorFormProp
                   fontFamily: tituloConfig.font,
                   color: tituloConfig.color === "destaque" ? "#2563eb" : (tituloConfig.color === "urgente" ? "#dc2626" : "#0f172a"),
                 }}
-                className="w-full bg-white border border-slate-300 focus:border-blue-400 rounded-xl px-4 py-3.5 text-2xl md:text-3xl font-black shadow-sm outline-none transition-all placeholder:font-medium placeholder:text-slate-300"
+                className="w-full bg-white border border-slate-300 focus:ring-2 focus:ring-blue-600 focus:border-transparent rounded-xl px-4 py-3.5 text-2xl md:text-3xl font-black shadow-sm outline-none transition-all placeholder:font-medium placeholder:text-zinc-500 text-zinc-900"
               />
             </div>
 
@@ -283,7 +283,7 @@ export default function NewsEditorForm({ editId, onSuccess }: NewsEditorFormProp
                 value={subtitulo}
                 onChange={(e) => setSubtitulo(e.target.value)}
                 placeholder="Contextualização rápida..."
-                className="w-full bg-slate-50 border border-slate-300 focus:border-blue-400 rounded-xl px-4 py-3 text-sm font-medium shadow-sm outline-none transition-all text-slate-800"
+                className="w-full bg-slate-50 border border-slate-300 focus:ring-2 focus:ring-blue-600 focus:border-transparent rounded-xl px-4 py-3 text-sm font-bold shadow-sm outline-none transition-all text-zinc-900 placeholder:text-zinc-500"
               />
             </div>
 
@@ -384,7 +384,7 @@ export default function NewsEditorForm({ editId, onSuccess }: NewsEditorFormProp
                 value={imagemUrl}
                 onChange={(e) => setImagemUrl(e.target.value)}
                 placeholder="URL da Foto de Capa..."
-                className="w-full text-xs font-medium px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-400 shadow-sm text-slate-800"
+                className="w-full text-xs font-bold px-3 py-2 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent shadow-sm text-zinc-900 placeholder:text-zinc-500"
               />
             </div>
 
@@ -434,7 +434,7 @@ export default function NewsEditorForm({ editId, onSuccess }: NewsEditorFormProp
                 value={slug}
                 onChange={(e) => setSlug(e.target.value)}
                 placeholder="link-da-noticia"
-                className="w-full text-sm font-mono text-slate-700 px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-slate-500 bg-slate-50"
+                className="w-full text-sm font-mono text-zinc-900 font-bold px-3 py-2 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-zinc-600 focus:border-transparent bg-slate-50 placeholder:text-zinc-400"
               />
             </div>
 
