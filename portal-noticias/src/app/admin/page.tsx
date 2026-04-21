@@ -11,10 +11,12 @@ import {
 import Link from "next/link";
 import RichTextEditor from "../../components/RichTextEditor";
 import NewsEditorForm from "../../components/admin/NewsEditorForm";
+import AdSlotManager from "../../components/admin/AdSlotManager";
+import LogoCropModal from "../../components/admin/LogoCropModal";
 import { useSettingsStore } from "../../store/settingsStore";
 import { 
   Plus, Pencil, Layout, Monitor, Trash, 
-  CheckCircle2, XCircle, Info, Smartphone, Upload, Check, ChevronDown
+  CheckCircle2, XCircle, Info, Smartphone, Upload, Check, ChevronDown, Megaphone
 } from "lucide-react";
 
 interface StyleConfig {
@@ -68,6 +70,7 @@ export default function AdminPage() {
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [chatMessages, setChatMessages] = useState<any[]>([]);
   const chatBottomRef = useRef<HTMLDivElement>(null);
+  const [isCropModalOpen, setIsCropModalOpen] = useState(false);
 
   // Estados de Branding & UI (ui_settings)
   const [uiSettings, setUiSettings] = useState<any>({
@@ -288,7 +291,8 @@ export default function AdminPage() {
     { id: "dashboard", label: "Visão Geral", icon: <LayoutDashboard size={18} /> },
     { id: "ao-vivo", label: "Sinal Ao Vivo", icon: <Radio size={18} /> },
     { id: "postagens", label: "Editor de Postagens", icon: <Plus size={18} /> },
-    { id: "aparencia", label: "Publicidade & Hero", icon: <Palette size={18} /> },
+    { id: "ads-manager", label: "Motor de Publicidade", icon: <Megaphone size={18} /> },
+    { id: "aparencia", label: "Hero Banners", icon: <Palette size={18} /> },
     { id: "branding", label: "Branding & UI", icon: <TypeIcon size={18} /> },
     { id: "facebook-insta", label: "Feeds Sociais", icon: <Globe size={18} /> },
     { id: "biblioteca", label: "Acervo de Biblioteca", icon: <Video size={18} /> },
@@ -594,7 +598,21 @@ export default function AdminPage() {
                 </div>
              )}
 
-             {/* 3.1 ABA APARÊNCIA (HERO & ADS) */}
+             {/* ABA MOTOR DE PUBLICIDADE V2 */}
+             {activeTab === 'ads-manager' && (
+                <div className="space-y-6 animate-in slide-in-from-bottom-4 fade-in duration-500">
+                   <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6 md:p-10">
+                      <div className="flex items-center gap-3 mb-2">
+                         <Megaphone className="text-amber-500" size={22} />
+                         <h3 className="font-black text-slate-900 text-2xl">Motor de Publicidade Pro</h3>
+                      </div>
+                      <p className="text-sm font-medium text-slate-500 mb-8">Gerencie slots, arraste para reordenar e publique anúncios em todo o portal sem tocar no código.</p>
+                      <AdSlotManager />
+                   </div>
+                </div>
+             )}
+
+             {/* ABA HERO BANNERS (SEPARADO DOS ADS) */}
              {activeTab === 'aparencia' && (
                 <div className="space-y-8 animate-in slide-in-from-bottom-4 fade-in duration-500">
                     <div className="bg-white border border-zinc-200 shadow-sm rounded-2xl p-6 md:p-10">
@@ -1069,6 +1087,16 @@ export default function AdminPage() {
             </div>
          </div>
       )}
+
+      {/* LOGO CROP MODAL */}
+      <LogoCropModal
+        isOpen={isCropModalOpen}
+        onClose={() => setIsCropModalOpen(false)}
+        onSuccess={(url) => {
+          setUiSettings({ ...uiSettings, logo_url: url });
+          notify("✅ Logo atualizada com sucesso!");
+        }}
+      />
     </div>
   );
 }
