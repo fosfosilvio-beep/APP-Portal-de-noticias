@@ -18,6 +18,7 @@ import ShareBar from "../../../components/ShareBar";
 import NewsNarrator from "../../../components/NewsNarrator";
 import ArticleComments from "../../../components/ArticleComments";
 import FooterAdBanner from "../../../components/FooterAdBanner";
+import SmartPlayer from "../../../components/SmartPlayer";
 
 export default function NoticiaDetalhe() {
   const params = useParams();
@@ -219,6 +220,13 @@ export default function NoticiaDetalhe() {
                   />
                   <ShareBar url={`/noticia/${slug}`} title={noticia.titulo} />
                 </div>
+
+                {/* Player de Vídeo (se houver) */}
+                {noticia.video_url && (
+                  <div className="mb-10 w-full rounded-2xl overflow-hidden shadow-2xl bg-black border border-zinc-800">
+                    <SmartPlayer customVideoUrl={noticia.video_url} />
+                  </div>
+                )}
 
                 <div className="relative w-full h-[300px] sm:h-[400px] lg:h-[450px] mb-10 rounded-lg overflow-hidden bg-zinc-100 border border-zinc-200 shadow-sm group">
                   <img

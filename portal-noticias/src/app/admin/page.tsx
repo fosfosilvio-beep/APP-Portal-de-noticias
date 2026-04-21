@@ -39,6 +39,8 @@ const SUBTITLE_DEFAULT: StyleConfig = {
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loadingLogin, setLoadingLogin] = useState(false);
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [activeTab, setActiveTab] = useState("dashboard");
 
@@ -91,8 +93,17 @@ export default function AdminPage() {
   const [loadingNoticias, setLoadingNoticias] = useState(false);
 
   useEffect(() => {
+    checkUser();
     if (activeTab === 'lista-noticias') fetchNoticiasList();
   }, [activeTab]);
+
+  const checkUser = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      setIsAuthenticated(true);
+      fetchCurrentConfig();
+    }
+  };
 
   const fetchNoticiasList = async () => {
     setLoadingNoticias(true);
@@ -224,13 +235,23 @@ export default function AdminPage() {
     setTimeout(() => setShowToast(false), 3000);
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === "admin") {
+    setLoadingLogin(true);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+      
       setIsAuthenticated(true);
       fetchCurrentConfig();
-    } else {
-      alert("Senha incorreta.");
+    } catch (err: any) {
+      alert("Erro na autenticação: " + err.message);
+    } finally {
+      setLoadingLogin(false);
     }
   };
   
@@ -271,15 +292,28 @@ export default function AdminPage() {
            <form onSubmit={handleLogin} className="space-y-4 relative z-10">
               <div>
                 <input 
+                  type="email" 
+                  value={email} 
+                  onChange={e => setEmail(e.target.value)}
+                  className="w-full mb-3 bg-zinc-900 border border-zinc-800 focus:border-blue-500 text-white rounded-xl px-4 py-3 placeholder-zinc-600 transition-all outline-none font-medium"
+                  placeholder="Seu E-mail"
+                  required
+                />
+                <input 
                   type="password" 
                   value={password} 
                   onChange={e => setPassword(e.target.value)}
                   className="w-full bg-zinc-900 border border-zinc-800 focus:border-blue-500 text-white rounded-xl px-4 py-3 placeholder-zinc-600 transition-all outline-none font-medium"
-                  placeholder="Insert Authorization Key"
+                  placeholder="Sua Senha"
+                  required
                 />
               </div>
-              <button type="submit" className="w-full bg-white hover:bg-zinc-200 text-zinc-900 font-bold uppercase tracking-widest text-xs py-3.5 rounded-xl transition-all">
-                Authenticate
+              <button 
+                type="submit" 
+                disabled={loadingLogin}
+                className="w-full bg-white hover:bg-zinc-200 text-zinc-900 font-bold uppercase tracking-widest text-xs py-3.5 rounded-xl transition-all disabled:opacity-50"
+              >
+                {loadingLogin ? "Autenticando..." : "Entrar no Painel"}
               </button>
            </form>
         </div>
@@ -359,8 +393,14 @@ export default function AdminPage() {
              </div>
              <p className="text-sm font-bold text-white mb-0.5">Administrador(a)</p>
              <p className="text-xs text-zinc-500 mb-4">Acesso Ilimitado</p>
-             <button onClick={() => setIsAuthenticated(false)} className="flex items-center justify-center gap-2 w-full text-xs font-bold text-zinc-400 hover:text-white bg-zinc-950 hover:bg-red-900/30 py-2 rounded-lg transition-colors border border-zinc-800">
-                <LogOut size={14} /> Desconectar Token
+             <button 
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  setIsAuthenticated(false);
+                }} 
+                className="flex items-center justify-center gap-2 w-full text-xs font-bold text-zinc-400 hover:text-white bg-zinc-950 hover:bg-red-900/30 py-2 rounded-lg transition-colors border border-zinc-800"
+              >
+                <LogOut size={14} /> Sair do Sistema
              </button>
           </div>
         </div>

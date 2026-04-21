@@ -46,7 +46,7 @@ export default function Home() {
         // 1. Buscar Configuração (Live, Ads, Banners, UI Settings)
         const { data: configData } = await supabase
           .from("configuracao_portal")
-          .select("is_live, hero_banner_items, ad_slot_1, ad_slot_2, banner_anuncio_home, link_anuncio_home, banner_vertical_noticia, link_vertical_noticia, ui_settings")
+          .select("*")
           .limit(1)
           .single();
         

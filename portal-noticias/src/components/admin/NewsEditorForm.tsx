@@ -6,7 +6,16 @@ import {
   Send, Loader2, Save, FileText, Palette,
   Type as TypeIcon, Hash, MousePointer2, Images, X, Upload, Megaphone
 } from "lucide-react";
-import RichTextEditor from "../RichTextEditor";
+import dynamic from "next/dynamic";
+
+const RichTextEditor = dynamic(() => import("../RichTextEditor"), { 
+  ssr: false,
+  loading: () => (
+    <div className="h-[400px] w-full bg-zinc-900 animate-pulse rounded-xl flex items-center justify-center border border-zinc-800">
+      <div className="text-zinc-500 font-medium uppercase tracking-widest text-xs">Preparando Editor...</div>
+    </div>
+  )
+});
 
 interface StyleConfig {
   font: string;

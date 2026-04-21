@@ -65,6 +65,17 @@ export default function SmartPlayer({ customVideoUrl, onLiveChange }: SmartPlaye
   // Ao mudar playerKey, React desmonta o nó DOM antigo (iframe) por completo
   // e instancia um novo do zero. Nenhum useEffect de cleanup manual necessário.
   const [playerKey, setPlayerKey] = useState(Date.now());
+  const playerContainerRef = useRef<HTMLDivElement>(null);
+
+  // Efeito de limpeza forçada: ao desmontar, limpamos o conteúdo HTML do container do player.
+  // Isso garante que qualquer iframe (que produz áudio) seja destruído imediatamente.
+  useEffect(() => {
+    return () => {
+      if (playerContainerRef.current) {
+        playerContainerRef.current.innerHTML = "";
+      }
+    };
+  }, []);
 
   // channelId estável via useRef — não recria subscription a cada re-render
   const channelIdRef = useRef(`smart_player_${Math.random().toString(36).substring(2, 9)}`);
@@ -230,7 +241,7 @@ export default function SmartPlayer({ customVideoUrl, onLiveChange }: SmartPlaye
       )}
 
       {/* ═══ CONTAINER DO VÍDEO — LIMPO, SEM NENHUM OVERLAY ═══ */}
-      <div className="relative w-full aspect-video bg-black">
+      <div ref={playerContainerRef} className="relative w-full aspect-video bg-black">
 
         {/* Placeholder — sem vídeo */}
         {!activeVideoUrl && (
