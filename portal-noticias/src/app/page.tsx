@@ -14,6 +14,7 @@ import HeroBanner from "../components/HeroBanner";
 import FallbackImage from "../components/FallbackImage";
 import PlantaoPolicialWidget from "../components/PlantaoPolicialWidget";
 import FooterAdBanner from "../components/FooterAdBanner";
+import DynamicAdSlot from "../components/DynamicAdSlot";
 
 export default function Home() {
   const [todasNoticias, setTodasNoticias] = useState<any[]>([]);
@@ -119,7 +120,7 @@ export default function Home() {
   );
 
   return (
-    <div className="min-h-screen bg-[#09090b] text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white text-slate-900 flex flex-col font-sans">
       
       <Header 
         isLive={isLive} 
@@ -247,14 +248,14 @@ export default function Home() {
 
                   </section>
 
-                  {/* SEÇÃO 2: GRID DE NOTÍCIAS (BENTO DARK MODE) */}
+                  {/* SEÇÃO 2: GRID DE NOTÍCIAS (LIGHT MODE BENTO) */}
                   <section className="flex flex-col mt-8">
-                     <div className="flex items-center justify-between mb-8 pb-4 border-b border-zinc-800">
-                        <h2 className="text-2xl font-black text-zinc-100 flex items-center gap-4">
+                     <div className="flex items-center justify-between mb-8 pb-4 border-b border-slate-200">
+                        <h2 className="text-2xl font-black text-slate-900 flex items-center gap-4">
                            <span className="w-1.5 h-6 bg-cyan-500 rounded-full shadow-[0_0_12px_#06b6d4]"></span> 
                            Últimas Notícias
                         </h2>
-                        <div className="flex items-center gap-2 text-zinc-400 font-bold text-[10px] uppercase tracking-widest bg-zinc-900/50 px-4 py-2 rounded-full border border-zinc-800">
+                        <div className="flex items-center gap-2 text-slate-500 font-bold text-[10px] uppercase tracking-widest bg-white px-4 py-2 rounded-full border border-slate-200 shadow-sm">
                           Recentes <ChevronRight size={14} />
                         </div>
                      </div>
@@ -264,7 +265,7 @@ export default function Home() {
                            <Link 
                               key={noticia.id} 
                               href={`/noticia/${noticia.slug || noticia.id}`} 
-                              className="group flex flex-col transition-all duration-300 bg-slate-900/60 backdrop-blur-md border border-white/5 rounded-2xl overflow-hidden shadow-lg hover:shadow-cyan-900/20 hover:-translate-y-1 hover:border-white/10"
+                              className="group flex flex-col transition-all duration-300 bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:shadow-cyan-900/10 hover:-translate-y-1"
                            >
                               {/* Thumbnail Universal */}
                               <div className="relative aspect-video w-full overflow-hidden bg-slate-800 isolate">
@@ -402,23 +403,23 @@ export default function Home() {
               ) : (
                 /* --- MODO CATEGORIA ATIVA --- */
                 <div>
-                   <h1 className="text-4xl font-black text-zinc-100 mb-8 border-l-[6px] border-cyan-600 pl-4">{categoriaAtiva}</h1>
+                   <h1 className="text-4xl font-black text-slate-900 mb-8 border-l-[6px] border-cyan-600 pl-4">{categoriaAtiva}</h1>
                    
                    {!noticiasDaCategoriaAtiva.length ? (
-                      <div className="bg-zinc-900 rounded-2xl p-12 text-center border border-zinc-800">
-                         <p className="text-zinc-500 text-lg font-medium">Nenhuma matéria registrada em {categoriaAtiva}.</p>
+                      <div className="bg-white rounded-2xl p-12 text-center border border-slate-200 shadow-sm">
+                         <p className="text-slate-500 text-lg font-medium">Nenhuma matéria registrada em {categoriaAtiva}.</p>
                       </div>
                    ) : (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                          {noticiasDaCategoriaAtiva.map((noticia, i) => (
-                            <Link key={noticia.id} href={`/noticia/${noticia.slug || noticia.id}`} className="group bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-lg hover:border-zinc-700 hover:-translate-y-1 transition-all duration-300 flex flex-col">
-                               <div className="h-64 w-full relative overflow-hidden isolate bg-zinc-800">
+                            <Link key={noticia.id} href={`/noticia/${noticia.slug || noticia.id}`} className="group bg-white border border-slate-200 shadow-sm rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col">
+                               <div className="h-64 w-full relative overflow-hidden isolate bg-slate-100">
                                   <img src={noticia.imagem_capa || `https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=600&random=${i}`} alt="Capa" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 z-0" />
-                                  <div className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-[#09090b] via-[#09090b]/80 to-transparent z-10"></div>
+                                  <div className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-black via-black/80 to-transparent z-10"></div>
                                </div>
                                <div className="p-6 flex flex-col flex-1 relative z-20 -mt-16">
                                   <div className="font-bold text-cyan-400 uppercase tracking-widest text-[11px] mb-2 drop-shadow-md">{noticia.categoria}</div>
-                                  <h2 className="text-xl font-bold text-zinc-100 leading-snug group-hover:text-cyan-400 transition-colors drop-shadow-lg">{noticia.titulo}</h2>
+                                  <h2 className="text-xl font-bold text-white leading-snug group-hover:text-cyan-300 transition-colors drop-shadow-lg">{noticia.titulo}</h2>
                                </div>
                             </Link>
                          ))}
@@ -458,37 +459,35 @@ export default function Home() {
               {/* PLANTÃO POLICIAL */}
               <PlantaoPolicialWidget />
 
-               {/* SLOT DE ANÚNCIO 1 (CONSOLIDADO) */}
-               <div className="w-full">
-                  {config?.ad_slot_1?.visible && config.ad_slot_1.image_url ? (
-                    <a href={config.ad_slot_1.link || "#"} target="_blank" className="group block relative w-full h-64 rounded-2xl overflow-hidden shadow-xl border border-zinc-800 hover:border-zinc-700 transition-all duration-300">
-                       <img src={config.ad_slot_1.image_url} alt="Publicidade" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                       <div className="absolute top-2 right-2">
-                          <span className="bg-zinc-900/80 backdrop-blur-md text-zinc-100 text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border border-zinc-700/50">Publicidade</span>
-                       </div>
-                    </a>
-                  ) : config?.banner_anuncio_home ? (
-                    <a href={config.link_anuncio_home || "#"} target="_blank" className="group block relative w-full h-64 rounded-2xl overflow-hidden shadow-xl transition-all duration-300 border border-zinc-800">
-                       <img src={config.banner_anuncio_home} alt="Publicidade Legacy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                       <div className="absolute top-2 right-2">
-                          <span className="bg-black/40 backdrop-blur-md text-white text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border border-white/10">Publicidade</span>
-                       </div>
-                    </a>
-                  ) : (
-                    <div className="w-full bg-zinc-900/40 rounded-2xl border border-dashed border-zinc-700 h-64 flex flex-col items-center justify-center p-6 text-center group cursor-pointer hover:bg-zinc-800/60 transition-colors shadow-sm">
-                       <span className="text-[10px] font-black uppercase text-zinc-500 tracking-widest mb-2 border border-zinc-700 px-2 py-0.5 rounded">Espaço Publicitário</span>
-                       <p className="text-zinc-500 font-bold text-xs max-w-[180px]">Impacte milhares de leitores regionais com sua marca.</p>
-                    </div>
-                  )}
-               </div>
+                {/* SLOT DE ANÚNCIO 1 (V2 DYNAMIC / FALLBACK TO LEGACY) */}
+                <div className="w-full">
+                  <DynamicAdSlot 
+                    position="sidebar_right_1" 
+                    fallback={
+                      config?.ad_slot_1?.visible && config.ad_slot_1.image_url ? (
+                        <a href={config.ad_slot_1.link || "#"} target="_blank" className="group block relative w-full h-64 rounded-2xl overflow-hidden shadow-sm border border-slate-200 hover:border-cyan-200 transition-all duration-300">
+                           <img src={config.ad_slot_1.image_url} alt="Publicidade" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                           <div className="absolute top-2 right-2">
+                              <span className="bg-white/80 backdrop-blur-md text-slate-800 text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border border-slate-200 shadow-sm">Publicidade</span>
+                           </div>
+                        </a>
+                      ) : (
+                        <div className="w-full bg-white rounded-2xl border border-dashed border-slate-300 h-64 flex flex-col items-center justify-center p-6 text-center group cursor-pointer hover:bg-slate-50 transition-colors shadow-sm">
+                           <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 border border-slate-300 px-2 py-0.5 rounded">Espaço Publicitário</span>
+                           <p className="text-slate-500 font-bold text-xs max-w-[180px]">Impacte milhares de leitores regionais com sua marca.</p>
+                        </div>
+                      )
+                    } 
+                  />
+                </div>
 
-              {/* GIRO LATERAL (NEON/BENTO) */}
+              {/* GIRO LATERAL (NEON/BENTO MODIFICADO PARA CLARO) */}
               {(config?.ui_settings?.widgets_visibility?.giro24h !== false) && (
-                <div className="bg-zinc-900/80 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-zinc-800/80">
-                  <div className="flex items-center justify-between mb-6 border-b border-zinc-800 pb-4">
+                <div className="bg-white rounded-2xl p-6 shadow-md border border-slate-200">
+                  <div className="flex items-center justify-between mb-6 border-b border-slate-100 pb-4">
                     <div className="flex items-center space-x-2">
                       <span className="w-2.5 h-2.5 bg-cyan-500 rounded-full shadow-[0_0_8px_#06b6d4]"></span>
-                      <h3 className="font-black text-zinc-100 text-lg uppercase tracking-tight">Giro 24h</h3>
+                      <h3 className="font-black text-slate-900 text-lg uppercase tracking-tight">Giro 24h</h3>
                     </div>
                   </div>
                   
@@ -499,8 +498,8 @@ export default function Home() {
                           {idx + 1}
                         </span>
                         <div className="flex flex-col">
-                          <span className="text-[9px] text-cyan-500 font-black uppercase tracking-widest mb-1">{news.categoria || "Geral"}</span>
-                          <p className="text-sm font-bold text-zinc-300 leading-snug group-hover:text-cyan-400 transition-colors line-clamp-3">
+                          <span className="text-[9px] text-cyan-600 font-black uppercase tracking-widest mb-1">{news.categoria || "Geral"}</span>
+                          <p className="text-sm font-bold text-slate-700 leading-snug group-hover:text-cyan-600 transition-colors line-clamp-3">
                             {news.titulo}
                           </p>
                         </div>
@@ -542,39 +541,43 @@ export default function Home() {
                 </div>
               )}
 
-               {/* SLOT DE ANÚNCIO 2 (CONSOLIDADO) */}
-               <div className="w-full">
-                  {config?.ad_slot_2?.visible && config.ad_slot_2.image_url ? (
-                    <a href={config.ad_slot_2.link || "#"} target="_blank" className="group block relative w-full h-[400px] rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-200">
-                       <img src={config.ad_slot_2.image_url} alt="Publicidade Vertical" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                       <div className="absolute top-2 right-2">
-                          <span className="bg-slate-900/40 backdrop-blur-md text-white text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border border-white/10">Publicidade</span>
-                       </div>
-                    </a>
-                  ) : config?.banner_vertical_noticia ? (
-                    <a href={config.link_vertical_noticia || "#"} target="_blank" className="group block relative w-full h-[400px] rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300">
-                       <img src={config.banner_vertical_noticia} alt="Publicidade Vertical Legacy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                       <div className="absolute top-2 right-2">
-                          <span className="bg-black/20 backdrop-blur-sm text-white text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border border-white/10">Publicidade</span>
-                       </div>
-                    </a>
-                  ) : (
-                    <div className="w-full bg-white rounded-2xl border border-dashed border-slate-200 h-[400px] flex flex-col items-center justify-center p-6 text-center group cursor-pointer hover:bg-slate-50 transition-colors shadow-sm">
-                        <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 border border-slate-200 px-2 py-0.5 rounded">Banner Vertical</span>
-                    </div>
-                  )}
-               </div>
+                {/* SLOT DE ANÚNCIO 2 (V2 DYNAMIC / FALLBACK TO LEGACY) */}
+                <div className="w-full">
+                  <DynamicAdSlot 
+                    position="sidebar_right_2" 
+                    fallback={
+                      config?.ad_slot_2?.visible && config.ad_slot_2.image_url ? (
+                        <a href={config.ad_slot_2.link || "#"} target="_blank" className="group block relative w-full h-[400px] rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-200">
+                           <img src={config.ad_slot_2.image_url} alt="Publicidade Vertical" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                           <div className="absolute top-2 right-2">
+                              <span className="bg-white/80 backdrop-blur-md text-slate-800 text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border border-slate-200 shadow-sm">Publicidade</span>
+                           </div>
+                        </a>
+                      ) : (
+                        <div className="w-full bg-white rounded-2xl border border-dashed border-slate-200 h-[400px] flex flex-col items-center justify-center p-6 text-center group cursor-pointer hover:bg-slate-50 transition-colors shadow-sm">
+                            <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 border border-slate-200 px-2 py-0.5 rounded">Banner Vertical</span>
+                        </div>
+                      )
+                    } 
+                  />
+                </div>
 
             </aside>
           </div>
         )}
       </main>
       
-      {/* BANNER PUBLICITÁRIO RODAPÉ */}
-      <FooterAdBanner
-        imageUrl={config?.ad_slot_2?.image_url || config?.banner_anuncio_home}
-        link={config?.ad_slot_2?.link || config?.link_anuncio_home}
-        visible={true}
+      {/* BANNER PUBLICITÁRIO RODAPÉ (V2 DYNAMIC) */}
+      <DynamicAdSlot 
+        position="footer_top" 
+        className="rounded-none border-x-0 border-b-0 py-6 bg-slate-900"
+        fallback={
+          <FooterAdBanner
+            imageUrl={config?.ad_slot_2?.image_url || config?.banner_anuncio_home}
+            link={config?.ad_slot_2?.link || config?.link_anuncio_home}
+            visible={true}
+          />
+        }
       />
 
       {/* RODAPÉ */}

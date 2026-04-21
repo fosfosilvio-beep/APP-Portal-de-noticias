@@ -6,7 +6,7 @@ import {
   Settings, Rss, Users, Sparkles, Send, Loader2, Save, 
   LayoutDashboard, FileText, ExternalLink, LogOut, User, 
   Eye, List, Trash2, Video, Type as TypeIcon, Palette, 
-  Bold as BoldIcon, Radio, Webhook, MonitorPlay, Globe, AlertTriangle
+  Bold as BoldIcon, Radio, Webhook, MonitorPlay, Globe, AlertTriangle, ShieldAlert
 } from "lucide-react";
 import Link from "next/link";
 import RichTextEditor from "../../components/RichTextEditor";
@@ -66,6 +66,8 @@ export default function AdminPage() {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [chatMessages, setChatMessages] = useState<any[]>([]);
+  const chatBottomRef = useRef<HTMLDivElement>(null);
 
   // Estados de Branding & UI (ui_settings)
   const [uiSettings, setUiSettings] = useState<any>({
@@ -104,6 +106,39 @@ export default function AdminPage() {
     } finally {
       setLoadingNoticias(false);
     }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'ao-vivo') {
+      const fetchChat = async () => {
+         const { data } = await supabase.from('live_messages').select('id, conteudo, created_at, profiles(nome_completo)').order('created_at', { ascending: false }).limit(40);
+         if (data) setChatMessages(data.reverse());
+      };
+      fetchChat();
+      const ch = supabase.channel('admin_live_chat')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'live_messages' }, async (payload) => {
+           const { data: profile } = await supabase.from('profiles').select('nome_completo').eq('id', payload.new.profile_id).single();
+           setChatMessages(prev => [...prev, { ...payload.new, profiles: profile }]);
+        })
+        .subscribe();
+      return () => { supabase.removeChannel(ch); }
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
+     if(activeTab === 'ao-vivo') {
+        chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+     }
+  }, [chatMessages, activeTab]);
+
+  const limparChat = async () => {
+     if(!window.confirm("⚠️ Tem certeza que deseja apagar TODAS AS MENSAGENS da live atual?")) return;
+     try {
+        await supabase.from('live_messages').delete().neq('id', '00000000-0000-0000-0000-000000000000'); // deleteAll approach
+        setChatMessages([]);
+     } catch(e) {
+        alert("Erro.");
+     }
   };
 
   const deletarNoticia = async (id: string, titulo: string) => {
@@ -385,109 +420,160 @@ export default function AdminPage() {
                 </div>
              )}
 
-             {/* 2. ABA AO VIVO (BIFURCAÇÃO MÁSTER) */}
+             {/* 2. ABA AO VIVO (BIFURCAÇÃO MÁSTER E COCKPIT DE TRANSMISSÃO) */}
              {activeTab === 'ao-vivo' && (
-                <div className="space-y-6 animate-in slide-in-from-bottom-4 fade-in duration-500">
-                    <div className="bg-white border border-zinc-200 shadow-sm rounded-2xl overflow-hidden">
-                       <div className="bg-zinc-50 px-6 py-5 border-b border-zinc-200 flex items-center justify-between">
-                         <div className="flex items-center gap-3">
-                           <Webhook className="text-red-500" size={20} />
-                           <h3 className="font-black text-zinc-800">Orquestrador da Transmissão (Ao Vivo)</h3>
-                         </div>
-                       </div>
-                       
-                       <div className="p-6 md:p-8 space-y-8">
-                           <div className="bg-zinc-50 p-6 rounded-2xl border border-zinc-200 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-                             <div>
-                                <h4 className="font-black text-zinc-900 text-lg">Acionamento Mestre da Bifurcação</h4>
-                                <p className="text-zinc-500 text-sm mt-1 max-w-lg">Quando ATIVADO, o portal oculta a biblioteca on-demand e renderiza imediatamente o módulo de Ao Vivo.</p>
-                             </div>
-                             <div className="flex items-center gap-4">
-                               {isLive && (
-                                 <button 
-                                   onClick={() => {
-                                     if(window.confirm("⚠️ INTERROMPER TRANSMISSÃO IMEDIATAMENTE?")) {
-                                       setIsLive(false);
-                                       saveConfig({ is_live: false });
-                                     }
-                                   }}
-                                   className="bg-red-600 hover:bg-red-700 text-white font-black text-[10px] px-4 py-2 rounded-lg flex items-center gap-2 animate-pulse"
-                                 >
-                                    <XCircle size={14} /> KILL SWITCH
-                                 </button>
-                               )}
-                               <label className="relative inline-flex items-center cursor-pointer shrink-0 scale-125">
-                                 <input type="checkbox" checked={isLive} onChange={(e) => setIsLive(e.target.checked)} className="sr-only peer" />
-                                 <div className="w-14 h-7 bg-zinc-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-red-500 shadow-inner"></div>
-                               </label>
-                             </div>
-                           </div>
+                <div className="space-y-6 animate-in slide-in-from-bottom-4 fade-in duration-500 max-w-[1400px]">
+                    <div className="flex items-center justify-between bg-zinc-900 rounded-2xl p-6 text-white shadow-xl shadow-zinc-900/10 mb-6">
+                        <div>
+                           <h2 className="text-2xl font-black text-white flex items-center gap-3">
+                              <Radio className="text-red-500 animate-pulse" /> Cockpit de Transmissão PRO
+                           </h2>
+                           <p className="text-zinc-400 font-medium text-sm mt-1">Sinal, Chat e Engajamento em Tempo Real.</p>
+                        </div>
+                    </div>
 
-                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                              <div>
-                                <label className="block text-xs font-black text-zinc-500 uppercase tracking-widest mb-1.5">Título do Overlay (Live Name)</label>
-                                <input type="text" value={tituloLive} onChange={e => setTituloLive(e.target.value)} placeholder="Ex: AO VIVO: Cobertura Especial..." className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3 text-sm font-medium outline-none" />
-                              </div>
-                              <div>
-                                <label className="block text-xs font-black text-zinc-500 uppercase tracking-widest mb-1.5">Descrição Curta (Overlay)</label>
-                                <input type="text" value={descricaoLive} onChange={e => setDescricaoLive(e.target.value)} placeholder="Ex: Acompanhe as últimas notícias..." className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3 text-sm font-medium outline-none" />
-                              </div>
-                           </div>
-
-                           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-4">
-                              {/* Coluna YouTube (Prioridade) */}
-                              <div className="space-y-4">
-                                <div className="flex items-center gap-2 text-zinc-800 font-bold mb-4">
-                                   <MonitorPlay size={20} className="text-red-600" /> Fonte YouTube
-                                </div>
-                                <input type="text" value={urlLiveYoutube} onChange={e => setUrlLiveYoutube(e.target.value)} placeholder="https://youtube.com/live/..." className="w-full bg-zinc-50 border border-zinc-200 focus:border-red-500 rounded-xl px-4 py-3 text-sm outline-none transition-all shadow-sm font-medium" />
-                              </div>
-
-                              {/* Coluna Facebook (Secundária) */}
-                              <div className="space-y-4 border-t lg:border-t-0 lg:border-l border-zinc-200 pt-6 lg:pt-0 lg:pl-8">
-                                <div className="flex items-center gap-2 text-zinc-800 font-bold mb-4">
-                                   <Globe size={20} className="text-blue-600" /> Fonte Facebook
-                                </div>
-                                <input type="text" value={urlLiveFacebook} onChange={e => setUrlLiveFacebook(e.target.value)} placeholder="https://facebook.com/..." className="w-full bg-zinc-50 border border-zinc-200 focus:border-blue-500 rounded-xl px-4 py-3 text-sm outline-none transition-all shadow-sm font-medium" />
-                                <div className="flex items-center gap-3 pt-2">
-                                   <input type="checkbox" id="showFb" checked={mostrarLiveFacebook} onChange={e => setMostrarLiveFacebook(e.target.checked)} className="w-5 h-5 accent-blue-600 cursor-pointer border-zinc-300 rounded" />
-                                   <label htmlFor="showFb" className="text-sm font-bold text-zinc-700 cursor-pointer italic">Priorizar Facebook nesta sessão.</label>
+                    <div className="flex flex-col lg:flex-row gap-6">
+                        {/* COLUNA ESQUERDA: Orquestrador */}
+                        <div className="w-full lg:w-[60%] flex flex-col gap-6">
+                           <div className="bg-white border border-zinc-200 shadow-sm rounded-2xl overflow-hidden">
+                              <div className="bg-zinc-50 px-6 py-5 border-b border-zinc-200 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <Webhook className="text-red-500" size={20} />
+                                  <h3 className="font-black text-zinc-800 text-sm uppercase tracking-widest">Orquestrador de Sinal</h3>
                                 </div>
                               </div>
-                           </div>
+                              
+                              <div className="p-6 md:p-8 space-y-8">
+                                  <div className="bg-zinc-50 p-6 rounded-2xl border border-zinc-200 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                                    <div>
+                                       <h4 className="font-black text-zinc-900 text-lg">Acionamento Mestre</h4>
+                                       <p className="text-zinc-500 text-sm mt-1 max-w-sm">Alterna todo portal para "Modo Live".</p>
+                                    </div>
+                                    <div className="flex items-center gap-4">
+                                      {isLive && (
+                                        <button 
+                                          onClick={() => {
+                                            if(window.confirm("⚠️ INTERROMPER TRANSMISSÃO IMEDIATAMENTE?")) {
+                                              setIsLive(false);
+                                              saveConfig({ is_live: false });
+                                            }
+                                          }}
+                                          className="bg-red-600 hover:bg-red-700 text-white font-black text-[10px] px-4 py-2 rounded-lg flex items-center gap-2 animate-pulse"
+                                        >
+                                           <XCircle size={14} /> KILL SWITCH
+                                        </button>
+                                      )}
+                                      <label className="relative inline-flex items-center cursor-pointer shrink-0 scale-125">
+                                        <input type="checkbox" checked={isLive} onChange={(e) => setIsLive(e.target.checked)} className="sr-only peer" />
+                                        <div className="w-14 h-7 bg-zinc-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-red-500 shadow-inner"></div>
+                                      </label>
+                                    </div>
+                                  </div>
 
-                           <div className="border-t border-zinc-100 pt-8 flex flex-col md:flex-row gap-8">
-                             <div className="flex-1">
-                               <label className="block text-xs font-black text-zinc-500 uppercase tracking-widest mb-2">Simulador de Espectadores Sociais (Boost)</label>
-                               <input type="number" value={viewersBoost} onChange={(e) => setViewersBoost(Number(e.target.value))} className="w-full max-w-xs bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-2xl font-black text-white shadow-sm outline-none" />
-                             </div>
-                             <div className="bg-zinc-50 p-6 rounded-2xl border border-zinc-100 flex-1 flex items-center justify-between">
-                               <div>
-                                  <h4 className="font-bold text-zinc-800 text-sm">Simulação Orgânica</h4>
-                                  <p className="text-[10px] text-zinc-500">Oscilação automática de ±5% no contador.</p>
-                               </div>
-                               <label className="relative inline-flex items-center cursor-pointer">
-                                 <input type="checkbox" checked={organicViewsEnabled} onChange={(e) => setOrganicViewsEnabled(e.target.checked)} className="sr-only peer" />
-                                 <div className="w-11 h-6 bg-zinc-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
-                               </label>
-                             </div>
-                           </div>
+                                  {/* Resto dos inputs (URLs, Titulos) do Orquestrador original... */}
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                     <div>
+                                       <label className="block text-xs font-black text-zinc-500 uppercase tracking-widest mb-1.5">Título do Overlay</label>
+                                       <input type="text" value={tituloLive} onChange={e => setTituloLive(e.target.value)} placeholder="AO VIVO: Titulo..." className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3 text-sm font-medium outline-none" />
+                                     </div>
+                                     <div>
+                                       <label className="block text-xs font-black text-zinc-500 uppercase tracking-widest mb-1.5">Descrição</label>
+                                       <input type="text" value={descricaoLive} onChange={e => setDescricaoLive(e.target.value)} placeholder="Acompanhe Agora!" className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3 text-sm font-medium outline-none" />
+                                     </div>
+                                  </div>
 
-                           <div className="flex justify-end pt-4">
-                              <button onClick={() => saveConfig({ 
-                                is_live: isLive, 
-                                url_live_youtube: urlLiveYoutube, 
-                                url_live_facebook: urlLiveFacebook, 
-                                mostrar_live_facebook: mostrarLiveFacebook, 
-                                fake_viewers_boost: viewersBoost,
-                                titulo_live: tituloLive,
-                                descricao_live: descricaoLive,
-                                organic_views_enabled: organicViewsEnabled
-                              })} disabled={savingConfig} className="bg-zinc-900 hover:bg-zinc-800 text-white font-bold px-8 py-3.5 rounded-xl shadow-lg transition-all flex items-center gap-2 disabled:opacity-50">
-                                {savingConfig ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />} Salvar Configuração de Live
-                              </button>
+                                  <div className="grid grid-cols-1 gap-6 pt-4">
+                                     <div className="space-y-4">
+                                       <div className="flex items-center gap-2 text-zinc-800 font-bold mb-4">
+                                          <MonitorPlay size={18} className="text-red-600" /> Fonte YouTube
+                                       </div>
+                                       <input type="text" value={urlLiveYoutube} onChange={e => setUrlLiveYoutube(e.target.value)} placeholder="https://youtube.com/live/..." className="w-full bg-zinc-50 border border-zinc-200 focus:border-red-500 rounded-xl px-4 py-3 text-sm outline-none transition-all shadow-sm font-medium" />
+                                     </div>
+                                     <div className="space-y-4">
+                                       <div className="flex items-center gap-2 text-zinc-800 font-bold mb-4">
+                                          <Globe size={18} className="text-blue-600" /> Fonte Facebook
+                                       </div>
+                                       <input type="text" value={urlLiveFacebook} onChange={e => setUrlLiveFacebook(e.target.value)} placeholder="https://facebook.com/..." className="w-full bg-zinc-50 border border-zinc-200 focus:border-blue-500 rounded-xl px-4 py-3 text-sm outline-none transition-all shadow-sm font-medium" />
+                                       <div className="flex items-center gap-3 pt-2">
+                                          <input type="checkbox" id="showFb" checked={mostrarLiveFacebook} onChange={e => setMostrarLiveFacebook(e.target.checked)} className="w-4 h-4 accent-blue-600 cursor-pointer border-zinc-300 rounded" />
+                                          <label htmlFor="showFb" className="text-xs font-bold text-zinc-700 cursor-pointer italic">Priorizar Facebook Live</label>
+                                       </div>
+                                     </div>
+                                  </div>
+
+                                  <div className="border-t border-zinc-100 pt-8 flex flex-col gap-8">
+                                     <div className="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl p-5 shadow-inner">
+                                       <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-3">Audiência Simulada (+Bot Boost)</label>
+                                       <div className="flex items-center gap-4">
+                                          <input type="number" value={viewersBoost} onChange={(e) => setViewersBoost(Number(e.target.value))} className="w-32 bg-black border border-zinc-700 rounded-xl px-4 py-3 text-2xl font-black text-white outline-none" />
+                                          <label className="relative inline-flex items-center cursor-pointer ml-auto" title="Oscilação Orgânica">
+                                            <input type="checkbox" checked={organicViewsEnabled} onChange={(e) => setOrganicViewsEnabled(e.target.checked)} className="sr-only peer" />
+                                            <div className="w-11 h-6 bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:bg-emerald-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
+                                            <span className="text-white text-xs ml-2 font-bold uppercase tracking-widest">Oscilação Orgânica</span>
+                                          </label>
+                                       </div>
+                                     </div>
+                                  </div>
+
+                                  <div className="flex justify-end pt-4">
+                                     <button onClick={() => saveConfig({ 
+                                       is_live: isLive, 
+                                       url_live_youtube: urlLiveYoutube, 
+                                       url_live_facebook: urlLiveFacebook, 
+                                       mostrar_live_facebook: mostrarLiveFacebook, 
+                                       fake_viewers_boost: viewersBoost,
+                                       titulo_live: tituloLive,
+                                       descricao_live: descricaoLive,
+                                       organic_views_enabled: organicViewsEnabled
+                                     })} disabled={savingConfig} className="bg-emerald-600 hover:bg-emerald-700 text-white font-black px-8 py-3.5 rounded-xl shadow-lg transition-all flex items-center gap-2 disabled:opacity-50">
+                                       {savingConfig ? <Loader2 size={18} className="animate-spin" /> : <ShieldAlert size={18} />} APLICAR ALTERAÇÕES À BASE DE TRANSMISSÃO
+                                     </button>
+                                  </div>
+                              </div>
                            </div>
-                       </div>
+                        </div>
+
+                        {/* COLUNA DIREITA: Moderador do Chat */}
+                        <div className="w-full lg:w-[40%] flex flex-col h-[700px]">
+                           <div className="flex-1 bg-[#09090b] border border-zinc-800 rounded-2xl flex flex-col overflow-hidden shadow-2xl relative">
+                              <div className="bg-zinc-950 border-b border-zinc-800 p-4 shrink-0 flex items-center justify-between">
+                                  <div className="flex items-center gap-3">
+                                      <span className="relative flex h-3 w-3">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
+                                        <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600" />
+                                      </span>
+                                      <h3 className="text-white font-black uppercase text-sm tracking-widest">Moderação Chat TV</h3>
+                                  </div>
+                                  <button onClick={limparChat} className="bg-red-600 hover:bg-red-700 text-white font-bold text-[9px] uppercase tracking-widest px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors">
+                                     <Trash2 size={12} /> Limpar Chat
+                                  </button>
+                              </div>
+
+                              <div className="flex-1 overflow-y-auto p-4 space-y-3 font-sans">
+                                  {chatMessages.length === 0 && (
+                                     <div className="h-full flex items-center justify-center text-zinc-700 text-xs font-bold uppercase tracking-widest">
+                                        Sistema Pronto. Aguardando mensagens...
+                                     </div>
+                                  )}
+                                  {chatMessages.map((m) => (
+                                      <div key={m.id} className="bg-zinc-900/80 p-3 rounded-xl border border-zinc-800/50 hover:border-zinc-700 transition flex gap-3">
+                                         <div className="flex-1">
+                                            <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest">{m.profiles?.nome_completo || 'User'}</span>
+                                            <p className="text-zinc-300 text-sm mt-0.5 leading-snug">{m.conteudo}</p>
+                                         </div>
+                                         <button onClick={async () => {
+                                            if(window.confirm('Apagar esta mensagem da base?')) {
+                                               await supabase.from('live_messages').delete().eq('id', m.id);
+                                            }
+                                         }} className="text-zinc-600 hover:text-red-500 self-start p-1 transition-colors" title="Apagar Mensagem">
+                                            <Trash2 size={14} />
+                                         </button>
+                                      </div>
+                                  ))}
+                                  <div ref={chatBottomRef}></div>
+                              </div>
+                           </div>
+                        </div>
                     </div>
                 </div>
              )}

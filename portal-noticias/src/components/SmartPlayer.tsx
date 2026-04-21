@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -184,6 +184,62 @@ export default function SmartPlayer({ customVideoUrl, onLiveChange }: SmartPlaye
     return () => clearInterval(interval);
   }, [config?.fake_viewers_boost, config?.is_live, config?.organic_views_enabled]);
 
+  // Lógica de Bifurcação de Sinal (Movido para cima para o useEffect acessá-lo)
+  const isAcervo = !config?.is_live && (customVideoUrl || videoAutomatico);
+  const activeVideoUrl = config?.is_live
+    ? (config.mostrar_live_facebook ? (config.url_live_facebook || config.url_live_youtube) : (config.url_live_youtube || config.url_live_facebook))
+    : (customVideoUrl || videoAutomatico);
+
+  // ─── Injection Manual do Player (Evita áudio duplicado) ──────────────────────
+  const playerRef = React.useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    if (!playerRef.current) return;
+    const container = playerRef.current;
+    
+    // Função de limpeza estrita
+    const destroyPlayer = () => {
+       // Remove todos os elementos de mídia filhos previnindo background play
+       const iframes = container.querySelectorAll("iframe, video");
+       iframes.forEach(el => {
+         if (el.tagName.toLowerCase() === 'iframe') {
+           (el as HTMLIFrameElement).src = ''; 
+         } else if (el.tagName.toLowerCase() === 'video') {
+           (el as HTMLVideoElement).pause();
+           (el as HTMLVideoElement).removeAttribute('src');
+           (el as HTMLVideoElement).load();
+         }
+         el.remove();
+       });
+    };
+
+    destroyPlayer();
+
+    if (activeVideoUrl) {
+       // Recria a mídia de forma isolada
+       if (config?.is_live) {
+          const iframe = document.createElement("iframe");
+          iframe.src = convertEmbedUrl(activeVideoUrl);
+          iframe.className = "absolute top-0 left-0 w-full h-full border-0 transition-opacity duration-700";
+          iframe.allow = "autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share";
+          iframe.allowFullscreen = true;
+          iframe.title = "Transmissão ao vivo – Nossa Web TV";
+          container.appendChild(iframe);
+       } else {
+          const video = document.createElement("video");
+          video.src = activeVideoUrl;
+          video.className = "absolute top-0 left-0 w-full h-full object-contain bg-black";
+          video.controls = true;
+          video.autoplay = !!customVideoUrl;
+          video.muted = !customVideoUrl;
+          video.loop = !customVideoUrl;
+          container.appendChild(video);
+       }
+    }
+
+    return () => destroyPlayer();
+  }, [activeVideoUrl, config?.is_live, customVideoUrl]);
+
   // ─── Estados de renderização ──────────────────────────────────────────────
   if (loading) {
     return (
@@ -206,13 +262,6 @@ export default function SmartPlayer({ customVideoUrl, onLiveChange }: SmartPlaye
       </div>
     );
   }
-
-  const isAcervo = !config.is_live && (customVideoUrl || videoAutomatico);
-  
-  // Lógica de Bifurcação de Sinal
-  const activeVideoUrl = config.is_live
-    ? (config.mostrar_live_facebook ? (config.url_live_facebook || config.url_live_youtube) : (config.url_live_youtube || config.url_live_facebook))
-    : (customVideoUrl || videoAutomatico);
 
   const isLiveOnYoutube = config.is_live && detectLivePlatform(activeVideoUrl) === "youtube";
 
@@ -267,27 +316,9 @@ export default function SmartPlayer({ customVideoUrl, onLiveChange }: SmartPlaye
       <div
         className="relative w-full overflow-hidden rounded-2xl bg-black shadow-2xl shadow-black/40"
         style={{ paddingTop: "56.25%" }}
+        ref={playerRef}
       >
-        {config.is_live && activeVideoUrl ? (
-          <iframe
-            key={activeVideoUrl}
-            src={convertEmbedUrl(activeVideoUrl)}
-            className="absolute top-0 left-0 w-full h-full border-0 transition-opacity duration-700"
-            allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
-            allowFullScreen
-            title="Transmissão ao vivo – Nossa Web TV"
-          />
-        ) : activeVideoUrl ? (
-          <video
-            key={activeVideoUrl}
-            src={activeVideoUrl}
-            className="absolute top-0 left-0 w-full h-full object-contain"
-            controls
-            autoPlay={!!customVideoUrl}
-            muted={!customVideoUrl}
-            loop={!customVideoUrl}
-          />
-        ) : (
+        {!activeVideoUrl && (
           /* Placeholder elegante quando não há vídeo */
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-zinc-900 overflow-hidden">
             <div className="absolute inset-0 opacity-40">

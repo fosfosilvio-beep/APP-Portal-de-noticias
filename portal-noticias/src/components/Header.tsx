@@ -4,6 +4,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { useSettingsStore } from "../store/settingsStore";
 import NotificationBell from "./NotificationBell";
+import { supabase } from "../lib/supabase";
+import { useEffect, useState } from "react";
+import { User, LogOut } from "lucide-react";
 
 interface HeaderProps {
   isLive: boolean;
@@ -34,6 +37,23 @@ export default function Header({
 }: HeaderProps) {
   
   const { ui } = useSettingsStore();
+  const [session, setSession] = useState<any>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+  };
 
   const brandName = ui.siteName || config?.ui_settings?.brand_name || 'NOSSA WEB TV';
   const logoUrl = ui.logoUrl || config?.ui_settings?.logo_url || config?.logo_url;
@@ -113,6 +133,39 @@ export default function Header({
 
             {/* SINO DE NOTIFICAÇÕES IN-APP */}
             <NotificationBell />
+
+            {/* PERFIL DO USUÁRIO */}
+            {session ? (
+              <div className="flex items-center gap-3 bg-zinc-900 border border-zinc-700 pl-1.5 pr-4 py-1.5 rounded-full group">
+                <img 
+                  src={session.user.user_metadata.avatar_url || `https://ui-avatars.com/api/?name=${session.user.user_metadata.full_name || 'User'}`} 
+                  alt="Perfil" 
+                  className="w-8 h-8 rounded-full object-cover border border-zinc-600"
+                />
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-black text-white leading-tight uppercase truncate max-w-[80px]">
+                    {session.user.user_metadata.full_name?.split(' ')[0] || 'Perfil'}
+                  </span>
+                </div>
+                <button 
+                  onClick={handleLogout} 
+                  className="ml-2 text-zinc-500 hover:text-red-500 transition-colors"
+                  title="Sair"
+                >
+                  <LogOut size={14} />
+                </button>
+              </div>
+            ) : (
+              <button 
+                onClick={() => {
+                  // Pode emitir um evento ou usar um estado global para abrir o modal de login
+                  // Por simplicidade, vamos redirecionar para '/' se ele for acionado pelo chat ou exibir o modal lá
+                }}
+                className="hidden sm:flex items-center gap-2 bg-white text-black px-4 py-2 rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-zinc-200 transition-colors"
+              >
+                <User size={14} /> Entrar
+              </button>
+            )}
 
             {/* INDICADOR AO VIVO */}
             <div className={`text-[10px] uppercase tracking-widest flex items-center gap-2 px-4 py-2 rounded-full border transition-all duration-500 shadow-sm ${
