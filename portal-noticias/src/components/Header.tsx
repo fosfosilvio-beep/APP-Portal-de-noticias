@@ -62,6 +62,10 @@ export default function Header({
   };
 
   const handleCategoryClick = (cat: string) => {
+    if (cat === "Biblioteca") {
+      window.location.href = "/biblioteca";
+      return;
+    }
     setCategoriaAtiva?.(cat);
     window.scrollTo(0, 0);
     setIsMobileMenuOpen(false);

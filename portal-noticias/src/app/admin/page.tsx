@@ -16,7 +16,8 @@ import LogoCropModal from "../../components/admin/LogoCropModal";
 import { useSettingsStore } from "../../store/settingsStore";
 import { 
   Plus, Pencil, Layout, Monitor, Trash, 
-  CheckCircle2, XCircle, Info, Smartphone, Upload, Check, ChevronDown, Megaphone
+  CheckCircle2, XCircle, Info, Smartphone, Upload, Check, ChevronDown, Megaphone,
+  Mic2, Play
 } from "lucide-react";
 
 interface StyleConfig {
@@ -329,7 +330,7 @@ export default function AdminPage() {
     { id: "aparencia", label: "Hero Banners", icon: <Palette size={18} /> },
     { id: "branding", label: "Branding & UI", icon: <TypeIcon size={18} /> },
     { id: "facebook-insta", label: "Feeds Sociais", icon: <Globe size={18} /> },
-    { id: "biblioteca", label: "Acervo de Biblioteca", icon: <Video size={18} /> },
+    { id: "podcasts", label: "Gestão de Podcasts", icon: <Mic2 size={18} /> },
     { id: "copiloto-ia", label: "Copiloto IA", icon: <Sparkles size={18} /> },
     { id: "lista-noticias", label: "Auditoria de Notícias", icon: <List size={18} /> },
     { id: "relatorios", label: "Relatórios de Views", icon: <Eye size={18} />, href: "/admin/relatorios" }
@@ -1192,6 +1193,12 @@ export default function AdminPage() {
          </div>
       )}
 
+      {activeTab === 'podcasts' && (
+         <div className="p-8">
+            <PodcastManager />
+         </div>
+      )}
+
       {/* LOGO CROP MODAL */}
       <LogoCropModal
         isOpen={isCropModalOpen}
@@ -1201,6 +1208,214 @@ export default function AdminPage() {
           notify("✅ Logo atualizada com sucesso!");
         }}
       />
+    </div>
+  );
+}
+
+// ========== COMPONENTE GESTOR DE PODCASTS ==========
+function PodcastManager() {
+  const [podcasts, setPodcasts] = useState<any[]>([]);
+  const [selectedPodcast, setSelectedPodcast] = useState<any>(null);
+  const [episodios, setEpisodios] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [showPodForm, setShowPodForm] = useState(false);
+  const [showEpForm, setShowEpForm] = useState(false);
+
+  // Form Podcast
+  const [podNome, setPodNome] = useState("");
+  const [podApresentador, setPodApresentador] = useState("");
+  const [podFoto, setPodFoto] = useState("");
+  const [podHorario, setPodHorario] = useState("");
+  const [podDesc, setPodDesc] = useState("");
+
+  // Form Episodio
+  const [epTitulo, setEpTitulo] = useState("");
+  const [epVideoUrl, setEpVideoUrl] = useState("");
+  const [epThumbUrl, setEpThumbUrl] = useState("");
+
+  useEffect(() => {
+    fetchPodcasts();
+  }, []);
+
+  useEffect(() => {
+    if (selectedPodcast) fetchEpisodios(selectedPodcast.id);
+  }, [selectedPodcast]);
+
+  const fetchPodcasts = async () => {
+    const { data } = await supabase.from("podcasts").select("*").order("nome");
+    setPodcasts(data || []);
+    if (data && data.length > 0 && !selectedPodcast) setSelectedPodcast(data[0]);
+  };
+
+  const fetchEpisodios = async (id: string) => {
+    const { data } = await supabase.from("episodios").select("*").eq("podcast_id", id).order("data_publicacao", { ascending: false });
+    setEpisodios(data || []);
+  };
+
+  const handleSavePodcast = async () => {
+    if(!podNome) return alert("Nome obrigatório");
+    setLoading(true);
+    const podData = {
+      nome: podNome,
+      apresentador_nome: podApresentador,
+      apresentador_foto_url: podFoto,
+      horario_exibicao: podHorario,
+      descricao: podDesc
+    };
+
+    const { error } = await supabase.from("podcasts").insert(podData);
+    if (!error) {
+      setPodNome(""); setPodApresentador(""); setPodFoto(""); setPodHorario(""); setPodDesc("");
+      setShowPodForm(false);
+      fetchPodcasts();
+    }
+    setLoading(false);
+  };
+
+  const handleSaveEpisodio = async () => {
+    if (!selectedPodcast || !epTitulo || !epVideoUrl) return alert("Campos obrigatórios");
+    setLoading(true);
+    const epData = {
+      podcast_id: selectedPodcast.id,
+      titulo: epTitulo,
+      video_url: epVideoUrl,
+      thumbnail_url: epThumbUrl
+    };
+
+    const { error } = await supabase.from("episodios").insert(epData);
+    if (!error) {
+      setEpTitulo(""); setEpVideoUrl(""); setEpThumbUrl("");
+      setShowEpForm(false);
+      fetchEpisodios(selectedPodcast.id);
+    }
+    setLoading(false);
+  };
+
+  const handleDeletePodcast = async (id: string) => {
+    if(!confirm("Excluir podcast e todos os episódios?")) return;
+    const { error } = await supabase.from("podcasts").delete().eq("id", id);
+    if (!error) fetchPodcasts();
+  };
+
+  const handleDeleteEpisodio = async (id: string) => {
+    if(!confirm("Excluir este episódio?")) return;
+    const { error } = await supabase.from("episodios").delete().eq("id", id);
+    if (!error && selectedPodcast) fetchEpisodios(selectedPodcast.id);
+  };
+
+  return (
+    <div className="space-y-8 animate-in fade-in duration-500">
+       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          {/* LISTA DE PROGRAMAS (PODCASTS) */}
+          <div className="lg:col-span-1 space-y-4">
+             <div className="bg-white border border-zinc-200 rounded-2xl shadow-sm overflow-hidden">
+                <div className="bg-zinc-50 px-5 py-4 border-b border-zinc-200 flex items-center justify-between">
+                   <h3 className="font-black text-zinc-800 text-xs uppercase tracking-widest">Programas / Podcasts</h3>
+                   <button onClick={() => setShowPodForm(!showPodForm)} className="bg-blue-600 text-white p-1.5 rounded-lg hover:bg-blue-700">
+                      <Plus size={16} />
+                   </button>
+                </div>
+
+                {showPodForm && (
+                  <div className="p-5 border-b border-zinc-100 bg-blue-50/30 space-y-3">
+                     <input type="text" placeholder="Nome do Programa" value={podNome} onChange={e => setPodNome(e.target.value)} className="w-full text-xs font-bold p-2.5 border border-blue-200 rounded-lg text-zinc-900 outline-none placeholder:text-zinc-400" />
+                     <input type="text" placeholder="Nome do Apresentador" value={podApresentador} onChange={e => setPodApresentador(e.target.value)} className="w-full text-xs font-bold p-2.5 border border-blue-200 rounded-lg text-zinc-900 outline-none placeholder:text-zinc-400" />
+                     <input type="text" placeholder="URL Foto Apresentador" value={podFoto} onChange={e => setPodFoto(e.target.value)} className="w-full text-xs font-bold p-2.5 border border-blue-200 rounded-lg text-zinc-900 outline-none placeholder:text-zinc-400" />
+                     <input type="text" placeholder="Horário (ex: Segundas 20h)" value={podHorario} onChange={e => setPodHorario(e.target.value)} className="w-full text-xs font-bold p-2.5 border border-blue-200 rounded-lg text-zinc-900 outline-none placeholder:text-zinc-400" />
+                     <textarea placeholder="Breve descrição..." value={podDesc} onChange={e => setPodDesc(e.target.value)} className="w-full text-xs font-bold p-2.5 border border-blue-200 rounded-lg text-zinc-900 outline-none h-20 resize-none placeholder:text-zinc-400" />
+                     <button onClick={handleSavePodcast} disabled={loading} className="w-full bg-blue-600 text-white font-black text-[10px] py-2.5 rounded-lg uppercase tracking-widest">
+                        {loading ? <Loader2 size={14} className="animate-spin mx-auto" /> : "Salvar Programa"}
+                     </button>
+                  </div>
+                )}
+
+                <div className="divide-y divide-zinc-100">
+                   {podcasts.map(pod => (
+                     <div key={pod.id} onClick={() => setSelectedPodcast(pod)} className={`p-4 flex items-center gap-4 cursor-pointer hover:bg-zinc-50 transition-colors ${selectedPodcast?.id === pod.id ? 'bg-blue-50 border-r-4 border-blue-600' : ''}`}>
+                        <img src={pod.apresentador_foto_url || "https://ui-avatars.com/api/?name=" + (pod.apresentador_nome || pod.nome)} className="w-10 h-10 rounded-full object-cover" />
+                        <div className="flex-1 min-w-0">
+                           <p className="text-xs font-black text-zinc-900 uppercase truncate">{pod.nome}</p>
+                           <p className="text-[10px] font-bold text-zinc-500 uppercase">{pod.apresentador_nome || 'A definir'}</p>
+                        </div>
+                        <button onClick={(e) => { e.stopPropagation(); handleDeletePodcast(pod.id); }} className="text-zinc-300 hover:text-red-500">
+                           <Trash2 size={14} />
+                        </button>
+                     </div>
+                   ))}
+                </div>
+             </div>
+          </div>
+
+          {/* LISTA DE EPISÓDIOS (FILTRADO PELO PODCAST) */}
+          <div className="lg:col-span-2 space-y-4">
+             {selectedPodcast ? (
+               <div className="bg-white border border-zinc-200 rounded-2xl shadow-sm overflow-hidden">
+                  <div className="bg-zinc-900 px-6 py-5 border-b border-zinc-800 flex items-center justify-between text-white">
+                      <div>
+                        <h3 className="font-black text-xs uppercase tracking-widest">Episódios de: {selectedPodcast.nome}</h3>
+                        <p className="text-[10px] text-zinc-400 font-bold uppercase mt-1">Acervo On-Demand</p>
+                      </div>
+                      <button onClick={() => setShowEpForm(!showEpForm)} className="bg-white text-zinc-900 font-black text-[10px] px-4 py-2 rounded-lg uppercase tracking-widest flex items-center gap-2">
+                         <Plus size={14} /> Novo Episódio
+                      </button>
+                  </div>
+
+                  {showEpForm && (
+                     <div className="p-6 border-b border-zinc-100 bg-zinc-50 space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                           <div className="md:col-span-2">
+                              <label className="text-[10px] font-black text-zinc-500 uppercase mb-1 block">Título do Episódio</label>
+                              <input type="text" value={epTitulo} onChange={e => setEpTitulo(e.target.value)} placeholder="Ex: Episódio #01 - Entrevista com..." className="w-full text-sm font-bold p-3 border border-zinc-200 rounded-xl text-zinc-900 outline-none" />
+                           </div>
+                           <div>
+                              <label className="text-[10px] font-black text-zinc-500 uppercase mb-1 block">Link do Vídeo (YT/Vimeo/Direct)</label>
+                              <input type="text" value={epVideoUrl} onChange={e => setEpVideoUrl(e.target.value)} placeholder="https://..." className="w-full text-xs font-bold p-3 border border-zinc-200 rounded-xl text-zinc-900 outline-none" />
+                           </div>
+                           <div>
+                              <label className="text-[10px] font-black text-zinc-500 uppercase mb-1 block">Capa/Thumbnail (Opcional)</label>
+                              <input type="text" value={epThumbUrl} onChange={e => setEpThumbUrl(e.target.value)} placeholder="https://..." className="w-full text-xs font-bold p-3 border border-zinc-200 rounded-xl text-zinc-900 outline-none" />
+                           </div>
+                        </div>
+                        <button onClick={handleSaveEpisodio} disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white font-black text-xs px-8 py-3 rounded-xl uppercase tracking-widest shadow-lg shadow-blue-600/20">
+                           {loading ? <Loader2 size={16} className="animate-spin mx-auto" /> : "Publicar Episódio"}
+                        </button>
+                     </div>
+                  )}
+
+                  <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                     {episodios.length === 0 ? (
+                       <div className="col-span-2 py-12 text-center text-zinc-400 font-bold uppercase text-[10px] tracking-widest border border-dashed border-zinc-200 rounded-2xl">
+                          Nenhum episódio cadastrado para este programa.
+                       </div>
+                     ) : (
+                       episodios.map(ep => (
+                         <div key={ep.id} className="flex gap-4 p-3 border border-zinc-100 rounded-2xl hover:border-blue-200 transition-all group">
+                            <div className="w-32 aspect-video bg-zinc-100 rounded-xl overflow-hidden relative shrink-0">
+                               <img src={ep.thumbnail_url || "https://picsum.photos/seed/" + ep.id + "/300/200"} className="w-full h-full object-cover" />
+                               <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <Play size={16} className="text-white fill-current" />
+                               </div>
+                            </div>
+                            <div className="flex-1 min-w-0 space-y-1">
+                               <p className="text-xs font-black text-zinc-900 leading-tight line-clamp-2">{ep.titulo}</p>
+                               <p className="text-[9px] font-bold text-zinc-500 uppercase">{new Date(ep.data_publicacao).toLocaleDateString()}</p>
+                               <button onClick={() => handleDeleteEpisodio(ep.id)} className="text-[9px] font-black text-red-500 uppercase hover:underline">Remover</button>
+                            </div>
+                         </div>
+                       ))
+                     )}
+                  </div>
+               </div>
+             ) : (
+               <div className="h-full flex flex-col items-center justify-center bg-zinc-50 border border-dashed border-zinc-200 rounded-3xl p-12 text-center">
+                  <Mic2 size={48} className="text-zinc-300 mb-4" />
+                  <p className="text-zinc-500 font-black text-xs uppercase tracking-widest">Selecione um programa para gerenciar episódios</p>
+               </div>
+             )}
+          </div>
+
+       </div>
     </div>
   );
 }
