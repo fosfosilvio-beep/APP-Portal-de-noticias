@@ -2,27 +2,35 @@ import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   try {
-    const { content, guidelines } = await request.json();
+    const rawBody = await request.json();
+    console.log("AI Route Payload:", JSON.stringify(rawBody));
+    
+    const { content, guidelines } = rawBody;
 
     if (!content) {
+      console.warn("AI Route: Conteúdo ausente no payload.");
       return NextResponse.json({ error: "O conteúdo para processamento é obrigatório." }, { status: 400 });
     }
 
-    // Tenta buscar a API Key do Supabase primeiro (Configuração do Painel)
-    // Importante: Importar o cliente aqui ou garantir que esteja disponível
+    // Tenta buscar a API Key do Supabase usando SERVICE_ROLE para evitar 401
     const { createClient } = await import("@supabase/supabase-js");
-    const supabase = createClient(
+    const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-      process.env.SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
+      process.env.SERVICE_ROLE_KEY || ""
     );
 
-    const { data: config } = await supabase.from("configuracao_portal").select("openrouter_api_key").limit(1).single();
+    const { data: config } = await supabaseAdmin
+      .from("configuracao_portal")
+      .select("openrouter_api_key")
+      .limit(1)
+      .single();
     
     // Fallback para variável de ambiente se o banco não estiver configurado ou vazio
     const apiKey = config?.openrouter_api_key || process.env.OPENROUTER_API_KEY;
     
     if (!apiKey) {
-      return NextResponse.json({ error: "Configuração de IA (OpenRouter API Key) não encontrada no painel administrativo nem no servidor." }, { status: 400 });
+      console.error("AI Route: API Key not found.");
+      return NextResponse.json({ error: "Configuração de IA (OpenRouter API Key) não encontrada." }, { status: 400 });
     }
 
     const systemPrompt = `
@@ -64,9 +72,9 @@ Sua resposta deve conter APENAS o conteúdo reescrito em HTML puro. Não adicion
 
     if (!openRouterRes.ok) {
       const errText = await openRouterRes.text();
-      console.error("OpenRouter Error:", errText);
+      console.error("OpenRouter Response Error:", errText);
       return NextResponse.json(
-        { error: `Falha na redação automática (Status ${openRouterRes.status}).` },
+        { error: `Falha na redação automática (OpenRouter ${openRouterRes.status}): ${errText.slice(0, 100)}` },
         { status: openRouterRes.status }
       );
     }

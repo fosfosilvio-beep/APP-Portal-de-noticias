@@ -444,7 +444,7 @@ export default function AdminPage() {
                       
                       <div className="flex flex-wrap gap-4">
                         <button className="bg-white border-2 border-red-200 hover:border-red-500 hover:shadow-md text-red-700 font-bold px-6 py-3 rounded-xl text-sm transition-all flex items-center gap-2">
-                           <LayoutDashboard size={16} /> Ligar Modo de Manutenção (WIP)
+                           <LayoutDashboard size={16} /> Modo de Manutenção
                         </button>
                         <button className="bg-white border-2 border-orange-200 hover:border-orange-500 hover:shadow-md text-orange-700 font-bold px-6 py-3 rounded-xl text-sm transition-all flex items-center gap-2">
                            Lançar Alerta Breaking News

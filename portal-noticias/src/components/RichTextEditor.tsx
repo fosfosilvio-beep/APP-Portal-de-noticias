@@ -100,6 +100,7 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
       FontSize,
     ],
     content: content,
+    immediatelyRender: false,
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
     },

@@ -176,7 +176,7 @@ export default function NewsEditorForm({ editId, onSuccess }: NewsEditorFormProp
         ? selectedAdId
         : null;
 
-      const payload = {
+      const payload: any = {
         titulo, subtitulo, conteudo, categoria,
         slug: cleanSlug,
         imagem_capa: imagemUrl,
@@ -185,8 +185,9 @@ export default function NewsEditorForm({ editId, onSuccess }: NewsEditorFormProp
         subtitulo_config: subtituloConfig,
         seo_tags: seoTags,
         galeria_urls: galeriaUrls.length > 0 ? galeriaUrls : null,
-        ad_id: sanitizedAdId,
+        ad_id: sanitizedAdId || null,
         mostrar_na_home_recentes: true,
+        ordem_prioridade: 0
       };
 
       if (editId) {
