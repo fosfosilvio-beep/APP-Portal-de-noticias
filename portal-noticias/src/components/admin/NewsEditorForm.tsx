@@ -162,6 +162,11 @@ export default function NewsEditorForm({ editId, onSuccess }: NewsEditorFormProp
 
       const cleanSlug = slug.trim().replace(/^https?:\/\//, "").split("/").filter(Boolean).pop() || slug;
 
+      // Sanitização estrita: ad_id precisa ser UUID válido ou null
+      const sanitizedAdId = selectedAdId && selectedAdId !== "" && selectedAdId !== "none" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(selectedAdId)
+        ? selectedAdId
+        : null;
+
       const payload = {
         titulo, subtitulo, conteudo, categoria,
         slug: cleanSlug,
@@ -170,8 +175,8 @@ export default function NewsEditorForm({ editId, onSuccess }: NewsEditorFormProp
         titulo_config: tituloConfig,
         subtitulo_config: subtituloConfig,
         seo_tags: seoTags,
-        galeria_urls: galeriaUrls,
-        ad_id: selectedAdId || null,
+        galeria_urls: galeriaUrls.length > 0 ? galeriaUrls : null,
+        ad_id: sanitizedAdId,
         mostrar_na_home_recentes: true,
       };
 
