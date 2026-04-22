@@ -1,4 +1,4 @@
-﻿export type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -23,6 +23,7 @@ export type Database = {
           nome_slot: string | null
           posicao_html: string | null
           status_ativo: boolean | null
+          sanitized: boolean | null
         }
         Insert: {
           codigo_html_ou_imagem?: string | null
@@ -32,6 +33,7 @@ export type Database = {
           nome_slot?: string | null
           posicao_html?: string | null
           status_ativo?: boolean | null
+          sanitized?: boolean | null
         }
         Update: {
           codigo_html_ou_imagem?: string | null
@@ -41,6 +43,7 @@ export type Database = {
           nome_slot?: string | null
           posicao_html?: string | null
           status_ativo?: boolean | null
+          sanitized?: boolean | null
         }
         Relationships: []
       }
@@ -135,6 +138,8 @@ export type Database = {
           id: string
           nome: string
           slug: string | null
+          ordem: number | null
+          ativa: boolean | null
         }
         Insert: {
           cor?: string | null
@@ -142,6 +147,8 @@ export type Database = {
           id?: string
           nome: string
           slug?: string | null
+          ordem?: number | null
+          ativa?: boolean | null
         }
         Update: {
           cor?: string | null
@@ -149,6 +156,8 @@ export type Database = {
           id?: string
           nome?: string
           slug?: string | null
+          ordem?: number | null
+          ativa?: boolean | null
         }
         Relationships: []
       }
@@ -524,12 +533,45 @@ export type Database = {
         }
         Relationships: []
       }
+      news_drafts: {
+        Row: {
+          data: Json
+          id: string
+          noticia_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          data: Json
+          id?: string
+          noticia_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          data?: Json
+          id?: string
+          noticia_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "news_drafts_noticia_id_fkey"
+            columns: ["noticia_id"]
+            isOneToOne: false
+            referencedRelation: "noticias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       noticias: {
         Row: {
           ad_id: string | null
           audio_content_hash: string | null
           audio_url: string | null
           categoria: string | null
+          categoria_id: string | null
           conteudo: string | null
           created_at: string | null
           galeria_urls: string[] | null
@@ -557,6 +599,7 @@ export type Database = {
           audio_content_hash?: string | null
           audio_url?: string | null
           categoria?: string | null
+          categoria_id?: string | null
           conteudo?: string | null
           created_at?: string | null
           galeria_urls?: string[] | null
@@ -584,6 +627,7 @@ export type Database = {
           audio_content_hash?: string | null
           audio_url?: string | null
           categoria?: string | null
+          categoria_id?: string | null
           conteudo?: string | null
           created_at?: string | null
           galeria_urls?: string[] | null

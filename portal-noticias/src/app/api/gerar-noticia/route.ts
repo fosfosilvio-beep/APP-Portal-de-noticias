@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import Anthropic from '@anthropic-ai/sdk';
+import { createClient } from '@/lib/supabase-server';
 
 export async function POST(request: Request) {
   try {
@@ -9,37 +9,46 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Prompt é obrigatório.' }, { status: 400 });
     }
 
-    const apiKey = process.env.ANTHROPIC_API_KEY;
+    const supabase = await createClient();
+    const { data: config } = await supabase.from('configuracao_portal').select('openrouter_api_key').single();
+    const apiKey = config?.openrouter_api_key || process.env.ANTHROPIC_API_KEY;
 
-    // Se a chave não estiver configurada, retornamos um Mock (rascunho falso) para o usuário poder testar a tela
-    if (!apiKey || apiKey === '') {
+    if (!apiKey) {
       return NextResponse.json({
         titulo: "Notícia Gerada por IA (Modo de Teste)",
-        subtitulo: "Configure a ANTHROPIC_API_KEY no arquivo .env.local para habilitar a inteligência artificial real.",
-        conteudo: `(Esta é uma simulação gerada de forma offline pois a sua chave de API não foi detectada. Quando a chave for informada, o modelo Claude escreverá de fato um texto embasado na sua ideia).\n\nSua ideia original foi: "${prompt}"\n\nNesta área ficaria o corpo extenso da notícia escrito diretamente pela IA, formatado perfeitamente em parágrafos e aderente ao estilo de jornalismo limpo do Portal Nossa Web TV.`
+        subtitulo: "Configure a OpenRouter API Key no painel 'Copiloto IA' ou ANTHROPIC_API_KEY no .env.local",
+        conteudo: `(Esta é uma simulação gerada de forma offline pois a sua chave de API não foi detectada. Quando a chave for informada, o modelo escreverá de fato um texto embasado na sua ideia).\n\nSua ideia original foi: "${prompt}"`
       });
     }
 
-    const anthropic = new Anthropic({
-      apiKey,
+    // Using OpenRouter standard endpoint (OpenAI compatible)
+    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://nossawebtv.com",
+        "X-Title": "Nossa Web TV"
+      },
+      body: JSON.stringify({
+        model: "anthropic/claude-3.5-sonnet:beta",
+        messages: [
+          {
+            role: "system",
+            content: "Você é um jornalista sério e profissional. Responda APENAS com um JSON contendo 'titulo', 'subtitulo' e 'conteudo' formatados em HTML se necessário (apenas <p>, <strong>, etc)."
+          },
+          {
+            role: "user",
+            content: `Crie uma notícia completa baseada nisso: ${prompt}`
+          }
+        ]
+      })
     });
 
-    const response = await anthropic.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 1500,
-      temperature: 0.7,
-      system: "Você é um dos principais jornalistas do 'Portal Nossa Web TV', sediado em Arapongas, atuando com extrema seriedade e escrita cativante. Responda **APENAS** com um objeto JSON válido (sem markdown extra, nem texto antes ou depois). O JSON deve conter três chaves exatas: 'titulo' (título atraente da matéria), 'subtitulo' (linha fina complementar ao título, sem ponto final) e 'conteudo' (a matéria em si, em múltiplos parágrafos utilizando quebras de linha \\n\\n).",
-      messages: [
-        {
-          role: 'user',
-          content: `Escreva uma matéria jornalística focada nesta pauta/link/ideia: ${prompt}`,
-        },
-      ],
-    });
-
-    const textContent = response.content[0].type === "text" ? response.content[0].text : "";
+    const data = await res.json();
+    const textContent = data.choices?.[0]?.message?.content || "";
     
-    // Tratamento para garantir que se o Claude colocar "```json", vamos pegar apenas dentro das chaves.
+    // Tratamento para extrair JSON
     const jsonStrMatch = textContent.match(/\{[\s\S]*\}/);
     const jsonStr = jsonStrMatch ? jsonStrMatch[0] : textContent;
     
@@ -47,7 +56,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(parsed);
   } catch (error: any) {
-    console.error("Erro na Geração de Notícia (Claude):", error);
+    console.error("Erro na Geração de Notícia (OpenRouter):", error);
     return NextResponse.json({ error: error.message || 'Erro interno ao gerar notícia.' }, { status: 500 });
   }
 }
