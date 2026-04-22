@@ -124,6 +124,7 @@ export default function Home() {
       
       <Header 
         isLive={isLive} 
+        config={config}
         categoriaAtiva={categoriaAtiva} 
         setCategoriaAtiva={setCategoriaAtiva}
       />

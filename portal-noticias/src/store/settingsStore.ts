@@ -5,6 +5,7 @@ interface UISettings {
   primaryColor: string;
   fontFamily: 'Inter' | 'Anton' | 'Montserrat';
   logoUrl: string | null;
+  logoTextoUrl: string | null;
   siteName: string;
 }
 
@@ -20,6 +21,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
     primaryColor: '#00AEE0',
     fontFamily: 'Inter',
     logoUrl: null,
+    logoTextoUrl: null,
     siteName: 'NOSSA WEB TV',
   },
   isLoading: true,
@@ -32,19 +34,21 @@ export const useSettingsStore = create<SettingsState>((set) => ({
         .limit(1)
         .single();
         
-      if (data && !error) {
-        const remoteUI = data.ui_settings as Partial<UISettings> || {};
-        
-        set((state) => ({
-          ui: {
-            ...state.ui,
-            ...remoteUI,
-            siteName: data.nome_plataforma || state.ui.siteName,
-            logoUrl: data.logo_url || state.ui.logoUrl,
-          },
-          isLoading: false
-        }));
-      }
+        if (data && !error) {
+          const rawUI = data.ui_settings as any || {};
+          
+          set((state) => ({
+            ui: {
+              ...state.ui,
+              primaryColor: rawUI.primary_color || rawUI.primaryColor || state.ui.primaryColor,
+              fontFamily: rawUI.font_family || rawUI.fontFamily || state.ui.fontFamily,
+              logoUrl: data.logo_url || rawUI.logo_url || rawUI.logoUrl || state.ui.logoUrl,
+              logoTextoUrl: rawUI.logo_texto_url || rawUI.logoTextoUrl || null,
+              siteName: data.nome_plataforma || rawUI.brand_name || rawUI.siteName || state.ui.siteName,
+            },
+            isLoading: false
+          }));
+        }
     } catch (e) {
       console.error('Zustand Error fetching settings', e);
       set({ isLoading: false });

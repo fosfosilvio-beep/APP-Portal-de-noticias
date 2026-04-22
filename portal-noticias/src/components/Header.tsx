@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useSettingsStore } from "../store/settingsStore";
 import NotificationBell from "./NotificationBell";
 import LoginModal from "./LoginModal";
+import { getPublicUrl } from "./FallbackImage";
 import { supabase } from "../lib/supabase";
 import { useEffect, useState } from "react";
 import { User, LogOut, Menu, X, ChevronRight } from "lucide-react";
@@ -73,10 +75,12 @@ export default function Header({
     setIsMobileMenuOpen(false);
   };
 
-  const brandName = ui.siteName || config?.ui_settings?.brand_name || "NOSSA WEB TV";
-  const logoUrl = ui.logoUrl || config?.ui_settings?.logo_url || config?.logo_url;
-  const primaryColor = ui.primaryColor || config?.ui_settings?.primary_color || "#00AEE0";
-  const fontFamily = ui.fontFamily || config?.ui_settings?.font_family || "Inter, sans-serif";
+  const brandName = config?.ui_settings?.brand_name || ui.siteName || "NOSSA WEB TV";
+  const rawLogoUrl = config?.ui_settings?.logo_url || config?.logo_url || ui.logoUrl;
+  const logoUrl = getPublicUrl(rawLogoUrl);
+  const logoTextoUrl = getPublicUrl(ui.logoTextoUrl);
+  const primaryColor = config?.ui_settings?.primary_color || ui.primaryColor || "#00AEE0";
+  const fontFamily = config?.ui_settings?.font_family || ui.fontFamily || "Inter, sans-serif";
 
   return (
     <>
@@ -90,31 +94,46 @@ export default function Header({
               <Link
                 href="/"
                 onClick={() => setCategoriaAtiva?.("Início")}
-                className="relative cursor-pointer outline-none group flex items-center gap-4"
+                className="relative cursor-pointer outline-none group flex items-center gap-3"
               >
                 {!logoUrl ? (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 bg-transparent">
                     <div
-                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-white font-black text-lg sm:text-xl shadow-inner border border-white/20"
+                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-white font-black text-lg sm:text-xl shadow-inner border border-white/10 bg-transparent"
                       style={{ background: primaryColor }}
                     >
                       {brandName.charAt(0)}
                     </div>
                     <span
-                      className="hidden sm:inline-block uppercase tracking-wider text-sm sm:text-base"
+                      className="hidden sm:inline-block uppercase tracking-wider text-sm sm:text-base bg-transparent"
                       style={{ fontFamily, fontWeight: "900", color: primaryColor }}
                     >
                       {brandName}
                     </span>
                   </div>
                 ) : (
-                  <div className="relative shrink-0 flex items-center gap-3">
-                    <h1 className="sr-only">{brandName}</h1>
-                    <img
-                      src={logoUrl}
-                      alt={brandName}
-                      className="h-10 sm:h-12 w-auto object-contain transition-transform group-hover:scale-[1.02]"
-                    />
+                  <div className="flex items-center gap-3 bg-transparent py-1">
+                    {/* Logo Ícone/Normal */}
+                    <div className="relative h-10 sm:h-12 w-auto bg-transparent flex items-center justify-center">
+                      <img
+                        src={logoUrl}
+                        alt={brandName}
+                        className="h-full w-auto object-contain bg-transparent transition-transform group-hover:scale-[1.05]"
+                        style={{ backgroundColor: 'transparent' }}
+                      />
+                    </div>
+                    
+                    {/* Logo Texto (Opcional) */}
+                    {logoTextoUrl && (
+                      <div className="h-6 sm:h-9 w-auto bg-transparent border-l border-zinc-800 pl-3 flex items-center justify-center">
+                        <img
+                          src={logoTextoUrl}
+                          alt={`${brandName} Texto`}
+                          className="h-full w-auto object-contain bg-transparent transition-opacity opacity-90 group-hover:opacity-100"
+                          style={{ backgroundColor: 'transparent' }}
+                        />
+                      </div>
+                    )}
                   </div>
                 )}
               </Link>

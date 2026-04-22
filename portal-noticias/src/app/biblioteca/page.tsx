@@ -9,6 +9,7 @@ import {
   ChevronRight, Mic2, LayoutGrid, Info,
   MessageSquare, Heart, ThumbsUp, Flame, Send, Smile
 } from "lucide-react";
+import FooterAdBanner from "../../components/FooterAdBanner";
 
 interface Podcast {
   id: string;
@@ -178,16 +179,27 @@ export default function BibliotecaPage() {
         categoriaAtiva="Biblioteca"
       />
 
+      <style dangerouslySetInnerHTML={{ __html: `
+        :root {
+          --primary-color: ${config?.ui_settings?.primary_color || '#00AEE0'};
+        }
+        .text-primary { color: var(--primary-color); }
+        .bg-primary { background-color: var(--primary-color); }
+        .border-primary { border-color: var(--primary-color); }
+      `}} />
+
       <main className="container mx-auto px-4 py-8 md:py-12">
         
         {/* TITULO E MENU DE PODCASTS */}
-        <section className="mb-12 space-y-8">
-           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-zinc-800 pb-6">
-              <div>
-                <h1 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter flex items-center gap-3">
-                  <Mic2 size={32} className="text-blue-500" /> Biblioteca <span className="text-zinc-600">On-Demand</span>
+        <section className="mb-10 md:mb-12 space-y-8">
+           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-zinc-800/50 pb-6">
+              <div className="max-w-full">
+                <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white uppercase tracking-tighter flex flex-wrap items-center gap-2 sm:gap-3">
+                  <Mic2 size={32} className="text-blue-500 shrink-0" /> 
+                  <span>Biblioteca</span> 
+                  <span className="text-zinc-600">On-Demand</span>
                 </h1>
-                <p className="text-zinc-500 font-bold mt-2 uppercase text-xs tracking-widest">
+                <p className="text-zinc-500 font-bold mt-2 uppercase text-[10px] tracking-widest leading-relaxed">
                   Assista a todos os programas e podcasts do portal
                 </p>
               </div>
@@ -235,21 +247,21 @@ export default function BibliotecaPage() {
           <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
              
              {/* BARRA DE PESQUISA INTERATIVA */}
-             <div className="relative max-w-2xl mx-auto -mt-6 z-20">
-                <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none">
+             <div className="relative max-w-2xl mx-auto -mt-6 z-20 px-2">
+                <div className="absolute inset-y-0 left-7 flex items-center pointer-events-none">
                    <LayoutGrid className="text-zinc-500" size={18} />
                 </div>
                 <input 
                   type="search" 
                   value={searchTerm}
                   onChange={e => setSearchTerm(e.target.value)}
-                  placeholder="Pesquisar por convidado, título ou data..." 
-                  className="w-full bg-zinc-900/80 backdrop-blur-xl border border-white/10 rounded-2xl py-4 pl-14 pr-6 text-sm font-bold text-white placeholder:text-zinc-600 outline-none focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/5 transition-all shadow-2xl"
+                  placeholder="Pesquisar..." 
+                  className="w-full bg-zinc-900/90 backdrop-blur-xl border border-white/10 rounded-2xl py-4 pl-14 pr-6 text-sm font-bold text-white placeholder:text-zinc-600 outline-none focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/5 transition-all shadow-2xl"
                 />
              </div>
              
              {/* PAINEL DO PODCAST (PLAYER + APRESENTADOR) */}
-             <div className="flex flex-col lg:flex-row gap-8 bg-zinc-900/40 p-6 md:p-8 rounded-[40px] border border-white/5 shadow-2xl">
+             <div className="flex flex-col lg:flex-row gap-8 bg-zinc-900/40 p-4 sm:p-6 md:p-8 rounded-[32px] md:rounded-[40px] border border-white/5 shadow-2xl">
                 
                 {/* Lado Esquerdo: Player Principal */}
                 <div className="flex-1 min-w-0">
@@ -283,18 +295,18 @@ export default function BibliotecaPage() {
                           <p className="text-xs font-bold text-white">{selectedEpisodio.convidados}</p>
                         </div>
                       )}
-                      <div className="w-full grid grid-cols-3 gap-2 pt-4 border-t border-zinc-800/50">
-                         <div className="bg-zinc-800/50 p-3 rounded-2xl">
+                      <div className="w-full grid grid-cols-2 sm:grid-cols-3 gap-2 pt-4 border-t border-zinc-800/50">
+                         <div className="bg-zinc-800/50 p-2 sm:p-3 rounded-2xl flex flex-col justify-center items-center">
                             <span className="text-[7px] font-black text-zinc-500 uppercase block">Episódios</span>
-                            <span className="text-lg font-black">{episodios.length}</span>
+                            <span className="text-base sm:text-lg font-black">{episodios.length}</span>
                          </div>
-                         <div className="bg-zinc-800/50 p-3 rounded-2xl">
+                         <div className="bg-zinc-800/50 p-2 sm:p-3 rounded-2xl flex flex-col justify-center items-center">
                             <span className="text-[7px] font-black text-zinc-500 uppercase block">Horário</span>
-                            <span className="text-[10px] font-black truncate">{selectedPodcast.horario_exibicao || "A definir"}</span>
+                            <span className="text-[9px] sm:text-[10px] font-black truncate max-w-full">{selectedPodcast.horario_exibicao || "A definir"}</span>
                          </div>
-                         <div className="bg-zinc-800/50 p-3 rounded-2xl border border-blue-500/20 shadow-[0_0_10px_rgba(37,99,235,0.1)]">
+                         <div className="bg-zinc-800/50 p-2 sm:p-3 rounded-2xl border border-blue-500/20 shadow-[0_0_10px_rgba(37,99,235,0.1)] flex flex-col justify-center items-center col-span-2 sm:col-span-1">
                             <span className="text-[7px] font-black text-blue-500 uppercase block">Views</span>
-                            <span className="text-lg font-black text-white">{selectedEpisodio?.view_count || 0}</span>
+                            <span className="text-base sm:text-lg font-black text-white">{selectedEpisodio?.view_count || 0}</span>
                          </div>
                       </div>
                       <p className="text-zinc-400 text-sm mt-4 italic line-clamp-2">
@@ -313,12 +325,12 @@ export default function BibliotecaPage() {
                       <h4 className="text-sm font-black uppercase tracking-widest text-blue-400 flex items-center gap-2">
                          <MessageSquare size={16} /> O que você achou?
                       </h4>
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex flex-wrap items-center gap-1.5 mt-2 sm:mt-0">
                          {["👍", "❤️", "🔥", "👏", " 😂"].map(emoji => (
                             <button 
                                key={emoji}
                                onClick={() => handleReaction(emoji)}
-                               className="group relative bg-zinc-800/50 hover:bg-blue-600 transition-all px-3 py-1.5 rounded-xl border border-white/5 flex items-center gap-2"
+                               className="group relative bg-zinc-800/50 hover:bg-blue-600 transition-all px-3 py-1.5 rounded-xl border border-white/5 flex items-center gap-2 shrink-0"
                             >
                                <span className="text-lg">{emoji}</span>
                                <span className="text-[10px] font-bold text-zinc-400 group-hover:text-white">{reactions[emoji] || 0}</span>
@@ -444,9 +456,15 @@ export default function BibliotecaPage() {
         )}
 
       </main>
+      
+      <FooterAdBanner 
+        imageUrl={config?.ad_slot_2?.image_url || config?.banner_anuncio_home}
+        link={config?.ad_slot_2?.link || config?.link_anuncio_home}
+        visible={true}
+      />
 
-      <footer className="mt-20 py-12 border-t border-zinc-900 text-center">
-          <p className="text-zinc-600 text-[10px] font-black uppercase tracking-[0.3em]">
+      <footer className="py-12 border-t border-zinc-900 text-center bg-black/50 backdrop-blur-md">
+          <p className="text-zinc-600 text-[10px] font-black uppercase tracking-[0.3em] px-4">
             © 2026 Nossa Web TV — Acervo Digital Industrializado
           </p>
       </footer>

@@ -84,7 +84,8 @@ export default function AdminPage() {
     font_family: "Inter, sans-serif",
     primary_color: "#00AEE0",
     breaking_news_alert: { text: "", color: "#e11d48", speed: "normal" },
-    widgets_visibility: { weather: true, giro24h: true, plantao: true }
+    widgets_visibility: { weather: true, giro24h: true, plantao: true },
+    logo_texto_url: ""
   });
 
   // Estados de Nova Postagem (Agora gerenciados pelo componente NewsEditorForm)
@@ -878,7 +879,7 @@ export default function AdminPage() {
                                  <label className="block text-[10px] font-black text-zinc-400 uppercase tracking-widest">Arquivo da Logomarca</label>
                                  <div className="w-full h-32 bg-zinc-50 border-2 border-dashed border-zinc-200 rounded-2xl flex flex-col items-center justify-center relative group overflow-hidden">
                                     {uiSettings.logo_url ? (
-                                       <img src={uiSettings.logo_url} alt="Logo Preview" className="max-h-20 object-contain" />
+                                       <img src={uiSettings.logo_url} alt="Logo Preview" className="max-h-20 object-contain bg-transparent" />
                                     ) : (
                                        <div className="text-zinc-300 flex flex-col items-center gap-1">
                                           <Smartphone size={32} />
@@ -892,6 +893,27 @@ export default function AdminPage() {
                                           if(file) {
                                              const url = await handleFileUpload(file, 'branding');
                                              if(url) setUiSettings({...uiSettings, logo_url: url});
+                                          }
+                                       }} />
+                                    </label>
+                                 </div>
+                                 <label className="block text-[10px] font-black text-zinc-400 uppercase tracking-widest">Logo de Texto (Ex: Nome em PNG)</label>
+                                 <div className="w-full h-32 bg-zinc-50 border-2 border-dashed border-zinc-200 rounded-2xl flex flex-col items-center justify-center relative group overflow-hidden">
+                                    {uiSettings.logo_texto_url ? (
+                                       <img src={uiSettings.logo_texto_url} alt="Logo Texto Preview" className="max-h-20 object-contain bg-transparent" />
+                                    ) : (
+                                       <div className="text-zinc-300 flex flex-col items-center gap-1">
+                                          <TypeIcon size={32} />
+                                          <span className="text-[10px] font-bold uppercase">PNG Transparente de Texto</span>
+                                       </div>
+                                    )}
+                                    <label className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
+                                       <Upload size={24} className="text-white" />
+                                       <input type="file" accept="image/*" className="hidden" onChange={async e => {
+                                          const file = e.target.files?.[0];
+                                          if(file) {
+                                             const url = await handleFileUpload(file, 'branding');
+                                             if(url) setUiSettings({...uiSettings, logo_texto_url: url});
                                           }
                                        }} />
                                     </label>
