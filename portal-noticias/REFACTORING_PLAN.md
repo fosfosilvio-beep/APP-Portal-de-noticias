@@ -1,126 +1,89 @@
 # 🏗️ Plano de Refatoração Premium — Portal de Notícias
 
-**Status Geral**: Fase 6 concluída ✅ | Refatoração Finalizada 🚀
+**Status Geral**: Fase 6 concluída ✅ | Subfases 2B pendentes em execução 🔧
 
 ---
 
 ## 📊 Quick Reference — Checklist de Fases
 
 - [x] **Fase 0.1** — Instalar todas as dependências ✅
-  - ✅ next-themes, @supabase/ssr, sonner
-  - ✅ cmdk, vaul, framer-motion
-  - ✅ react-hook-form, zod, @hookform/resolvers
-  - ✅ @tanstack/react-query, @tanstack/react-table
-  - ✅ @measured/puck
-  - ✅ recharts (Tremor removido, React 19 incompatível)
-  - ✅ dompurify, date-fns, plaiceholder, @playwright/test
-  - ✅ `npm run build` passou
-
 - [x] **Fase 0.2** — Gerar shadcn/ui components ✅
-  - ✅ Gerados 25 componentes em `src/components/ui/`
-  - ✅ Corrigido `components.json` e `tsconfig.json` aliases
-
 - [x] **Fase 0.3** — Configurar tokens CSS + Providers ✅
-  - ✅ `src/app/globals.css` — Soft UI tokens (shadows, radii, easing, spacing, colors)
-  - ✅ `src/app/layout.tsx` + `Providers.tsx` — ThemeProvider, Toaster, QueryClientProvider
-  - ✅ `src/lib/supabase-browser.ts` e `supabase-server.ts` (split SSR)
-  - ✅ `src/lib/query-client.ts` (singleton)
-
 - [x] **Fase 0.4** — Quick wins visuais ✅
-  - ✅ Header: ThemeToggle (dark/light) integrado
-  - ✅ HeroBanner: corrigidas alturas (h-40/64/80), lógica object-fit
-  - ✅ FooterAdBanner: removido overflow-hidden, aspect-ratio aplicado
-
 - [x] **Fase 0.5** — Tipos Supabase + Verify ✅
-  - ✅ Gerar tipos: `npx supabase gen types typescript`
-  - ✅ Verificação: `npm run build` e `typecheck` passando (UTF-8 fix)
 
 ---
 
-## 🎯 Próximas Etapas (Críticas — implementar com Claude por aqui)
+## 🎯 Status de Fases
 
-| Fase | Descrição | Status | Duração | Prioridade |
-|---|---|---|---|---|
-| **1** | Home Polish (refator page.tsx, grid, micro-interações) | Concluído ✅ | 4–5d | 🔴 Crítica |
-| **2** | Admin Shell (sidebar, rotas, padrões unificados) | Concluído ✅ | 4–5d | 🔴 Crítica |
-| **2B** | Reorganização Módulo-a-Módulo (9 sub-fases) | Concluído ✅ | 8–10d | 🟡 Alta |
-| **3** | Ad Manager Premium (abas, diretrizes, badge) | Concluído ✅ | 4–5d | 🟡 Alta |
-| **4** | Ad Analytics (tracking, dashboard) | Concluído ✅ | 3–4d | 🟡 Alta |
-| **5** | Page Builder Puck (editor visual home) | Concluído ✅ | 6–7d | 🟡 Alta |
-| **6** | Governance & Auth (roles, approval workflow) | Concluído ✅ | 4–5d | 🟢 Normal |
+| Fase | Descrição | Status | Prioridade |
+|---|---|---|---|
+| **1** | Home Polish | ✅ Concluído | 🔴 |
+| **2** | Admin Shell | ✅ Concluído | 🔴 |
+| **2B** | Módulo-a-Módulo (10 sub-fases) | 🔧 Em andamento | 🟡 |
+| **3** | Ad Manager Premium | ✅ Concluído | 🟡 |
+| **4** | Ad Analytics | ✅ Concluído | 🟡 |
+| **5** | Page Builder Puck | ✅ Concluído | 🟡 |
+| **6** | Governance & Auth | ✅ Concluído | 🟢 |
 
 ---
 
-## 📝 Instruções para Agentes (IDE)
+## 📋 Sub-fases 2B — Status Detalhado
 
-### Como atualizar este plano
+| Sub-fase | Módulo | Status |
+|---|---|---|
+| 2B.1 | Transmissão cockpit | ✅ Completo (progressive boost, oscillation) |
+| 2B.2 | Notícias: Editor + Listagem | ✅ Completo (react-hook-form+zod, status, roles) |
+| 2B.2 | Auto-save nuvem (news_drafts) | ✅ Migration v15 criada — UI a integrar |
+| 2B.2 | Categorias dinâmicas | ✅ Migration v15 + HomeContent busca do banco |
+| 2B.3 | Publicidade stub → shadcn | ✅ Completo (4 abas: Slots/Criativos/Diretrizes/Preview) |
+| 2B.4 | Aparência (Hero Banners) | ✅ Completo — ⚠️ Live Preview sidebar pendente |
+| 2B.5 | Branding & UI | ✅ Completo — ⚠️ Live Preview pendente |
+| **2B.6** | **Podcasts** | ✅ **IMPLEMENTADO** (form+zod, dnd-kit, thumbnail upload) |
+| **2B.7** | **Mídia/VOD** | ✅ **IMPLEMENTADO** (XHR progress, tabs, grid) |
+| 2B.8 | Auditoria de Notícias | 🔧 Parcial — falta indicador "na home", reordenação dnd |
+| 2B.9 | Relatórios | ✅ Completo (CSV/PDF, filtros Supabase) |
+| 2B.10 | Remover Copiloto IA como aba | ✅ Integrado no editor |
 
-Após **cada fase concluída com sucesso**, atualize:
+---
 
-1. Marque como ✅ na seção "Checklist de Fases"
-2. Atualize a data/hora de conclusão
-3. Liste qualquer problema encontrado ou ajuste necessário
-4. Indique se a próxima fase está pronta para começar
-5. Faça um commit com a mensagem: `docs: update REFACTORING_PLAN.md (Fase X.Y completed)`
+## 🆕 Novidades 2026-04-22
 
-### Padrão de Commit para Fases
+- **Admin Overview Dashboard** — Quick Stats, Live badge, Top notícias
+- **Editor Visual (9 blocos Puck)** — auto-save 30s, Rascunho vs Publicar
+- **Progressive Audience Boost** — ease-in-out + oscilação orgânica ±3-7%
+- **Breaking News Marquee** — CSS animated, speed control, dismiss button
+- **Home renderiza Puck** — feature flag `use_puck_home` + PuckRenderer
+- **Podcasts 2B.6** — Gerenciador completo com YouTube validation + dnd-kit
+- **Mídia/VOD 2B.7** — Upload com progresso XHR + grid preview
+- **Migration v15** — categorias, news_drafts, published_at, use_puck_home
 
-```bash
-git commit -m "Fase 0.2: Gerar shadcn/ui components
+---
 
-- Gerados 25 componentes em src/components/ui/
-- Components: button, card, tabs, dialog, alert-dialog, dropdown-menu, sheet, badge, separator, skeleton, input, label, form, select, tooltip, textarea, switch, popover, command, combobox, table, scroll-area, avatar, progress, toggle
-- ✓ npm run build, typecheck, dev todos passando
+## 🚧 Gaps Pendentes
 
-Co-Authored-By: [Your Name] <your.email@example.com>"
+| Gap | Prioridade |
+|---|---|
+| Live Preview em Aparência (banners carrossel) | P4 |
+| Live Preview em Branding (header/card ao vivo) | P4 |
+| Auditoria Notícias: indicador "na home", dnd reordenação | P4 |
+| Rota pública `/podcast/[slug]` | P5 |
+| RLS granular no Supabase (policies SQL) | P5 |
+
+---
+
+## 🔑 Comandos Importantes
+
+**Ativar Puck na home** (executa no SQL Editor do Supabase):
+```sql
+UPDATE configuracao_portal 
+SET ui_settings = ui_settings || '{"use_puck_home": true}'::jsonb 
+WHERE id = 1;
 ```
 
-### Quando Parar e Chamar Claude
-
-Pare e chame Claude (via comunicação em plataforma) quando:
-
-1. ❌ Um step falha repetidamente e você não consegue diagnosticar
-2. ⚠️ Encontrar incompatibilidades não previstas (como Tremor + React 19)
-3. 🤔 Precisar tomar decisão arquitetural (qual alternativa usar?)
-4. 🔄 Precisar integrar com steps em paralelo (sincronização)
-5. 🚀 Fase 1+ começar (sempre crítica — Claude será envolvido)
+**Aplicar Migration v15** (categorias + news_drafts):
+> Arquivo: `supabase/migrations/20260422_v15_categorias_drafts_flags.sql`
 
 ---
 
-## 🔗 Links Importantes
-
-- **Plano Completo** (com todos os detalhes): `.claude/plans/c-users-nossa-webtv-videos-grava-es-de-distributed-abelson.md`
-- **Monorepo Root**: verificar `package-lock.json` para resolvê-lo via `turbopack.root` no `next.config.ts`
-
----
-
-## 💡 Dicas para Agentes
-
-1. **Teste após cada mudança**: `npm run build && npm run typecheck && npm run dev` (quick validation)
-2. **Commits frequentes**: uma sub-fase = um commit (fácil rollback)
-3. **Reutilize componentes**: evite duplicação; verifique `src/components/` antes de criar novos
-4. **Tipos Supabase**: sempre use tipos gerados (nunca `any`)
-5. **Dark mode**: todo novo componente deve suportar `.dark` via Tailwind
-
----
-
-## 📞 Escalação para Claude
-
-Quando chamar, forneça:
-- Fase atual (ex: "0.3")
-- Erro específico ou questão de design
-- Que você tentou já
-- Link para o arquivo problemático se aplicável
-
-Exemplo mensagem:
-```
-Estou na Fase 0.3 — Configurar tokens CSS.
-Problema: Tailwind v4 não está reconhecendo @source directive em globals.css.
-Tentei: adicionar @source "../node_modules/@measured/puck"; e rodar build.
-Erro: "Warning: @source not recognized"
-Arquivo: src/app/globals.css (linhas 1–20)
-```
-
----
-
-**Última atualização**: 2026-04-22 21:43 UTC (Fase 6 concluída — Refatoração completa)
+**Última atualização**: 2026-04-22 23:12 UTC (2B.6, 2B.7, P1/P3 concluídos)
