@@ -24,6 +24,13 @@ export type Database = {
           posicao_html: string | null
           status_ativo: boolean | null
           sanitized: boolean | null
+          width: number | null
+          height: number | null
+          is_sponsored_content: boolean | null
+          advertiser_name: string | null
+          click_url: string | null
+          start_date: string | null
+          end_date: string | null
         }
         Insert: {
           codigo_html_ou_imagem?: string | null
@@ -34,6 +41,13 @@ export type Database = {
           posicao_html?: string | null
           status_ativo?: boolean | null
           sanitized?: boolean | null
+          width?: number | null
+          height?: number | null
+          is_sponsored_content?: boolean | null
+          advertiser_name?: string | null
+          click_url?: string | null
+          start_date?: string | null
+          end_date?: string | null
         }
         Update: {
           codigo_html_ou_imagem?: string | null
@@ -44,6 +58,13 @@ export type Database = {
           posicao_html?: string | null
           status_ativo?: boolean | null
           sanitized?: boolean | null
+          width?: number | null
+          height?: number | null
+          is_sponsored_content?: boolean | null
+          advertiser_name?: string | null
+          click_url?: string | null
+          start_date?: string | null
+          end_date?: string | null
         }
         Relationships: []
       }
