@@ -1,6 +1,6 @@
 # 🏗️ Plano de Refatoração Premium — Portal de Notícias
 
-**Status Geral**: Fase 2B concluída ✅ | Fase 3 pronta para iniciar 🚀
+**Status Geral**: Fase 5 concluída ✅ | Fase 6 pronta para iniciar 🚀
 
 ---
 
@@ -46,7 +46,7 @@
 | **2B** | Reorganização Módulo-a-Módulo (9 sub-fases) | Concluído ✅ | 8–10d | 🟡 Alta |
 | **3** | Ad Manager Premium (abas, diretrizes, badge) | Concluído ✅ | 4–5d | 🟡 Alta |
 | **4** | Ad Analytics (tracking, dashboard) | Concluído ✅ | 3–4d | 🟡 Alta |
-| **5** | Page Builder Puck (editor visual home) | Planejado | 6–7d | 🟡 Alta |
+| **5** | Page Builder Puck (editor visual home) | Concluído ✅ | 6–7d | 🟡 Alta |
 | **6** | Governance & Auth (roles, approval workflow) | Planejado | 4–5d | 🟢 Normal |
 
 ---
@@ -123,4 +123,4 @@ Arquivo: src/app/globals.css (linhas 1–20)
 
 ---
 
-**Última atualização**: 2026-04-22 21:00 UTC (Fase 2B concluída — Migração de Módulos completa, pronto para Fase 3)
+**Última atualização**: 2026-04-22 21:13 UTC (Fases 3, 4 e 5 concluídas)
