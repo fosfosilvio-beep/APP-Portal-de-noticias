@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Search, Film, Calendar, Tag, ChevronRight } from "lucide-react";
 import Header from "../Header";
@@ -10,6 +10,8 @@ import PlantaoPolicialWidget from "../PlantaoPolicialWidget";
 import DynamicAdSlot from "../DynamicAdSlot";
 import HeroSection from "./HeroSection";
 import NewsGrid from "./NewsGrid";
+import BreakingNewsMarquee from "../BreakingNewsMarquee";
+import { createClient } from "@/lib/supabase-browser";
 
 interface HomeContentProps {
   initialConfig: any;
@@ -20,9 +22,17 @@ interface HomeContentProps {
 export default function HomeContent({ initialConfig, todasNoticias, bibliotecaLives }: HomeContentProps) {
   const [categoriaAtiva, setCategoriaAtiva] = useState("Início");
   const [searchBiblioteca, setSearchBiblioteca] = useState("");
+  const [categorias, setCategorias] = useState<any[]>([]);
 
   const config = initialConfig;
   const isLive = config?.is_live || false;
+  const breakingNews = config?.ui_settings?.breaking_news_alert;
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.from("categorias").select("slug, nome, ordem").eq("ativa", true).order("ordem")
+      .then(({ data }) => { if (data?.length) setCategorias(data); });
+  }, []);
 
   const noticiasDaCategoriaAtiva = todasNoticias.filter(
     n => n.categoria?.toLowerCase() === categoriaAtiva.toLowerCase()
@@ -36,6 +46,15 @@ export default function HomeContent({ initialConfig, todasNoticias, bibliotecaLi
         categoriaAtiva={categoriaAtiva} 
         setCategoriaAtiva={setCategoriaAtiva}
       />
+
+      {/* Breaking News Marquee */}
+      {breakingNews?.active && (
+        <BreakingNewsMarquee
+          text={breakingNews.text || ""}
+          speed={breakingNews.speed || "normal"}
+          visible={breakingNews.active}
+        />
+      )}
 
       <style dangerouslySetInnerHTML={{ __html: `
         :root {
