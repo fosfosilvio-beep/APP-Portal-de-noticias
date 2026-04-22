@@ -1,6 +1,6 @@
 # 🏗️ Plano de Refatoração Premium — Portal de Notícias
 
-**Status Geral**: Fase 0 concluída ✅ | Fase 1 pronta para iniciar 🚀
+**Status Geral**: Fase 1 concluída ✅ | Fase 2 pronta para iniciar 🚀
 
 ---
 
@@ -41,7 +41,7 @@
 
 | Fase | Descrição | Status | Duração | Prioridade |
 |---|---|---|---|---|
-| **1** | Home Polish (refator page.tsx, grid, micro-interações) | Aguardando 0.5 | 4–5d | 🔴 Crítica |
+| **1** | Home Polish (refator page.tsx, grid, micro-interações) | Concluído ✅ | 4–5d | 🔴 Crítica |
 | **2** | Admin Shell (sidebar, rotas, padrões unificados) | Planejado | 4–5d | 🔴 Crítica |
 | **2B** | Reorganização Módulo-a-Módulo (9 sub-fases) | Planejado | 8–10d | 🟡 Alta |
 | **3** | Ad Manager Premium (abas, diretrizes, badge) | Planejado | 4–5d | 🟡 Alta |
@@ -123,4 +123,4 @@ Arquivo: src/app/globals.css (linhas 1–20)
 
 ---
 
-**Última atualização**: 2026-04-22 20:30 UTC (Fase 0 concluída)
+**Última atualização**: 2026-04-22 20:38 UTC (Fase 1 concluída)
