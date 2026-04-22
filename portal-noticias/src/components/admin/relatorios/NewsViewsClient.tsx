@@ -27,6 +27,7 @@ export default function NewsViewsClient() {
     fetchRelatorio();
   }, []);
 
+  // Re-fetch from Supabase when filter button is clicked
   const fetchRelatorio = async () => {
     setLoading(true);
     try {
@@ -34,7 +35,7 @@ export default function NewsViewsClient() {
         .from("noticias")
         .select("id, titulo, categoria, created_at, real_views")
         .order("real_views", { ascending: false })
-        .limit(100);
+        .limit(200);
 
       if (filtroTitulo) query = query.ilike("titulo", `%${filtroTitulo}%`);
       if (filtroDataInicio) query = query.gte("created_at", filtroDataInicio);
@@ -65,14 +66,26 @@ export default function NewsViewsClient() {
       .save();
   };
 
-  const noticiasFiltradas = noticias.filter((n) => {
-    if (filtroTitulo && !n.titulo.toLowerCase().includes(filtroTitulo.toLowerCase())) return false;
-    if (filtroDataInicio && new Date(n.created_at) < new Date(filtroDataInicio)) return false;
-    if (filtroDataFim && new Date(n.created_at) > new Date(filtroDataFim + "T23:59:59")) return false;
-    return true;
-  });
+  const exportarCSV = () => {
+    const headers = ["Título", "Categoria", "Data", "Views Reais", "Views Públicos (x9)"];
+    const rows = noticias.map((n) => [
+      `"${n.titulo.replace(/"/g, '""')}"`,
+      n.categoria || "",
+      new Date(n.created_at).toLocaleDateString("pt-BR"),
+      n.real_views || 0,
+      (n.real_views || 0) * 9,
+    ]);
+    const csvContent = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+    const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `relatorio-views-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
-  const totalViews = noticiasFiltradas.reduce((acc, n) => acc + (n.real_views || 0), 0);
+  const totalViews = noticias.reduce((acc, n) => acc + (n.real_views || 0), 0);
 
   return (
     <div className="space-y-6">
@@ -80,7 +93,7 @@ export default function NewsViewsClient() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-slate-950 rounded-2xl border border-slate-800 p-6">
           <p className="text-slate-500 font-bold text-xs uppercase tracking-widest mb-2">Total Matérias</p>
-          <h2 className="text-4xl font-black text-white border-l-4 border-blue-500 pl-3">{noticiasFiltradas.length}</h2>
+          <h2 className="text-4xl font-black text-white border-l-4 border-blue-500 pl-3">{noticias.length}</h2>
         </div>
         <div className="bg-slate-950 rounded-2xl border border-slate-800 p-6">
           <p className="text-slate-500 font-bold text-xs uppercase tracking-widest mb-2">Views Reais</p>
@@ -105,6 +118,8 @@ export default function NewsViewsClient() {
               type="text"
               value={filtroTitulo}
               onChange={(e) => setFiltroTitulo(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && fetchRelatorio()}
+              placeholder="Buscar por título..."
               className="w-full bg-slate-900 border border-slate-800 text-white rounded-xl px-4 py-2 text-sm outline-none focus:border-blue-500"
             />
           </div>
@@ -130,9 +145,10 @@ export default function NewsViewsClient() {
         <div className="flex justify-end mt-4">
           <button
             onClick={fetchRelatorio}
-            className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-black uppercase tracking-widest px-6 py-2 rounded-xl transition-all"
+            disabled={loading}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-black uppercase tracking-widest px-6 py-2 rounded-xl transition-all"
           >
-            <Filter size={13} /> Filtrar
+            {loading ? <Loader2 size={13} className="animate-spin" /> : <Filter size={13} />} Filtrar no Banco
           </button>
         </div>
       </div>
@@ -142,11 +158,19 @@ export default function NewsViewsClient() {
         <div className="px-6 py-4 border-b border-slate-800 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <FileText size={16} className="text-slate-500" />
-            <h3 className="font-black text-slate-300 text-sm uppercase tracking-widest">Views por Matéria</h3>
+            <h3 className="font-black text-slate-300 text-sm uppercase tracking-widest">
+              Views por Matéria
+              {noticias.length > 0 && <span className="ml-2 text-slate-500 font-normal text-xs">({noticias.length} resultados)</span>}
+            </h3>
           </div>
-          <button onClick={exportarPDF} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors">
-            <Download size={14} /> PDF
-          </button>
+          <div className="flex items-center gap-2">
+            <button onClick={exportarCSV} className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors">
+              <Download size={14} /> CSV
+            </button>
+            <button onClick={exportarPDF} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors">
+              <Download size={14} /> PDF
+            </button>
+          </div>
         </div>
 
         <div ref={tableRef} className="p-1" style={{ backgroundColor: '#0f172a' }}>
@@ -164,15 +188,15 @@ export default function NewsViewsClient() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/50">
-                  {noticiasFiltradas.map((n) => (
+                  {noticias.map((n) => (
                     <tr key={n.id} className="hover:bg-slate-900/50">
                       <td className="px-6 py-3 text-slate-300 font-medium">{n.titulo}</td>
-                      <td className="px-6 py-3 text-slate-500 text-xs">{new Date(n.created_at).toLocaleDateString()}</td>
-                      <td className="px-6 py-3 text-right text-slate-300 font-bold">{n.real_views?.toLocaleString()}</td>
-                      <td className="px-6 py-3 text-right text-amber-500 font-bold">{(n.real_views * 9).toLocaleString()}</td>
+                      <td className="px-6 py-3 text-slate-500 text-xs">{new Date(n.created_at).toLocaleDateString("pt-BR")}</td>
+                      <td className="px-6 py-3 text-right text-slate-300 font-bold">{(n.real_views || 0)?.toLocaleString()}</td>
+                      <td className="px-6 py-3 text-right text-amber-500 font-bold">{((n.real_views || 0) * 9).toLocaleString()}</td>
                     </tr>
                   ))}
-                  {noticiasFiltradas.length === 0 && (
+                  {noticias.length === 0 && (
                     <tr>
                       <td colSpan={4} className="text-center p-8 text-slate-500">Nenhum dado encontrado</td>
                     </tr>

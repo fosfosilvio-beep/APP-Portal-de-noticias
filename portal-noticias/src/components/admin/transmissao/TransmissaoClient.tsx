@@ -14,14 +14,68 @@ import {
   MonitorPlay, 
   Globe, 
   ShieldAlert, 
-  Loader2 
+  Loader2,
+  Users
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export default function TransmissaoClient({ initialConfig }: { initialConfig: any }) {
   const confirm = useConfirm();
   const supabase = createClient();
   const [isSaving, setIsSaving] = useState(false);
+
+  // --- Progressive Audience Boost ---
+  const [displayedViewers, setDisplayedViewers] = useState<number>(initialConfig.fake_viewers_boost ?? 0);
+  const boostTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const oscillationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const targetViewersRef = useRef<number>(initialConfig.fake_viewers_boost ?? 0);
+
+  const applyProgressiveBoost = (targetValue: number, durationMs = 15000) => {
+    // Clear previous animations
+    if (boostTimerRef.current) clearInterval(boostTimerRef.current);
+    if (oscillationTimerRef.current) clearTimeout(oscillationTimerRef.current);
+
+    targetViewersRef.current = targetValue;
+    const startValue = displayedViewers;
+    const startTime = Date.now();
+
+    boostTimerRef.current = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / durationMs, 1);
+      // Ease-in-out cubic
+      const eased = progress < 0.5
+        ? 4 * progress * progress * progress
+        : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+
+      const current = Math.round(startValue + (targetValue - startValue) * eased);
+      setDisplayedViewers(current);
+
+      if (progress >= 1) {
+        if (boostTimerRef.current) clearInterval(boostTimerRef.current);
+        startOscillation(targetValue);
+      }
+    }, 100);
+  };
+
+  const startOscillation = (base: number) => {
+    if (!form.getValues("organic_views_enabled")) return;
+    const oscillate = () => {
+      const variationPct = (Math.random() * 0.08 + 0.03) * (Math.random() > 0.5 ? 1 : -1); // ±3% to ±7%
+      const newValue = Math.max(0, Math.round(base * (1 + variationPct)));
+      setDisplayedViewers(newValue);
+      const nextDelay = Math.floor(Math.random() * 60000) + 30000; // 30s to 90s
+      oscillationTimerRef.current = setTimeout(oscillate, nextDelay);
+    };
+    const initialDelay = Math.floor(Math.random() * 30000) + 10000;
+    oscillationTimerRef.current = setTimeout(oscillate, initialDelay);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (boostTimerRef.current) clearInterval(boostTimerRef.current);
+      if (oscillationTimerRef.current) clearTimeout(oscillationTimerRef.current);
+    };
+  }, []);
 
   // Initialize form with zod validation
   const form = useForm<TransmissaoFormData>({
@@ -40,6 +94,8 @@ export default function TransmissaoClient({ initialConfig }: { initialConfig: an
 
   const { register, handleSubmit, watch, setValue, formState: { errors } } = form;
   const isLive = watch("is_live");
+  const boostValue = watch("fake_viewers_boost");
+  const organicEnabled = watch("organic_views_enabled");
 
   const onSubmit = async (data: TransmissaoFormData) => {
     setIsSaving(true);
@@ -51,6 +107,11 @@ export default function TransmissaoClient({ initialConfig }: { initialConfig: an
         
       if (error) throw error;
       toast.success("Transmissão atualizada com sucesso!");
+
+      // Trigger progressive boost animation when saved
+      if (data.fake_viewers_boost !== displayedViewers) {
+        applyProgressiveBoost(data.fake_viewers_boost || 0);
+      }
     } catch (err: any) {
       toast.error("Erro ao atualizar", err.message);
     } finally {
@@ -69,7 +130,6 @@ export default function TransmissaoClient({ initialConfig }: { initialConfig: an
     if (!ok) return;
 
     setValue("is_live", false);
-    // Auto-save immediately on kill switch
     await onSubmit({ ...form.getValues(), is_live: false });
   };
 
@@ -175,17 +235,37 @@ export default function TransmissaoClient({ initialConfig }: { initialConfig: an
               </div>
             </div>
 
-            {/* Simulador */}
-            <div className="border-t border-slate-800 pt-8 flex flex-col gap-8">
-              <div className="flex-1 bg-slate-950 border border-slate-800 rounded-xl p-5 shadow-inner">
-                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Audiência Simulada (+Bot Boost)</label>
+            {/* Simulador de Audiência com Progressive Boost */}
+            <div className="border-t border-slate-800 pt-8">
+              <div className="bg-slate-950 border border-slate-800 rounded-xl p-5 shadow-inner space-y-4">
+                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest">Audiência Simulada (+Bot Boost)</label>
+                
+                {/* Live viewer display */}
+                <div className="flex items-center gap-4 bg-slate-900 rounded-xl p-4 border border-slate-800">
+                  <Users size={20} className="text-cyan-400 shrink-0" />
+                  <div className="flex-1">
+                    <p className="text-xs text-slate-500 uppercase tracking-widest font-bold">Espectadores Agora</p>
+                    <p className="text-3xl font-black text-cyan-400 tabular-nums transition-all duration-500">
+                      {displayedViewers.toLocaleString("pt-BR")}
+                    </p>
+                  </div>
+                  {organicEnabled && (
+                    <span className="text-[9px] font-black text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-1 rounded-full uppercase tracking-widest animate-pulse">
+                      Orgânico Ativo
+                    </span>
+                  )}
+                </div>
+
                 <div className="flex items-center gap-4">
-                  <input 
-                    type="number" 
-                    {...register("fake_viewers_boost", { valueAsNumber: true })}
-                    className="w-32 bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-2xl font-black text-white outline-none" 
-                  />
-                  <label className="relative inline-flex items-center cursor-pointer ml-auto" title="Oscilação Orgânica">
+                  <div className="flex-1">
+                    <label className="text-[10px] font-black text-slate-500 uppercase mb-1 block">Meta de Audiência</label>
+                    <input 
+                      type="number" 
+                      {...register("fake_viewers_boost", { valueAsNumber: true })}
+                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-xl font-black text-white outline-none focus:ring-2 focus:ring-cyan-600" 
+                    />
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer" title="Oscilação Orgânica">
                     <input 
                       type="checkbox" 
                       {...register("organic_views_enabled")}
@@ -195,6 +275,7 @@ export default function TransmissaoClient({ initialConfig }: { initialConfig: an
                     <span className="text-slate-300 text-xs ml-2 font-bold uppercase tracking-widest">Oscilação Orgânica</span>
                   </label>
                 </div>
+                <p className="text-[10px] text-slate-600">O contador sobe progressivamente até atingir a meta (curva ease-in-out), simulando crescimento natural.</p>
               </div>
             </div>
 

@@ -19,6 +19,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Tv2,
+  LayoutTemplate,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -31,6 +32,7 @@ const NAV_ITEMS = [
   { label: "Branding", href: "/admin/branding", icon: Brush },
   { label: "Podcasts", href: "/admin/podcasts", icon: Mic2 },
   { label: "Mídia", href: "/admin/midia", icon: Image },
+  { label: "Editor Visual", href: "/admin/home-builder", icon: LayoutTemplate },
   { label: "Auditoria", href: "/admin/auditoria", icon: ClipboardList },
   { label: "Relatórios", href: "/admin/relatorios", icon: BarChart3 },
 ];
@@ -59,9 +61,9 @@ export default function AdminSidebar() {
   }, []);
 
   const filteredNav = NAV_ITEMS.filter(item => {
-    if (!role) return true; // Show all while loading/guest
+    if (!role) return true; // Show all while loading
     if (role === 'autor') {
-      const allowed = ['/', '/admin', '/admin/transmissao', '/admin/noticias', '/admin/midia', '/admin/relatorios'];
+      const allowed = ['/admin', '/admin/transmissao', '/admin/noticias', '/admin/midia', '/admin/relatorios'];
       return allowed.includes(item.href);
     }
     return true;

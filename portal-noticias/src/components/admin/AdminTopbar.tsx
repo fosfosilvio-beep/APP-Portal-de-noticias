@@ -36,6 +36,7 @@ const MOBILE_NAV = [
   { label: "Branding", href: "/admin/branding", icon: Brush },
   { label: "Podcasts", href: "/admin/podcasts", icon: Mic2 },
   { label: "Mídia", href: "/admin/midia", icon: Image },
+  { label: "Editor Visual", href: "/admin/home-builder", icon: LayoutDashboard },
   { label: "Auditoria", href: "/admin/auditoria", icon: ClipboardList },
   { label: "Relatórios", href: "/admin/relatorios", icon: BarChart3 },
 ];
@@ -51,6 +52,7 @@ const BREADCRUMBS: Record<string, string> = {
   "/admin/branding": "Branding & UI",
   "/admin/podcasts": "Podcasts",
   "/admin/midia": "Mídia",
+  "/admin/home-builder": "Editor Visual (Home)",
   "/admin/auditoria": "Auditoria",
   "/admin/relatorios": "Relatórios",
 };
