@@ -45,7 +45,7 @@
 | **2** | Admin Shell (sidebar, rotas, padrões unificados) | Concluído ✅ | 4–5d | 🔴 Crítica |
 | **2B** | Reorganização Módulo-a-Módulo (9 sub-fases) | Concluído ✅ | 8–10d | 🟡 Alta |
 | **3** | Ad Manager Premium (abas, diretrizes, badge) | Concluído ✅ | 4–5d | 🟡 Alta |
-| **4** | Ad Analytics (tracking, dashboard) | Planejado | 3–4d | 🟡 Alta |
+| **4** | Ad Analytics (tracking, dashboard) | Concluído ✅ | 3–4d | 🟡 Alta |
 | **5** | Page Builder Puck (editor visual home) | Planejado | 6–7d | 🟡 Alta |
 | **6** | Governance & Auth (roles, approval workflow) | Planejado | 4–5d | 🟢 Normal |
 
