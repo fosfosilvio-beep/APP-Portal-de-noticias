@@ -14,6 +14,96 @@ export type Database = {
   }
   public: {
     Tables: {
+      ad_clicks: {
+        Row: {
+          id: number
+          slot_id: string | null
+          noticia_id: string | null
+          clicked_at: string | null
+          session_hash: string | null
+          referrer: string | null
+        }
+        Insert: {
+          id?: number
+          slot_id?: string | null
+          noticia_id?: string | null
+          clicked_at?: string | null
+          session_hash?: string | null
+          referrer?: string | null
+        }
+        Update: {
+          id?: number
+          slot_id?: string | null
+          noticia_id?: string | null
+          clicked_at?: string | null
+          session_hash?: string | null
+          referrer?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_clicks_noticia_id_fkey"
+            columns: ["noticia_id"]
+            isOneToOne: false
+            referencedRelation: "noticias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ad_clicks_slot_id_fkey"
+            columns: ["slot_id"]
+            isOneToOne: false
+            referencedRelation: "ad_slots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ad_impressions: {
+        Row: {
+          id: number
+          slot_id: string | null
+          noticia_id: string | null
+          viewed_at: string | null
+          user_agent: string | null
+          session_hash: string | null
+          viewport_w: number | null
+          viewport_h: number | null
+        }
+        Insert: {
+          id?: number
+          slot_id?: string | null
+          noticia_id?: string | null
+          viewed_at?: string | null
+          user_agent?: string | null
+          session_hash?: string | null
+          viewport_w?: number | null
+          viewport_h?: number | null
+        }
+        Update: {
+          id?: number
+          slot_id?: string | null
+          noticia_id?: string | null
+          viewed_at?: string | null
+          user_agent?: string | null
+          session_hash?: string | null
+          viewport_w?: number | null
+          viewport_h?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_impressions_noticia_id_fkey"
+            columns: ["noticia_id"]
+            isOneToOne: false
+            referencedRelation: "noticias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ad_impressions_slot_id_fkey"
+            columns: ["slot_id"]
+            isOneToOne: false
+            referencedRelation: "ad_slots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ad_slots: {
         Row: {
           codigo_html_ou_imagem: string | null
