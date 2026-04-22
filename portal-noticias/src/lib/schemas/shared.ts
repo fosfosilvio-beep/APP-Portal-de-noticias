@@ -61,6 +61,19 @@ export const uiSettingsSchema = z.object({
     .optional(),
 });
 
+export const transmissaoSchema = z.object({
+  is_live: z.boolean().optional(),
+  titulo_live: z.string().max(100).optional(),
+  descricao_live: z.string().max(250).optional(),
+  url_live_youtube: youtubeUrl,
+  url_live_facebook: z.string().url("URL do Facebook inválida").optional().or(z.literal("")),
+  mostrar_live_facebook: z.boolean().optional(),
+  fake_viewers_boost: z.number().int().min(0).optional(),
+  organic_views_enabled: z.boolean().optional(),
+});
+
 export type AdSlotFormData = z.infer<typeof adSlotSchema>;
 export type PodcastFormData = z.infer<typeof podcastSchema>;
 export type UISettingsFormData = z.infer<typeof uiSettingsSchema>;
+export type TransmissaoFormData = z.infer<typeof transmissaoSchema>;
+

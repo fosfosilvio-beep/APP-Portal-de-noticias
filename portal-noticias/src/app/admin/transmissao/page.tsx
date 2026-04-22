@@ -1,24 +1,24 @@
-import { Radio, Wifi } from "lucide-react";
+import { createClient } from "@/lib/supabase-server";
+import TransmissaoClient from "@/components/admin/transmissao/TransmissaoClient";
 
-export default function TransmissaoPage() {
+export default async function TransmissaoPage() {
+  const supabase = await createClient();
+
+  // Fetch initial config for the form
+  const { data: config } = await supabase
+    .from("configuracao_portal")
+    .select("is_live, titulo_live, descricao_live, url_live_youtube, url_live_facebook, mostrar_live_facebook, fake_viewers_boost, organic_views_enabled")
+    .limit(1)
+    .single();
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
-          <Radio size={20} className="text-red-400" />
-        </div>
-        <div>
-          <h1 className="text-xl font-black text-white">Transmissão</h1>
-          <p className="text-sm text-slate-400">Controle do sinal ao vivo e cockpit de transmissão.</p>
-        </div>
+    <div className="space-y-6 max-w-[1400px]">
+      <div>
+        <h1 className="text-2xl font-black text-white">Transmissão Ao Vivo</h1>
+        <p className="text-sm text-slate-400">Cockpit master de transmissão e moderação de chat.</p>
       </div>
-      <div className="rounded-2xl border border-dashed border-slate-700 bg-slate-800/30 p-16 flex flex-col items-center justify-center gap-4 text-center">
-        <Wifi size={40} className="text-slate-600" />
-        <p className="text-slate-400 font-semibold">Módulo em implementação — Sub-fase 2B.1</p>
-        <p className="text-slate-500 text-sm max-w-sm">
-          Este módulo unificará o Dashboard e o Sinal Ao Vivo em um cockpit único com validação de URLs e métricas em tempo real.
-        </p>
-      </div>
+      
+      <TransmissaoClient initialConfig={config || {}} />
     </div>
   );
 }
