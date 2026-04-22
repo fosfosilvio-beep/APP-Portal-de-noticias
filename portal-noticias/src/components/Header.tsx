@@ -9,6 +9,7 @@ import { getPublicUrl } from "./FallbackImage";
 import { supabase } from "../lib/supabase";
 import { useEffect, useState } from "react";
 import { User, LogOut, Menu, X, ChevronRight } from "lucide-react";
+import { ThemeToggle } from "./ThemeToggle";
 
 interface HeaderProps {
   isLive: boolean;
@@ -170,6 +171,11 @@ export default function Header({
                 </Link>
               )}
 
+              {/* THEME TOGGLE */}
+              <div className="hidden sm:block">
+                <ThemeToggle />
+              </div>
+
               {/* SINO — apenas desktop */}
               <div className="hidden sm:block">
                 <NotificationBell />
@@ -280,12 +286,15 @@ export default function Header({
             </div>
             <span className="text-white font-black text-sm uppercase tracking-widest">{brandName}</span>
           </div>
-          <button
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="w-9 h-9 flex items-center justify-center rounded-full bg-zinc-800 text-zinc-400 hover:text-white transition-colors"
-          >
-            <X size={18} />
-          </button>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <button
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="w-9 h-9 flex items-center justify-center rounded-full bg-zinc-800 text-zinc-400 hover:text-white transition-colors"
+            >
+              <X size={18} />
+            </button>
+          </div>
         </div>
 
         {/* Perfil no Drawer */}

@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(npm remove *)",
+      "Bash(npx shadcn-ui@latest init -y)",
+      "Bash(npx shadcn@latest init -y)",
+      "Bash(npx shadcn@latest add button card tabs dialog alert-dialog dropdown-menu sheet badge separator skeleton input label form select tooltip textarea switch popover command combobox table scroll-area avatar progress toggle toggle-group --yes)",
+      "Bash(npx shadcn@latest add button card tabs dialog alert-dialog dropdown-menu sheet badge separator skeleton input label form select tooltip textarea switch popover command combobox table scroll-area avatar progress toggle --yes)",
+      "Bash(npm run *)"
+    ]
+  }
+}

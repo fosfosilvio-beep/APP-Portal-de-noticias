@@ -31,7 +31,7 @@ export default function HeroBanner({ items, duration, transition }: { items: Her
 
   return (
     // FAIXA RETANGULAR WIDESCREEN — Reduzida para formato "fino"
-    <div className="relative w-full h-32 md:h-44 lg:h-52 rounded-none lg:rounded-3xl overflow-hidden shadow-lg border-b border-slate-200 group">
+    <div className="relative w-full h-40 md:h-64 lg:h-80 rounded-none lg:rounded-3xl overflow-hidden shadow-lg border-b border-slate-200 group bg-slate-950">
       {items.map((item, idx) => (
         <div
           key={idx}
@@ -43,7 +43,7 @@ export default function HeroBanner({ items, duration, transition }: { items: Her
           <img
             src={item.image}
             alt={`Banner ${idx + 1}`}
-            className="w-full h-full object-cover"
+            className={`w-full h-full ${item.scale === 'object-contain' ? 'object-contain' : 'object-cover'}`}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
