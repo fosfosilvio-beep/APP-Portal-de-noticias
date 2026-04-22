@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession, signIn } from "next-auth/react";
-import { supabase } from "../lib/supabase";
+import { createClient } from "@/lib/supabase-browser";
 import { MessageSquare, LogIn, Send, User } from "lucide-react";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 interface Comentario {
   id: string;
@@ -14,11 +14,24 @@ interface Comentario {
 }
 
 export default function ArticleComments({ noticiaId }: { noticiaId: string }) {
-  const { data: session } = useSession();
+  const supabase = createClient();
+  const [user, setUser] = useState<SupabaseUser | null>(null);
   const [comentarios, setComentarios] = useState<Comentario[]>([]);
   const [novoComentario, setNovoComentario] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     if (!noticiaId) return;
@@ -57,15 +70,15 @@ export default function ArticleComments({ noticiaId }: { noticiaId: string }) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!session || !novoComentario.trim() || enviando) return;
+    if (!user || !novoComentario.trim() || enviando) return;
 
     setEnviando(true);
     const { error } = await supabase.from("comentarios_noticias").insert([
       {
         noticia_id: noticiaId,
-        usuario_nome: session.user?.name,
-        usuario_email: session.user?.email,
-        usuario_imagem: session.user?.image,
+        usuario_nome: user.user_metadata?.full_name || user.email,
+        usuario_email: user.email,
+        usuario_imagem: user.user_metadata?.avatar_url,
         conteudo: novoComentario.trim(),
       },
     ]);
@@ -88,7 +101,7 @@ export default function ArticleComments({ noticiaId }: { noticiaId: string }) {
       </div>
 
       {/* Area de Input / Login */}
-      {!session ? (
+      {!user ? (
         <div className="bg-slate-50 rounded-3xl p-8 border border-slate-200 text-center flex flex-col items-center">
           <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm mb-4 border border-slate-100">
             <LogIn className="text-slate-400" size={24} />
@@ -96,14 +109,14 @@ export default function ArticleComments({ noticiaId }: { noticiaId: string }) {
           <p className="text-slate-600 font-bold mb-6">Entre com suas redes sociais para participar da conversa</p>
           <div className="flex flex-wrap justify-center gap-4">
             <button 
-              onClick={() => signIn("google")}
+              onClick={() => supabase.auth.signInWithOAuth({ provider: 'google' })}
               className="flex items-center gap-3 bg-white border border-slate-200 px-6 py-3 rounded-xl font-bold text-slate-700 hover:bg-slate-100 transition-all shadow-sm"
             >
               <img src="https://www.google.com/favicon.ico" className="w-4 h-4" alt="Google" />
               Google
             </button>
             <button 
-              onClick={() => signIn("facebook")}
+              onClick={() => supabase.auth.signInWithOAuth({ provider: 'facebook' })}
               className="flex items-center gap-3 bg-[#1877F2] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#166fe5] transition-all shadow-sm"
             >
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
@@ -114,9 +127,9 @@ export default function ArticleComments({ noticiaId }: { noticiaId: string }) {
       ) : (
         <form onSubmit={handleSubmit} className="bg-white rounded-3xl p-6 border-2 border-slate-100 shadow-sm mb-10 transition-all focus-within:border-blue-500/50">
           <div className="flex items-start gap-4">
-            <img src={session.user?.image || ""} className="w-10 h-10 rounded-full border border-slate-200 shadow-sm" alt="User" />
+            <img src={user.user_metadata?.avatar_url || ""} className="w-10 h-10 rounded-full border border-slate-200 shadow-sm" alt="User" />
             <div className="flex-1">
-              <span className="block text-xs font-black uppercase text-blue-600 tracking-widest mb-2">Comentar como {session.user?.name}</span>
+              <span className="block text-xs font-black uppercase text-blue-600 tracking-widest mb-2">Comentar como {user.user_metadata?.full_name || user.email}</span>
               <textarea 
                 value={novoComentario}
                 onChange={(e) => setNovoComentario(e.target.value)}

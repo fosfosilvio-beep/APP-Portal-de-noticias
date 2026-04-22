@@ -5,14 +5,16 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { newsSchema, type NewsFormData } from "@/lib/schemas/news";
 import { createClient } from "@/lib/supabase-browser";
+import { Role } from "@/lib/auth/roles";
 import { toast } from "@/lib/toast";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { 
   Send, Loader2, Save, FileText, Palette,
-  Type as TypeIcon, Hash, MousePointer2, Images, X, Upload, Megaphone
+  Type as TypeIcon, Hash, MousePointer2, Images, X, Upload, Megaphone, CalendarClock
 } from "lucide-react";
 import AiCopilot from "./AiCopilot";
+import { ScheduleDialog } from "../ScheduleDialog";
 
 const RichTextEditor = dynamic(() => import("../../RichTextEditor"), { 
   ssr: false,
@@ -35,6 +37,18 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
   const [adSlots, setAdSlots] = useState<any[]>([]);
   const [categorias, setCategorias] = useState<any[]>([]);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
+  const [role, setRole] = useState<Role | null>(null);
+
+  useEffect(() => {
+    const fetchRole = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      const { data } = await supabase.from("user_roles").select("role").eq("user_id", session.user.id).single();
+      if (data) setRole(data.role as Role);
+    };
+    fetchRole();
+  }, []);
 
   const form = useForm<NewsFormData>({
     resolver: zodResolver(newsSchema),
@@ -187,6 +201,8 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
         slug: data.slug.trim().replace(/^https?:\/\//, "").split("/").filter(Boolean).pop() || data.slug,
         ad_id: data.ad_id || null,
         categoria_id: data.categoria_id || null,
+        status: data.status || "draft",
+        publish_at: data.publish_at || null,
       };
 
       if (editId) {
@@ -428,6 +444,42 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
               />
             </div>
 
+            {/* STATUS & SCHEDULE */}
+            <div>
+              <label className="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">Status da Matéria</label>
+              <div className="flex gap-2">
+                <select
+                  {...register("status")}
+                  className="w-full text-sm font-bold px-3 py-2 border border-slate-800 rounded-lg outline-none focus:border-blue-400 bg-slate-950 text-white"
+                >
+                  <option value="draft">Rascunho</option>
+                  <option value="in_review">Aguardando Revisão</option>
+                  {(role === 'admin' || role === 'editor' || !role) && (
+                    <>
+                      <option value="published">Publicado Agora</option>
+                      <option value="scheduled">Agendado</option>
+                    </>
+                  )}
+                  {(role === 'admin' || role === 'editor' || role === 'revisor' || !role) && (
+                    <option value="archived">Arquivado</option>
+                  )}
+                </select>
+                <button
+                  type="button"
+                  onClick={() => setScheduleOpen(true)}
+                  className="bg-slate-800 hover:bg-slate-700 text-white p-2 rounded-lg transition-colors border border-slate-700 flex-shrink-0"
+                  title="Agendar"
+                >
+                  <CalendarClock size={20} />
+                </button>
+              </div>
+              {watch("status") === "scheduled" && watch("publish_at") && (
+                <p className="text-[10px] mt-2 text-emerald-400 font-bold bg-emerald-500/10 border border-emerald-500/20 px-2 py-1 rounded">
+                  Agendado para: {new Date(watch("publish_at")!).toLocaleString()}
+                </p>
+              )}
+            </div>
+
             {/* CATEGORIA */}
             <div>
               <label className="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">Linha Editorial</label>
@@ -479,6 +531,14 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
           </div>
         </div>
       </aside>
+      <ScheduleDialog
+        open={scheduleOpen}
+        onOpenChange={setScheduleOpen}
+        onSchedule={(isoDate) => {
+          setValue("publish_at", isoDate);
+          setValue("status", "scheduled");
+        }}
+      />
     </div>
   );
 }

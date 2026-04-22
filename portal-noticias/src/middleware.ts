@@ -10,6 +10,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Allow login page without auth
+  if (pathname === "/admin/login") {
+    return NextResponse.next();
+  }
+
   const response = NextResponse.next();
 
   const supabase = createServerClient(
@@ -39,6 +44,23 @@ export async function middleware(request: NextRequest) {
     const loginUrl = new URL("/admin/login", request.url);
     loginUrl.searchParams.set("redirectTo", pathname);
     return NextResponse.redirect(loginUrl);
+  }
+
+  // Check roles
+  const { data: roleData } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", session.user.id)
+    .single();
+
+  const role = roleData?.role || 'autor'; // fallback
+
+  // Implement basic Role-Based Access Control
+  // E.g., 'autor' can't access /admin/auditoria or /admin/publicidade
+  if (role === 'autor') {
+    if (pathname.startsWith('/admin/auditoria') || pathname.startsWith('/admin/publicidade')) {
+      return NextResponse.redirect(new URL("/admin/transmissao", request.url));
+    }
   }
 
   return response;

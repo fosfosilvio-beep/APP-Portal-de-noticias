@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase-browser";
 import { usePathname } from "next/navigation";
 import {
   Search,
@@ -21,6 +22,7 @@ import {
   BarChart3,
   Tv2,
   ExternalLink,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import CommandPalette from "./CommandPalette";
@@ -57,6 +59,12 @@ export default function AdminTopbar() {
   const pathname = usePathname();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
+  const supabase = createClient();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    window.location.href = "/admin/login";
+  };
 
   const breadcrumb = BREADCRUMBS[pathname] || "Admin";
 
@@ -114,6 +122,15 @@ export default function AdminTopbar() {
             <ExternalLink size={14} />
             <span className="hidden sm:inline">Ver Site</span>
           </Link>
+
+          {/* Logout */}
+          <button
+            onClick={handleLogout}
+            title="Sair"
+            className="flex items-center justify-center w-9 h-9 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:text-white hover:bg-red-500/80 transition-colors ml-2"
+          >
+            <LogOut size={16} />
+          </button>
         </div>
       </header>
 

@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase-browser";
+import { Role } from "@/lib/auth/roles";
 import {
   LayoutDashboard,
   Radio,
@@ -36,6 +38,34 @@ const NAV_ITEMS = [
 export default function AdminSidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const [role, setRole] = useState<Role | null>(null);
+  const supabase = createClient();
+
+  useEffect(() => {
+    const fetchRole = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", session.user.id)
+        .single();
+      
+      if (data) setRole(data.role as Role);
+    };
+
+    fetchRole();
+  }, []);
+
+  const filteredNav = NAV_ITEMS.filter(item => {
+    if (!role) return true; // Show all while loading/guest
+    if (role === 'autor') {
+      const allowed = ['/', '/admin', '/admin/transmissao', '/admin/noticias', '/admin/midia', '/admin/relatorios'];
+      return allowed.includes(item.href);
+    }
+    return true;
+  });
 
   return (
     <aside
@@ -58,7 +88,7 @@ export default function AdminSidebar() {
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-1">
-        {NAV_ITEMS.map(({ label, href, icon: Icon, exact }) => {
+        {filteredNav.map(({ label, href, icon: Icon, exact }) => {
           const isActive = exact ? pathname === href : pathname.startsWith(href) && href !== "/admin";
           const isExactActive = href === "/admin" && pathname === "/admin";
           const active = isActive || isExactActive;

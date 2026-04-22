@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_actions: {
+        Row: {
+          id: number
+          user_id: string | null
+          action: string
+          entity_type: string
+          entity_id: string
+          diff: any | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: number
+          user_id?: string | null
+          action: string
+          entity_type: string
+          entity_id: string
+          diff?: any | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: number
+          user_id?: string | null
+          action?: string
+          entity_type?: string
+          entity_id?: string
+          diff?: any | null
+          created_at?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          user_id: string
+          role: string
+          created_at: string | null
+        }
+        Insert: {
+          user_id: string
+          role: string
+          created_at?: string | null
+        }
+        Update: {
+          user_id?: string
+          role?: string
+          created_at?: string | null
+        }
+        Relationships: []
+      }
       page_layout: {
         Row: {
           id: string
@@ -733,6 +781,10 @@ export type Database = {
           tipo_midia: string | null
           titulo: string
           titulo_config: Json | null
+          status: string | null
+          publish_at: string | null
+          approved_by: string | null
+          approved_at: string | null
           video_url: string | null
         }
         Insert: {
@@ -761,6 +813,10 @@ export type Database = {
           tipo_midia?: string | null
           titulo: string
           titulo_config?: Json | null
+          status?: string | null
+          publish_at?: string | null
+          approved_by?: string | null
+          approved_at?: string | null
           video_url?: string | null
         }
         Update: {
@@ -789,6 +845,10 @@ export type Database = {
           tipo_midia?: string | null
           titulo?: string
           titulo_config?: Json | null
+          status?: string | null
+          publish_at?: string | null
+          approved_by?: string | null
+          approved_at?: string | null
           video_url?: string | null
         }
         Relationships: []
