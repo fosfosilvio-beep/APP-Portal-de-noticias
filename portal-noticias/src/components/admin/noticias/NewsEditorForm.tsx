@@ -74,6 +74,8 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
 
   const { register, handleSubmit, watch, setValue, getValues, formState: { errors } } = form;
   const conteudo = watch("conteudo");
+  const titulo = watch("titulo");
+  const subtitulo = watch("subtitulo");
   const tituloConfig = watch("titulo_config");
   const imagemCapa = watch("imagem_capa");
   const galeriaUrls = watch("galeria_urls") || [];
@@ -285,11 +287,12 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
               </div>
               <input
                 type="text"
-                {...register("titulo")}
-                onChange={(e) => {
-                  setValue("titulo", e.target.value);
-                  if (!editId) generateSlug(e.target.value);
-                }}
+                {...register("titulo", {
+                  onChange: (e) => {
+                    if (!editId) generateSlug(e.target.value);
+                  }
+                })}
+                value={titulo}
                 placeholder="Insira o Título Principal..."
                 style={{
                   fontFamily: tituloConfig.font,
@@ -306,6 +309,7 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
               <input
                 type="text"
                 {...register("subtitulo")}
+                value={subtitulo}
                 placeholder="Contextualização rápida..."
                 className="w-full bg-slate-950 border border-slate-800 focus:ring-2 focus:ring-blue-600 focus:border-transparent rounded-xl px-4 py-3 text-sm font-bold shadow-sm outline-none transition-all text-white placeholder:text-slate-600"
               />
@@ -371,10 +375,10 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
         
         {/* IA Copilot */}
         <AiCopilot onGenerated={(data) => {
-          setValue("titulo", data.titulo, { shouldValidate: true });
+          setValue("titulo", data.titulo, { shouldValidate: true, shouldDirty: true });
           if (!editId) generateSlug(data.titulo);
-          if (data.subtitulo) setValue("subtitulo", data.subtitulo);
-          if (data.conteudo) setValue("conteudo", data.conteudo, { shouldValidate: true });
+          if (data.subtitulo) setValue("subtitulo", data.subtitulo, { shouldValidate: true, shouldDirty: true });
+          if (data.conteudo) setValue("conteudo", data.conteudo, { shouldValidate: true, shouldDirty: true });
         }} />
 
         <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-sm overflow-hidden">
