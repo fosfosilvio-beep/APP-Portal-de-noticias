@@ -18,6 +18,9 @@ CREATE TABLE IF NOT EXISTS news_statuses (
   display_order INT DEFAULT 0
 );
 
+-- Garantir colunas existem (em caso de tabela pré-existente)
+ALTER TABLE news_statuses ADD COLUMN IF NOT EXISTS display_order INT DEFAULT 0;
+
 -- Seed statuses
 INSERT INTO news_statuses (name, label, color, display_order) VALUES
   ('draft', 'Rascunho', '#yellow', 0),
@@ -174,6 +177,9 @@ CREATE TABLE IF NOT EXISTS categorias (
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
+-- Garantir coluna sort_order existe (em caso de tabela pré-existente)
+ALTER TABLE categorias ADD COLUMN IF NOT EXISTS sort_order INT DEFAULT 0;
+
 INSERT INTO categorias (slug, nome, sort_order) VALUES
   ('geral', 'Geral', 0),
   ('arapongas', 'Arapongas', 1),
@@ -206,7 +212,7 @@ CREATE POLICY "news_drafts_own" ON news_drafts
   USING (user_id = auth.uid())
   WITH CHECK (user_id = auth.uid());
 
--- 3. Colunas em biblioteca_lives
+-- 3. Colunas em biblioteca_lives (garantir existência)
 ALTER TABLE biblioteca_lives ADD COLUMN IF NOT EXISTS sort_order INT DEFAULT 0;
 ALTER TABLE biblioteca_lives ADD COLUMN IF NOT EXISTS descricao TEXT;
 ALTER TABLE biblioteca_lives ADD COLUMN IF NOT EXISTS tipo TEXT DEFAULT 'live';
