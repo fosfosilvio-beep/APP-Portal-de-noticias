@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "../lib/supabase";
+import { createClient } from "@/lib/supabase-browser";
 import { ExternalLink } from "lucide-react";
 
 interface AdSlotData {
@@ -24,6 +24,7 @@ interface DynamicAdSlotProps {
 export default function DynamicAdSlot({ position, className, fallback }: DynamicAdSlotProps) {
   const [ad, setAd] = useState<AdSlotData | null>(null);
   const [loading, setLoading] = useState(true);
+  const supabase = createClient();
 
   useEffect(() => {
     async function loadAd() {

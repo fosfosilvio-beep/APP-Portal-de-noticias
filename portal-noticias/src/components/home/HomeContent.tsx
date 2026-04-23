@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Search, Film, Calendar, Tag, ChevronRight } from "lucide-react";
+import { Search, Film, Calendar, Tag } from "lucide-react";
 import Header from "../Header";
 import HeroBanner from "../HeroBanner";
 import AutomatedNewsFeed from "../AutomatedNewsFeed";
@@ -12,13 +12,13 @@ import HeroSection from "./HeroSection";
 import NewsGrid from "./NewsGrid";
 import BreakingNewsMarquee from "../BreakingNewsMarquee";
 import StoriesBar from "./StoriesBar";
-import PushPrompt from "../PushPrompt";
 import ColunistasWidget from "./ColunistasWidget";
 import VideosWidget from "./VideosWidget";
 import EdicoesWidget from "./EdicoesWidget";
-import FeedNewsWidget from "./FeedNewsWidget";
 import ClassificadosWidget from "./ClassificadosWidget";
 import EnquetesWidget from "./EnquetesWidget";
+import VoceNoPortalWidget from "./VoceNoPortalWidget";
+import NewslettersWidget from "./NewslettersWidget";
 import Footer from "../Footer";
 import { createClient } from "@/lib/supabase-browser";
 import { getVisualCategory } from "@/lib/category-utils";
@@ -45,7 +45,6 @@ export default function HomeContent({ initialConfig, todasNoticias, bibliotecaLi
     supabase.from("categorias").select("slug, nome, ordem").eq("ativa", true).order("ordem")
       .then(({ data }: any) => { if (data?.length) setCategorias(data); });
 
-    // Captura categoria via URL se existir
     const params = new URLSearchParams(window.location.search);
     const catParam = params.get("cat");
     if (catParam) {
@@ -62,10 +61,6 @@ export default function HomeContent({ initialConfig, todasNoticias, bibliotecaLi
     const fetchCategoriaNoticias = async () => {
       setIsLoadingCat(true);
       const supabase = createClient();
-      
-      // Removemos acentos para uma busca mais robusta se necessário, 
-      // mas o ilike com % já ajuda na flexibilidade.
-      // Normalizamos o termo de busca para bater com o banco (que está sem acento)
       const normalizedTerm = categoriaAtiva.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
       const searchTerm = `%${normalizedTerm}%`;
 
@@ -104,6 +99,7 @@ export default function HomeContent({ initialConfig, todasNoticias, bibliotecaLi
         setCategoriaAtiva={setCategoriaAtiva}
       />
 
+      {/* Web Stories */}
       <StoriesBar />
 
       {/* Breaking News Marquee */}
@@ -124,6 +120,7 @@ export default function HomeContent({ initialConfig, todasNoticias, bibliotecaLi
         .border-primary { border-color: var(--primary-color); }
       `}} />
 
+      {/* Hero Banner Rotativo */}
       {categoriaAtiva === "Início" && config?.hero_banner_items?.length > 0 && config?.ui_settings?.widgets_visibility?.herobanner !== false && (
         <section className="w-full">
            <HeroBanner items={config.hero_banner_items} />
@@ -131,6 +128,14 @@ export default function HomeContent({ initialConfig, todasNoticias, bibliotecaLi
       )}
 
       <main className="container mx-auto px-4 lg:px-8 py-8 flex-grow">
+        
+        {/* Ad de Topo */}
+        {categoriaAtiva === "Início" && (
+          <div className="mb-8 max-w-5xl mx-auto">
+            <DynamicAdSlot position="topo" className="h-24 sm:h-32" />
+          </div>
+        )}
+
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-10 min-w-0">
           
           {/* LADO ESQUERDO (70% - CONTEÚDO PRINCIPAL) */}
@@ -139,14 +144,22 @@ export default function HomeContent({ initialConfig, todasNoticias, bibliotecaLi
             {categoriaAtiva === "Início" ? (
               <div className="flex flex-col space-y-16 animate-in fade-in slide-in-from-bottom-4 duration-1000">
                 
+                {/* Moderação Live / Web TV */}
                 <HeroSection initialIsLive={isLive} initialLiveUrl={config?.url_live} />
 
+                {/* Grade de Notícias */}
+                <NewsGrid title="Últimas Notícias" news={todasNoticias.slice(0, 8)} />
+
+                {/* Interatividade Comunidade */}
+                <VoceNoPortalWidget />
+
+                {/* Vídeos e Entretenimento */}
                 <VideosWidget />
 
-                <ColunistasWidget />
-                
-                <NewsGrid title="Últimas Notícias" news={todasNoticias} />
+                {/* Módulo de Classificados */}
+                <ClassificadosWidget />
 
+                {/* Importador RSS */}
                 <AutomatedNewsFeed />
               </div>
             ) : categoriaAtiva === "Biblioteca" ? (
@@ -154,7 +167,7 @@ export default function HomeContent({ initialConfig, todasNoticias, bibliotecaLi
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div>
                     <h1 className="text-4xl font-black text-slate-900 border-l-[6px] border-[#00AEE0] pl-4">Biblioteca <span className="text-[#00AEE0]">Web TV</span></h1>
-                    <p className="text-slate-500 mt-2 font-medium">Assista aos nossos programas e matérias especiais a qualquer momento.</p>
+                    <p className="text-slate-500 mt-2 font-medium">Assista aos nossos programas e lives a qualquer momento.</p>
                   </div>
                   
                   <div className="relative w-full md:w-80">
@@ -169,13 +182,13 @@ export default function HomeContent({ initialConfig, todasNoticias, bibliotecaLi
                   </div>
                 </div>
 
-                 <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-4">
+                 <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
                   {[...bibliotecaLives, ...todasNoticias.filter(n => n.video_url)].filter(item => 
                     (item.titulo || "").toLowerCase().includes(searchBiblioteca.toLowerCase()) || 
                     (item.tema || item.categoria || "").toLowerCase().includes(searchBiblioteca.toLowerCase())
                   ).map((item, idx) => (
                     <div key={item.id || idx} className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border border-slate-100 flex flex-col hover:-translate-y-2">
-                       <div className="relative h-28 sm:h-36 md:h-44 overflow-hidden">
+                       <div className="relative h-28 sm:h-36 overflow-hidden">
                          <img 
                            src={item.thumbnail || item.imagem_capa || "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=400"} 
                            alt={item.titulo} 
@@ -241,151 +254,47 @@ export default function HomeContent({ initialConfig, todasNoticias, bibliotecaLi
           {/* LADO DIREITO (30% - BARRA LATERAL) */}
           <aside className="w-full lg:w-[30%] flex flex-col space-y-8">
             
+            {/* Widget de Enquetes */}
             <EnquetesWidget />
-
-            <FeedNewsWidget />
             
+            {/* Edições Digitais */}
             <EdicoesWidget />
 
+            {/* Plantão Policial Widget */}
+            {(config?.ui_settings?.widgets_visibility?.plantao !== false) && (
+               <PlantaoPolicialWidget />
+            )}
+
+            {/* Colunistas na Sidebar para visibilidade */}
+            <ColunistasWidget />
+
+            {/* Newsletters / Lead Capture */}
+            <NewslettersWidget />
+
+            {/* Ad Lateral */}
+            <DynamicAdSlot position="lateral" className="min-h-[300px]" />
+
+            {/* Clima se ativado */}
             {(config?.ui_settings?.widgets_visibility?.weather !== false) && (
-              <div className="bg-slate-900 rounded-2xl p-7 text-white shadow-lg relative overflow-hidden group border border-slate-800">
-                 <div className="absolute top-0 right-0 w-40 h-40 bg-[#00AEE0] rounded-full blur-[80px] opacity-20 group-hover:opacity-40 transition-opacity duration-700"></div>
-                 <div className="relative z-10">
-                   <h3 className="font-bold text-xs mb-6 uppercase tracking-widest text-slate-400 flex items-center gap-2">
-                     <svg className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zM12 18a6 6 0 110-12 6 6 0 010 12z"/></svg>
-                     Arapongas / PR
-                   </h3>
-                   <div className="flex items-center justify-between mb-2">
-                     <p className="text-6xl font-black tracking-tighter">26°<span className="text-3xl text-slate-500 font-medium">C</span></p>
-                     <div className="text-right flex flex-col items-end">
-                       <span className="block font-black text-cyan-400 text-lg">Ensolarado</span>
-                       <span className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">Máx 31° Min 18°</span>
-                     </div>
-                   </div>
-                   <div className="flex items-center gap-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-4 pt-4 border-t border-slate-800">
-                      <span className="flex items-center gap-1"><span className="text-cyan-500">💧</span> Umidade: 55%</span>
-                      <span className="flex items-center gap-1"><span className="text-orange-500">🌡️</span> Sensação: 28°C</span>
-                   </div>
+               <div className="bg-slate-100 rounded-3xl p-6 border border-slate-200">
+                 <h3 className="font-black uppercase tracking-widest text-slate-400 text-xs mb-4">Clima (Arapongas)</h3>
+                 <div className="flex items-center gap-4">
+                   <div className="text-4xl font-black text-slate-700">28°</div>
+                   <div className="text-sm text-slate-500 font-medium leading-tight">Ensolarado<br/>Max: 32° | Min: 18°</div>
                  </div>
-              </div>
+               </div>
             )}
-
-            <PlantaoPolicialWidget />
-
-            <div className="w-full">
-              <DynamicAdSlot 
-                position="sidebar_right_1" 
-                fallback={
-                  config?.ad_slot_1?.visible && config.ad_slot_1.image_url ? (
-                    <a href={config.ad_slot_1.link || "#"} target="_blank" className="group block relative w-full max-h-48 sm:max-h-64 rounded-xl overflow-hidden shadow-sm border border-slate-200 hover:border-cyan-200 transition-all duration-300">
-                       <img src={config.ad_slot_1.image_url} alt="Publicidade" className="w-full h-full object-contain max-h-48 sm:max-h-64 group-hover:scale-105 transition-transform duration-700" />
-                       <div className="absolute top-2 right-2">
-                          <span className="bg-white/80 backdrop-blur-md text-slate-800 text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border border-slate-200 shadow-sm">Publicidade</span>
-                       </div>
-                    </a>
-                  ) : (
-                    <div className="w-full bg-white rounded-xl border border-dashed border-slate-300 h-32 sm:h-48 flex flex-col items-center justify-center p-4 text-center group cursor-pointer hover:bg-slate-50 transition-colors shadow-sm">
-                       <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 border border-slate-300 px-2 py-0.5 rounded">Espaço Publicitário</span>
-                       <p className="text-slate-500 font-bold text-xs max-w-[180px]">Impacte milhares de leitores regionais com sua marca.</p>
-                    </div>
-                  )
-                } 
-              />
-            </div>
-
-            {(config?.ui_settings?.widgets_visibility?.giro24h !== false) && (
-              <div className="bg-white rounded-2xl p-6 shadow-md border border-slate-200">
-                <div className="flex items-center justify-between mb-6 border-b border-slate-100 pb-4">
-                  <div className="flex items-center space-x-2">
-                    <span className="w-2.5 h-2.5 bg-cyan-500 rounded-full shadow-[0_0_8px_#06b6d4]"></span>
-                    <h3 className="font-black text-slate-900 text-lg uppercase tracking-tight">Giro 24h</h3>
-                  </div>
-                </div>
-                
-                <div className="flex flex-col space-y-6">
-                  {todasNoticias.slice(0, 5).map((news, idx) => (
-                    <Link href={`/noticia/${news.slug || news.id}`} key={news.id} className="flex gap-4 group items-center">
-                      <span className="text-transparent bg-clip-text bg-gradient-to-br from-cyan-400 to-blue-600 font-black text-4xl leading-none group-hover:scale-110 transition-transform w-8 shrink-0 text-center drop-shadow-sm">
-                        {idx + 1}
-                      </span>
-                      <div className="flex flex-col">
-                        <span className="text-[9px] text-cyan-600 font-black uppercase tracking-widest mb-1">
-                          {news.categorias?.nome || news.categoria || "Geral"}
-                        </span>
-                        <p className="text-sm font-bold text-slate-700 leading-snug group-hover:text-cyan-600 transition-colors line-clamp-3">
-                          {news.titulo}
-                        </p>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="w-full">
-              <DynamicAdSlot 
-                position="sidebar_right_2" 
-                fallback={
-                  config?.ad_slot_2?.visible && config.ad_slot_2.image_url ? (
-                    <a href={config.ad_slot_2.link || "#"} target="_blank" className="group block relative w-full max-h-48 sm:max-h-72 md:max-h-[400px] rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-200">
-                       <img src={config.ad_slot_2.image_url} alt="Publicidade Vertical" className="w-full h-full object-contain max-h-48 sm:max-h-72 md:max-h-[400px] group-hover:scale-105 transition-transform duration-700" />
-                       <div className="absolute top-2 right-2">
-                          <span className="bg-white/80 backdrop-blur-md text-slate-800 text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border border-slate-200 shadow-sm">Publicidade</span>
-                       </div>
-                    </a>
-                  ) : (
-                    <div className="w-full bg-white rounded-xl border border-dashed border-slate-200 h-32 sm:h-48 md:h-[400px] flex flex-col items-center justify-center p-4 text-center group cursor-pointer hover:bg-slate-50 transition-colors shadow-sm">
-                        <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 border border-slate-200 px-2 py-0.5 rounded">Banner Vertical</span>
-                    </div>
-                  )
-                } 
-              />
-            </div>
+            
           </aside>
         </div>
         
-        {/* CLASSIFICADOS WIDGET */}
-        <ClassificadosWidget />
-        
+        {/* Ad Inferior */}
+        <div className="mt-12 max-w-5xl mx-auto">
+          <DynamicAdSlot position="inferior" className="h-24 sm:h-32" />
+        </div>
       </main>
 
-      {/* BANNER PUBLICITÁRIO RODAPÉ (V2 DYNAMIC) */}
-      <DynamicAdSlot 
-        position="footer_top" 
-        className="rounded-none border-x-0 border-b-0 py-6 bg-slate-900"
-        fallback={
-          <div className="w-full bg-[#0f172a] border-t border-zinc-800/60 py-4 px-4 lg:px-8">
-            <div className="container mx-auto flex items-center justify-center">
-              {config?.ad_slot_2?.image_url || config?.banner_anuncio_home ? (
-                <a
-                  href={config?.ad_slot_2?.link || config?.link_anuncio_home || "#"}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group relative w-full block rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 border border-zinc-700/40 hover:border-zinc-600 bg-black/20"
-                >
-                  <img
-                    src={config?.ad_slot_2?.image_url || config?.banner_anuncio_home}
-                    alt="Publicidade"
-                    className="w-full aspect-[4/1] sm:aspect-[8/1] md:aspect-[12/1] object-contain sm:max-h-[120px] group-hover:scale-[1.01] transition-transform duration-700 rounded-2xl"
-                  />
-                  <div className="absolute top-2 right-3 flex items-center gap-1.5 bg-black/50 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10">
-                    <span className="text-[9px] font-black text-white/80 uppercase tracking-widest">Publicidade</span>
-                  </div>
-                </a>
-              ) : (
-                <div className="w-full h-[80px] border-2 border-dashed border-zinc-700 rounded-2xl flex items-center justify-center gap-4 group hover:bg-zinc-800/30 transition-colors cursor-pointer">
-                  <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">🔖 Espaço Publicitário Premium — Rodapé</span>
-                </div>
-              )}
-            </div>
-          </div>
-        }
-      />
-
-      {/* RODAPÉ */}
-      <Footer config={initialConfig} />
-
-      <PushPrompt />
+      <Footer />
     </div>
   );
 }
