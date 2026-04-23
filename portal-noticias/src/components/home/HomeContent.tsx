@@ -34,9 +34,10 @@ export default function HomeContent({ initialConfig, todasNoticias, bibliotecaLi
       .then(({ data }) => { if (data?.length) setCategorias(data); });
   }, []);
 
-  const noticiasDaCategoriaAtiva = todasNoticias.filter(
-    n => n.categoria?.toLowerCase() === categoriaAtiva.toLowerCase()
-  );
+  const noticiasDaCategoriaAtiva = todasNoticias.filter(n => {
+    const catName = n.categorias?.nome || n.categoria || "Geral";
+    return catName.toLowerCase() === categoriaAtiva.toLowerCase();
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white text-slate-900 flex flex-col font-sans overflow-x-hidden">
@@ -235,7 +236,9 @@ export default function HomeContent({ initialConfig, todasNoticias, bibliotecaLi
                         {idx + 1}
                       </span>
                       <div className="flex flex-col">
-                        <span className="text-[9px] text-cyan-600 font-black uppercase tracking-widest mb-1">{news.categoria || "Geral"}</span>
+                        <span className="text-[9px] text-cyan-600 font-black uppercase tracking-widest mb-1">
+                          {news.categorias?.nome || news.categoria || "Geral"}
+                        </span>
                         <p className="text-sm font-bold text-slate-700 leading-snug group-hover:text-cyan-600 transition-colors line-clamp-3">
                           {news.titulo}
                         </p>

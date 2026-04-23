@@ -33,7 +33,7 @@ export default async function Home() {
   let noticias: any[] = [];
   const { data: prioritizedNews, error: prioError } = await supabase
     .from("noticias")
-    .select("*")
+    .select("*, categorias(id, nome, slug)")
     .order("ordem_prioridade", { ascending: false })
     .order("created_at", { ascending: false })
     .limit(80);
@@ -41,7 +41,7 @@ export default async function Home() {
   if (prioError) {
     const { data: fallbackNews } = await supabase
       .from("noticias")
-      .select("*")
+      .select("*, categorias(id, nome, slug)")
       .order("created_at", { ascending: false })
       .limit(80);
     noticias = fallbackNews || [];

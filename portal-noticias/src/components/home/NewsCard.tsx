@@ -45,7 +45,7 @@ export default function NewsCard({ noticia, index = 0 }: NewsCardProps) {
           {/* Tag compacta */}
           <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-20">
             <span className="bg-slate-900/80 backdrop-blur-md text-slate-50 text-[7px] sm:text-[9px] font-black uppercase tracking-widest px-1.5 sm:px-3 py-0.5 sm:py-1.5 rounded-full shadow-lg border border-white/10">
-              {noticia.categoria || "Geral"}
+              {noticia.categorias?.nome || noticia.categoria || "Geral"}
             </span>
           </div>
 

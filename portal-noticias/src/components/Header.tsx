@@ -31,7 +31,7 @@ interface HeaderProps {
   showNavigation?: boolean;
 }
 
-const CATEGORIAS = ["Início", "Arapongas", "Esportes", "Polícia", "Política", "Biblioteca"];
+const CATEGORIAS = ["Início", "Geral", "Arapongas", "Esportes", "Polícia", "Política", "Biblioteca"];
 
 export default function Header({
   isLive,

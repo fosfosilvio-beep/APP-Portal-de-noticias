@@ -198,11 +198,15 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
   const onSubmit = async (data: NewsFormData) => {
     setIsSaving(true);
     try {
+      // Busca o slug da categoria para compatibilidade com o frontend legado
+      const selectedCat = categorias.find(c => c.id === data.categoria_id);
+      
       const payload = {
         ...data,
         slug: data.slug.trim().replace(/^https?:\/\//, "").split("/").filter(Boolean).pop() || data.slug,
         ad_id: data.ad_id || null,
         categoria_id: data.categoria_id || null,
+        categoria: selectedCat ? selectedCat.nome : (data.categoria || "Geral"),
         status: data.status || "draft",
         publish_at: data.publish_at || null,
       };
