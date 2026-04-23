@@ -36,7 +36,7 @@ const NAV_GROUPS = [
   {
     label: "DASHBOARD",
     items: [
-      { label: "Visão Geral", href: "/admin", icon: LayoutDashboard, exact: true },
+      { label: "Visão Geral", href: "/admin/dashboard", icon: LayoutDashboard, exact: true },
       { label: "Métricas", href: "/admin/metricas", icon: BarChart3 },
     ]
   },
@@ -45,26 +45,17 @@ const NAV_GROUPS = [
     items: [
       { label: "Notícias", href: "/admin/noticias", icon: Newspaper },
       { label: "FeedNews RSS", href: "/admin/feednews", icon: Rss },
-      { label: "Edições Digitais", href: "/admin/edicoes", icon: BookOpen },
-      { label: "Web Stories", href: "/admin/web-stories", icon: Tv2 },
       { label: "Colunistas", href: "/admin/colunistas", icon: ClipboardList },
       { label: "Transmissão / Live", href: "/admin/transmissao", icon: Tv },
-      { label: "Vídeos", href: "/admin/videos", icon: Video },
-      { label: "Editor de Vídeo", href: "/admin/editor-video", icon: Radio },
-      { label: "Podcasts", href: "/admin/podcasts", icon: Mic2 },
       { label: "Biblioteca", href: "/admin/biblioteca", icon: Library },
-      { label: "Mídia", href: "/admin/midia", icon: Image },
-      { label: "Home Builder", href: "/admin/home-builder", icon: LayoutTemplate },
     ]
   },
   {
     label: "COMUNICAÇÃO & COMUNIDADE",
     items: [
-      { label: "Você no Portal", href: "/admin/voce-no-portal", icon: Megaphone },
       { label: "Comentários", href: "/admin/comentarios", icon: MessageSquare },
       { label: "Enquetes", href: "/admin/enquetes", icon: Radio },
-      { label: "Push Alertas", href: "/admin/push", icon: Megaphone },
-      { label: "Newsletters", href: "/admin/newsletters", icon: Newspaper },
+      { label: "Push Alertas", href: "/admin/push-alertas", icon: Megaphone },
       { label: "Auditoria", href: "/admin/auditoria", icon: ClipboardList },
     ]
   },
@@ -72,15 +63,12 @@ const NAV_GROUPS = [
     label: "MONETIZAÇÃO",
     items: [
       { label: "Publicidade", href: "/admin/publicidade", icon: Megaphone },
-      { label: "Classificados", href: "/admin/classificados", icon: ShoppingCart },
-      { label: "Assinaturas", href: "/admin/assinaturas", icon: CreditCard },
     ]
   },
   {
     label: "CONFIGURAÇÕES",
     items: [
       { label: "Branding & UI", href: "/admin/branding", icon: Brush },
-      { label: "SEO & Social", href: "/admin/aparencia", icon: Search },
       { label: "Relatórios", href: "/admin/relatorios", icon: BarChart3 },
     ]
   }

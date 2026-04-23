@@ -7,7 +7,7 @@ interface DashboardStatsProps {
     totalViews: number;
     topNews: { titulo: string; views: number } | null;
     totalPush: number;
-    avgStoryViews: number;
+    totalNoticias: number;
   };
 }
 
@@ -41,13 +41,13 @@ export default function DashboardStats({ stats }: DashboardStatsProps) {
       isPositive: true
     },
     {
-      title: "Engajamento Stories",
-      value: stats.avgStoryViews.toFixed(1),
+      title: "Matérias Publicadas",
+      value: stats.totalNoticias.toLocaleString(),
       icon: Users,
       color: "rose",
-      detail: "Média de vistas por Story",
-      trend: "-2.1%",
-      isPositive: false
+      detail: "Total de notícias no portal",
+      trend: "+Ativas",
+      isPositive: true
     }
   ];
 

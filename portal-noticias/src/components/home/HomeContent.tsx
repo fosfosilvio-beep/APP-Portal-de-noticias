@@ -11,14 +11,8 @@ import DynamicAdSlot from "../DynamicAdSlot";
 import HeroSection from "./HeroSection";
 import NewsGrid from "./NewsGrid";
 import BreakingNewsMarquee from "../BreakingNewsMarquee";
-import StoriesBar from "./StoriesBar";
 import ColunistasWidget from "./ColunistasWidget";
-import VideosWidget from "./VideosWidget";
-import EdicoesWidget from "./EdicoesWidget";
-import ClassificadosWidget from "./ClassificadosWidget";
 import EnquetesWidget from "./EnquetesWidget";
-import VoceNoPortalWidget from "./VoceNoPortalWidget";
-import NewslettersWidget from "./NewslettersWidget";
 import Footer from "../Footer";
 import { createClient } from "@/lib/supabase-browser";
 import { getVisualCategory } from "@/lib/category-utils";
@@ -99,8 +93,6 @@ export default function HomeContent({ initialConfig, todasNoticias, bibliotecaLi
         setCategoriaAtiva={setCategoriaAtiva}
       />
 
-      {/* Web Stories */}
-      <StoriesBar />
 
       {/* Breaking News Marquee */}
       {breakingNews?.active && (
@@ -150,14 +142,6 @@ export default function HomeContent({ initialConfig, todasNoticias, bibliotecaLi
                 {/* Grade de Notícias */}
                 <NewsGrid title="Últimas Notícias" news={todasNoticias.slice(0, 8)} />
 
-                {/* Interatividade Comunidade */}
-                <VoceNoPortalWidget />
-
-                {/* Vídeos e Entretenimento */}
-                <VideosWidget />
-
-                {/* Módulo de Classificados */}
-                <ClassificadosWidget />
 
                 {/* Importador RSS */}
                 <AutomatedNewsFeed />
@@ -256,9 +240,6 @@ export default function HomeContent({ initialConfig, todasNoticias, bibliotecaLi
             
             {/* Widget de Enquetes */}
             <EnquetesWidget />
-            
-            {/* Edições Digitais */}
-            <EdicoesWidget />
 
             {/* Plantão Policial Widget */}
             {(config?.ui_settings?.widgets_visibility?.plantao !== false) && (
@@ -268,8 +249,6 @@ export default function HomeContent({ initialConfig, todasNoticias, bibliotecaLi
             {/* Colunistas na Sidebar para visibilidade */}
             <ColunistasWidget />
 
-            {/* Newsletters / Lead Capture */}
-            <NewslettersWidget />
 
             {/* Ad Lateral */}
             <DynamicAdSlot position="lateral" className="min-h-[300px]" />
