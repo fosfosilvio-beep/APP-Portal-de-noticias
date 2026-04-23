@@ -111,10 +111,18 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
     },
   });
 
-  // Sincroniza a prop 'content' vinda de fora (IA, Rascunho, etc) com o editor
+  // Sincroniza a prop 'content' vinda de fora (IA, Rascunho, Edição, etc) com o editor
   useEffect(() => {
-    if (editor && content !== editor.getHTML()) {
-      editor.commands.setContent(content, { emitUpdate: false }); // para não disparar onUpdate novamente
+    if (!editor) return;
+
+    const currentHTML = editor.getHTML();
+    // Consideramos vazio se for string vazia ou parágrafo vazio padrão do Tiptap
+    const isEmpty = currentHTML === "<p></p>" || currentHTML === "";
+    
+    if (content !== currentHTML) {
+      // Se o conteúdo externo mudou e é diferente do atual, atualizamos
+      // Especialmente importante quando sai de vazio para preenchido na edição
+      editor.commands.setContent(content, { emitUpdate: false });
     }
   }, [content, editor]);
 

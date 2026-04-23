@@ -123,27 +123,27 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
     try {
       const { data, error } = await supabase.from("noticias").select("*").eq("id", editId).single();
       if (error) throw error;
-      if (data) {
-        form.reset({
-          titulo: data.titulo,
-          subtitulo: data.subtitulo || "",
-          conteudo: data.conteudo || "",
-          categoria_id: data.categoria_id || "",
-          slug: data.slug || "",
-          imagem_capa: data.imagem_capa || "",
-          video_url: data.video_url || "",
-          status: "published",
-          mostrar_na_home_recentes: data.mostrar_na_home_recentes ?? true,
-          is_sponsored: data.is_sponsored ?? false,
-          ordem_prioridade: data.ordem_prioridade || 0,
-          seo_tags: data.seo_tags || "",
-          galeria_urls: data.galeria_urls || [],
-          ad_id: data.ad_id || "",
-          titulo_config: data.titulo_config || { font: "var(--font-inter)", weight: "900", color: "default" },
-          subtitulo_config: data.subtitulo_config || { font: "var(--font-inter)", weight: "400", color: "default" }
-        });
-      }
+      console.log("Notícia carregada com sucesso:", data.titulo);
+      form.reset({
+        titulo: data.titulo || "",
+        subtitulo: data.subtitulo || "",
+        conteudo: data.conteudo || "",
+        categoria_id: data.categoria_id || "",
+        slug: data.slug || "",
+        imagem_capa: data.imagem_capa || "",
+        video_url: data.video_url || "",
+        status: data.status || "published",
+        mostrar_na_home_recentes: data.mostrar_na_home_recentes ?? true,
+        is_sponsored: data.is_sponsored ?? false,
+        ordem_prioridade: data.ordem_prioridade || 0,
+        seo_tags: data.seo_tags || "",
+        galeria_urls: data.galeria_urls || [],
+        ad_id: data.ad_id || "",
+        titulo_config: data.titulo_config || { font: "var(--font-inter)", weight: "900", color: "default" },
+        subtitulo_config: data.subtitulo_config || { font: "var(--font-inter)", weight: "400", color: "default" }
+      });
     } catch (err: any) {
+      console.error("Erro ao carregar notícia:", err);
       toast.error("Erro ao carregar", err.message);
     } finally {
       setLoading(false);
