@@ -41,7 +41,8 @@ CREATE INDEX IF NOT EXISTS idx_news_drafts_user
 
 -- RLS para news_drafts
 ALTER TABLE news_drafts ENABLE ROW LEVEL SECURITY;
-CREATE POLICY IF NOT EXISTS "news_drafts_own" ON news_drafts
+DROP POLICY IF EXISTS "news_drafts_own" ON news_drafts;
+CREATE POLICY "news_drafts_own" ON news_drafts
   FOR ALL TO authenticated
   USING (user_id = auth.uid())
   WITH CHECK (user_id = auth.uid());
@@ -60,9 +61,11 @@ ALTER TABLE page_layout ADD COLUMN IF NOT EXISTS published_at TIMESTAMPTZ;
 
 -- 6. RLS em categorias (leitura pública, escrita apenas admin/editor)
 ALTER TABLE categorias ENABLE ROW LEVEL SECURITY;
-CREATE POLICY IF NOT EXISTS "categorias_read_all" ON categorias
+DROP POLICY IF EXISTS "categorias_read_all" ON categorias;
+DROP POLICY IF EXISTS "categorias_write_admin" ON categorias;
+CREATE POLICY "categorias_read_all" ON categorias
   FOR SELECT USING (true);
-CREATE POLICY IF NOT EXISTS "categorias_write_admin" ON categorias
+CREATE POLICY "categorias_write_admin" ON categorias
   FOR ALL TO authenticated
   USING (EXISTS (
     SELECT 1 FROM user_roles WHERE user_id = auth.uid() AND role IN ('admin', 'editor')
