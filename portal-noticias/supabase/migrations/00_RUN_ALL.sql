@@ -199,6 +199,11 @@ CREATE TABLE IF NOT EXISTS news_drafts (
   data JSONB NOT NULL,
   updated_at TIMESTAMPTZ DEFAULT now()
 );
+
+-- Garantir coluna noticia_id existe (em caso de tabela pré-existente)
+ALTER TABLE news_drafts ADD COLUMN IF NOT EXISTS noticia_id UUID REFERENCES noticias(id) ON DELETE CASCADE;
+
+-- Criar índices apenas se ainda não existem
 CREATE UNIQUE INDEX IF NOT EXISTS idx_news_drafts_user_noticia
   ON news_drafts(user_id, noticia_id) WHERE noticia_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_news_drafts_user
