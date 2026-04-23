@@ -116,7 +116,22 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
       supabase.from("categorias").select("id, nome").eq("ativa", true).order("ordem")
     ]);
     if (adsRes.data) setAdSlots(adsRes.data);
-    if (catRes.data) setCategorias(catRes.data);
+    if (catRes.data) {
+      const defaultCats = [
+        { id: "entretenimento", nome: "Entretenimento" },
+        { id: "educacao", nome: "Educação" },
+        { id: "saude", nome: "Saúde" },
+        { id: "esportes", nome: "Esportes" }
+      ];
+      
+      const merged = [...catRes.data];
+      defaultCats.forEach(d => {
+        if (!merged.find(m => m.nome.toLowerCase() === d.nome.toLowerCase())) {
+          merged.push(d);
+        }
+      });
+      setCategorias(merged);
+    }
   };
 
   const loadNewsData = async () => {
@@ -198,15 +213,21 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
   const onSubmit = async (data: NewsFormData) => {
     setIsSaving(true);
     try {
-      // Busca o slug da categoria para compatibilidade com o frontend legado
+      // Busca o objeto da categoria para pegar o nome correto
       const selectedCat = categorias.find(c => c.id === data.categoria_id);
       
+      console.log("Submetendo matéria:", {
+        id_selecionado: data.categoria_id,
+        categoria_encontrada: selectedCat?.nome
+      });
+
       const payload = {
         ...data,
         slug: data.slug.trim().replace(/^https?:\/\//, "").split("/").filter(Boolean).pop() || data.slug,
         ad_id: data.ad_id || null,
         categoria_id: data.categoria_id || null,
-        categoria: selectedCat ? selectedCat.nome : (data.categoria || "Geral"),
+        // Garante que o nome da categoria seja salvo no campo legado
+        categoria: selectedCat ? selectedCat.nome : "Geral",
         status: data.status || "draft",
         publish_at: data.publish_at || null,
       };

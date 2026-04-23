@@ -285,8 +285,12 @@ export default function NoticiaDetalhe() {
                 Categorias Populares
               </h3>
               <div className="flex flex-wrap gap-2">
-                {["Arapongas", "Polícia", "Esportes", "Política", "Geral"].map(cat => (
-                  <span key={cat} className="px-3 py-1 bg-zinc-100 text-zinc-600 text-xs font-bold rounded-full hover:bg-blue-600 hover:text-white transition-colors cursor-pointer uppercase">
+                {["Entretenimento", "Educação", "Saúde", "Esportes", "Arapongas", "Polícia", "Política", "Geral"].map(cat => (
+                  <span 
+                    key={cat} 
+                    onClick={() => window.location.href = "/"}
+                    className="px-3 py-1 bg-zinc-100 text-zinc-600 text-xs font-bold rounded-full hover:bg-blue-600 hover:text-white transition-colors cursor-pointer uppercase"
+                  >
                     {cat}
                   </span>
                 ))}

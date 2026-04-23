@@ -71,8 +71,24 @@ export default function Header({
       window.location.href = "/biblioteca";
       return;
     }
-    setCategoriaAtiva?.(cat);
-    window.scrollTo(0, 0);
+    if (cat === "Início") {
+      if (setCategoriaAtiva) {
+        setCategoriaAtiva(cat);
+        window.scrollTo(0, 0);
+      } else {
+        window.location.href = "/";
+      }
+      setIsMobileMenuOpen(false);
+      return;
+    }
+    
+    if (setCategoriaAtiva) {
+      setCategoriaAtiva(cat);
+      window.scrollTo(0, 0);
+    } else {
+      // Se não houver setter (fora da home), redireciona com query param ou apenas home
+      window.location.href = "/";
+    }
     setIsMobileMenuOpen(false);
   };
 
