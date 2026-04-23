@@ -22,8 +22,8 @@ export default function ArticleComments({ noticiaId }: { noticiaId: string }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
+    supabase.auth.getSession().then((result: any) => {
+      setUser(result.data?.session?.user ?? null);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
