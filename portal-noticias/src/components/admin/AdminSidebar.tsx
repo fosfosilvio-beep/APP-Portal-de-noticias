@@ -23,6 +23,12 @@ import {
   MessageSquare,
   CreditCard,
   Search,
+  Rss,
+  BookOpen,
+  Tv,
+  Library,
+  Video,
+  ShoppingCart,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -38,10 +44,15 @@ const NAV_GROUPS = [
     label: "CONTEÚDO",
     items: [
       { label: "Notícias", href: "/admin/noticias", icon: Newspaper },
+      { label: "FeedNews RSS", href: "/admin/feednews", icon: Rss },
+      { label: "Edições Digitais", href: "/admin/edicoes", icon: BookOpen },
       { label: "Web Stories", href: "/admin/web-stories", icon: Tv2 },
       { label: "Colunistas", href: "/admin/colunistas", icon: ClipboardList },
+      { label: "Transmissão / Live", href: "/admin/transmissao", icon: Tv },
+      { label: "Vídeos", href: "/admin/videos", icon: Video },
       { label: "Editor de Vídeo", href: "/admin/editor-video", icon: Radio },
       { label: "Podcasts", href: "/admin/podcasts", icon: Mic2 },
+      { label: "Biblioteca", href: "/admin/biblioteca", icon: Library },
       { label: "Mídia", href: "/admin/midia", icon: Image },
       { label: "Home Builder", href: "/admin/home-builder", icon: LayoutTemplate },
     ]
@@ -61,6 +72,7 @@ const NAV_GROUPS = [
     label: "MONETIZAÇÃO",
     items: [
       { label: "Publicidade", href: "/admin/publicidade", icon: Megaphone },
+      { label: "Classificados", href: "/admin/classificados", icon: ShoppingCart },
       { label: "Assinaturas", href: "/admin/assinaturas", icon: CreditCard },
     ]
   },
