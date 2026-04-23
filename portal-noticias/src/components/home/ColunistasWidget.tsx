@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase-browser";
 import { User, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -19,6 +19,7 @@ export default function ColunistasWidget() {
 
   useEffect(() => {
     async function fetchColunistas() {
+      const supabase = createClient();
       const { data } = await supabase
         .from("colunistas")
         .select("id, nome, cargo_descricao, foto_perfil, slug")

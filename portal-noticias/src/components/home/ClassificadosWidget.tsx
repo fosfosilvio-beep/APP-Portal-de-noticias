@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase-browser";
 import { Store, Home, Car, Briefcase, MessageCircle, ChevronRight, LayoutGrid } from "lucide-react";
 import Link from "next/link";
 
@@ -23,6 +23,7 @@ export default function ClassificadosWidget() {
 
   const fetchClassificados = async () => {
     setLoading(true);
+    const supabase = createClient();
     const { data } = await supabase
       .from("classificados")
       .select("*")

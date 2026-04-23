@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase-browser";
 import { PieChart, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -16,6 +16,7 @@ export default function EnquetesWidget() {
   }, []);
 
   const fetchActiveEnquete = async () => {
+    const supabase = createClient();
     const { data } = await supabase
       .from("enquetes")
       .select("*")
@@ -42,15 +43,21 @@ export default function EnquetesWidget() {
       return op;
     });
 
-    const { error } = await supabase
-      .from("enquetes")
-      .update({ opcoes: newOpcoes })
-      .eq("id", enquete.id);
+    try {
+      const res = await fetch("/api/enquetes/vote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enqueteId: enquete.id, opcaoId })
+      });
 
-    if (!error) {
-      setEnquete({ ...enquete, opcoes: newOpcoes });
-      setVoted(true);
-      localStorage.setItem(`voted_enquete_${enquete.id}`, "true");
+      if (res.ok) {
+        const { opcoes } = await res.json();
+        setEnquete({ ...enquete, opcoes });
+        setVoted(true);
+        localStorage.setItem(`voted_enquete_${enquete.id}`, "true");
+      }
+    } catch (error) {
+      console.error("Erro ao votar:", error);
     }
     setIsVoting(false);
   };

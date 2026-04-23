@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase-browser";
 import { BookOpen, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { getPublicUrl } from "@/components/FallbackImage";
@@ -12,6 +12,7 @@ export default function EdicoesWidget() {
 
   useEffect(() => {
     async function fetchEdicao() {
+      const supabase = createClient();
       const { data } = await supabase
         .from("edicoes_digitais")
         .select("*")
