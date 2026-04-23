@@ -114,7 +114,7 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
   // Sincroniza a prop 'content' vinda de fora (IA, Rascunho, etc) com o editor
   useEffect(() => {
     if (editor && content !== editor.getHTML()) {
-      editor.commands.setContent(content, false); // false para não disparar onUpdate novamente
+      editor.commands.setContent(content, { emitUpdate: false }); // para não disparar onUpdate novamente
     }
   }, [content, editor]);
 
