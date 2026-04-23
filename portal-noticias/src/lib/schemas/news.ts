@@ -20,6 +20,7 @@ export const newsSchema = z.object({
   seo_tags: z.string().optional(),
   galeria_urls: z.array(z.string().url()).optional(),
   ad_id: z.string().uuid().optional().or(z.literal("")),
+  colunista_id: z.string().uuid().optional().or(z.literal("")),
   titulo_config: z.any().optional(),
   subtitulo_config: z.any().optional(),
 });

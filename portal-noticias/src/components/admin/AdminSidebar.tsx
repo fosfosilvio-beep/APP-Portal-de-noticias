@@ -20,21 +20,58 @@ import {
   ChevronRight,
   Tv2,
   LayoutTemplate,
+  MessageSquare,
+  CreditCard,
+  Search,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const NAV_ITEMS = [
-  { label: "Visão Geral", href: "/admin", icon: LayoutDashboard, exact: true },
-  { label: "Transmissão", href: "/admin/transmissao", icon: Radio },
-  { label: "Notícias", href: "/admin/noticias", icon: Newspaper },
-  { label: "Publicidade", href: "/admin/publicidade", icon: Megaphone },
-  { label: "Aparência", href: "/admin/aparencia", icon: Palette },
-  { label: "Branding", href: "/admin/branding", icon: Brush },
-  { label: "Podcasts", href: "/admin/podcasts", icon: Mic2 },
-  { label: "Mídia", href: "/admin/midia", icon: Image },
-  { label: "Editor Visual", href: "/admin/home-builder", icon: LayoutTemplate },
-  { label: "Auditoria", href: "/admin/auditoria", icon: ClipboardList },
-  { label: "Relatórios", href: "/admin/relatorios", icon: BarChart3 },
+const NAV_GROUPS = [
+  {
+    label: "DASHBOARD",
+    items: [
+      { label: "Visão Geral", href: "/admin", icon: LayoutDashboard, exact: true },
+      { label: "Métricas", href: "/admin/metricas", icon: BarChart3 },
+    ]
+  },
+  {
+    label: "CONTEÚDO",
+    items: [
+      { label: "Notícias", href: "/admin/noticias", icon: Newspaper },
+      { label: "Web Stories", href: "/admin/web-stories", icon: Tv2 },
+      { label: "Colunistas", href: "/admin/colunistas", icon: ClipboardList },
+      { label: "Editor de Vídeo", href: "/admin/editor-video", icon: Radio },
+      { label: "Podcasts", href: "/admin/podcasts", icon: Mic2 },
+      { label: "Mídia", href: "/admin/midia", icon: Image },
+      { label: "Home Builder", href: "/admin/home-builder", icon: LayoutTemplate },
+    ]
+  },
+  {
+    label: "COMUNICAÇÃO & COMUNIDADE",
+    items: [
+      { label: "Você no Portal", href: "/admin/voce-no-portal", icon: Megaphone },
+      { label: "Comentários", href: "/admin/comentarios", icon: MessageSquare },
+      { label: "Enquetes", href: "/admin/enquetes", icon: Radio },
+      { label: "Push Alertas", href: "/admin/push", icon: Megaphone },
+      { label: "Newsletters", href: "/admin/newsletters", icon: Newspaper },
+      { label: "Auditoria", href: "/admin/auditoria", icon: ClipboardList },
+    ]
+  },
+  {
+    label: "MONETIZAÇÃO",
+    items: [
+      { label: "Publicidade", href: "/admin/publicidade", icon: Megaphone },
+      { label: "Assinaturas", href: "/admin/assinaturas", icon: CreditCard },
+    ]
+  },
+  {
+    label: "CONFIGURAÇÕES",
+    items: [
+      { label: "Branding & UI", href: "/admin/branding", icon: Brush },
+      { label: "SEO & Social", href: "/admin/aparencia", icon: Search },
+      { label: "Relatórios", href: "/admin/relatorios", icon: BarChart3 },
+    ]
+  }
 ];
 
 export default function AdminSidebar() {
@@ -60,80 +97,86 @@ export default function AdminSidebar() {
     fetchRole();
   }, []);
 
-  const filteredNav = NAV_ITEMS.filter(item => {
-    if (!role) return true; // Show all while loading
-    if (role === 'autor') {
-      const allowed = ['/admin', '/admin/transmissao', '/admin/noticias', '/admin/midia', '/admin/relatorios'];
-      return allowed.includes(item.href);
-    }
-    return true;
-  });
-
   return (
     <aside
       className={cn(
-        "hidden lg:flex flex-col h-screen sticky top-0 bg-slate-950 border-r border-slate-800 transition-all duration-300 ease-in-out shrink-0",
-        collapsed ? "w-16" : "w-60"
+        "hidden lg:flex flex-col h-screen sticky top-0 bg-white border-r border-slate-100 transition-all duration-300 ease-in-out shrink-0 shadow-sm",
+        collapsed ? "w-20" : "w-64"
       )}
     >
       {/* Logo */}
-      <div className="flex items-center gap-3 px-4 py-5 border-b border-slate-800">
-        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shrink-0">
-          <Tv2 size={16} className="text-white" />
+      <div className="flex items-center gap-3 px-6 py-6 border-b border-slate-50">
+        <div className="w-9 h-9 rounded-2xl bg-blue-600 flex items-center justify-center shrink-0 shadow-lg shadow-blue-200">
+          <Tv2 size={18} className="text-white" />
         </div>
         {!collapsed && (
-          <span className="font-black text-white text-sm tracking-tight">
-            NOSSA<span className="text-cyan-400">WEB</span>TV
+          <span className="font-black text-slate-800 text-base tracking-tighter">
+            ADMIN<span className="text-blue-600">PORTAL</span>
           </span>
         )}
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-1">
-        {filteredNav.map(({ label, href, icon: Icon, exact }) => {
-          const isActive = exact ? pathname === href : pathname.startsWith(href) && href !== "/admin";
-          const isExactActive = href === "/admin" && pathname === "/admin";
-          const active = isActive || isExactActive;
+      <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-8 no-scrollbar">
+        {NAV_GROUPS.map((group) => (
+          <div key={group.label} className="space-y-2">
+            {!collapsed && (
+              <h3 className="px-3 text-[10px] font-black text-slate-400 tracking-[0.2em] uppercase">
+                {group.label}
+              </h3>
+            )}
+            <div className="space-y-1">
+              {group.items.map(({ label, href, icon: Icon, exact }) => {
+                const isActive = exact ? pathname === href : pathname.startsWith(href) && href !== "/admin";
+                const isExactActive = href === "/admin" && pathname === "/admin";
+                const active = isActive || isExactActive;
 
-          return (
-            <Link
-              key={href}
-              href={href}
-              title={collapsed ? label : undefined}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group",
-                active
-                  ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
-                  : "text-slate-400 hover:text-white hover:bg-slate-800/60"
-              )}
-            >
-              <Icon
-                size={18}
-                className={cn(
-                  "shrink-0 transition-colors",
-                  active ? "text-cyan-400" : "text-slate-500 group-hover:text-white"
-                )}
-              />
-              {!collapsed && (
-                <span className="text-sm font-semibold truncate">{label}</span>
-              )}
-              {!collapsed && active && (
-                <span className="ml-auto w-1.5 h-1.5 rounded-full bg-cyan-400 shrink-0" />
-              )}
-            </Link>
-          );
-        })}
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    title={collapsed ? label : undefined}
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-200 group relative",
+                      active
+                        ? "bg-blue-50 text-blue-600 font-bold"
+                        : "text-slate-500 hover:text-slate-900 hover:bg-slate-50"
+                    )}
+                  >
+                    <Icon
+                      size={18}
+                      className={cn(
+                        "shrink-0 transition-colors",
+                        active ? "text-blue-600" : "text-slate-400 group-hover:text-slate-600"
+                      )}
+                    />
+                    {!collapsed && (
+                      <span className="text-sm truncate">{label}</span>
+                    )}
+                    {!collapsed && active && (
+                      <div className="ml-auto w-1 h-4 rounded-full bg-blue-600 shrink-0" />
+                    )}
+                    {collapsed && active && (
+                      <div className="absolute left-0 w-1 h-6 bg-blue-600 rounded-r-full" />
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
 
       {/* Collapse toggle */}
-      <button
-        onClick={() => setCollapsed(!collapsed)}
-        className="m-3 flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-slate-800/60 hover:bg-slate-700/60 text-slate-400 hover:text-white transition-all text-xs font-semibold"
-        aria-label={collapsed ? "Expandir sidebar" : "Colapsar sidebar"}
-      >
-        {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-        {!collapsed && <span>Colapsar</span>}
-      </button>
+      <div className="p-4 border-t border-slate-50">
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition-all text-xs font-bold"
+        >
+          {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+          {!collapsed && <span>Recolher Menu</span>}
+        </button>
+      </div>
     </aside>
   );
 }

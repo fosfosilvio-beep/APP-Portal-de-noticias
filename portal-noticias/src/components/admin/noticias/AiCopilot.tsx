@@ -20,7 +20,7 @@ export default function AiCopilot({ onGenerated }: AiCopilotProps) {
     
     setIsGenerating(true);
     try {
-      const res = await fetch("/api/gerar-noticia", {
+      const res = await fetch("/api/generate-news", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt }),
@@ -36,40 +36,39 @@ export default function AiCopilot({ onGenerated }: AiCopilotProps) {
       });
       toast.success("Notícia gerada com sucesso!");
     } catch (err: any) {
-      toast.error("Erro na IA", err.message);
+      toast.error("Erro na IA: " + err.message);
     } finally {
       setIsGenerating(false);
     }
   };
 
   return (
-    <div className="bg-gradient-to-br from-indigo-950 to-slate-900 border border-indigo-900/50 rounded-2xl shadow-xl overflow-hidden relative">
-      <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500 rounded-full blur-[80px] opacity-20 pointer-events-none"></div>
-      
-      <div className="px-5 py-4 border-b border-indigo-900/50 flex items-center gap-3">
-        <Sparkles className="text-indigo-400" size={18} />
-        <h4 className="font-black text-white text-sm">Copiloto IA</h4>
+    <div className="bg-white border border-blue-100 rounded-[2rem] shadow-sm overflow-hidden relative group">
+      <div className="px-6 py-5 flex items-center gap-3">
+        <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform">
+          <Sparkles size={20} />
+        </div>
+        <div>
+          <h4 className="font-black text-slate-900 text-sm uppercase tracking-tighter">IA News</h4>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Geração Automática</p>
+        </div>
       </div>
 
-      <div className="p-5 space-y-4 relative z-10">
-        <p className="text-xs text-indigo-200/70 font-medium">
-          Cole um link, título de vídeo ou rascunho. O Copiloto vai gerar título, linha fina e o corpo da matéria formatado.
-        </p>
-        
+      <div className="px-6 pb-6 pt-2 space-y-4 relative z-10">
         <textarea
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          placeholder="Ex: Resuma as principais falas do vídeo neste link https://youtube.com/..."
-          className="w-full bg-slate-950/50 border border-indigo-900/50 rounded-xl p-3 text-sm text-white placeholder:text-indigo-900/50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none resize-none h-28 font-medium"
+          placeholder="Sobre o que você quer escrever hoje? Ex: Resuma a nova lei aprovada ontem..."
+          className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm text-slate-900 font-medium placeholder:text-slate-400 focus:ring-2 focus:ring-blue-500/20 focus:border-transparent outline-none resize-none h-28 transition-all"
         />
 
         <button
           onClick={handleGenerate}
           disabled={isGenerating || !prompt.trim()}
-          className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-600/50 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-widest py-3 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2"
+          className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-widest py-4 rounded-2xl transition-all shadow-lg shadow-blue-100 flex items-center justify-center gap-2"
         >
           {isGenerating ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
-          {isGenerating ? "Gerando Matéria..." : "Gerar com IA"}
+          {isGenerating ? "Processando..." : "Gerar Matéria"}
         </button>
       </div>
     </div>

@@ -10,9 +10,11 @@ import { supabase } from "../lib/supabase";
 import { useEffect, useState } from "react";
 import { User, LogOut, Menu, X, ChevronRight } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
+import { normalizeCategory } from "../lib/category-utils";
+import { useRouter } from "next/navigation";
 
 interface HeaderProps {
-  isLive: boolean;
+  isLive?: boolean;
   config?: {
     logo_url?: string;
     tema_cor?: string;
@@ -31,15 +33,16 @@ interface HeaderProps {
   showNavigation?: boolean;
 }
 
-const CATEGORIAS = ["Início", "Geral", "Arapongas", "Esportes", "Polícia", "Política", "Biblioteca"];
+const CATEGORIAS = ["Início", "Geral", "Arapongas", "Esportes", "Polícia", "Política", "Entretenimento", "Educação", "Saúde", "Biblioteca"];
 
 export default function Header({
-  isLive,
+  isLive = false,
   config,
   categoriaAtiva,
   setCategoriaAtiva,
   showNavigation = true,
 }: HeaderProps) {
+  const router = useRouter();
   const { ui } = useSettingsStore();
   const [session, setSession] = useState<any>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -68,15 +71,17 @@ export default function Header({
 
   const handleCategoryClick = (cat: string) => {
     if (cat === "Biblioteca") {
-      window.location.href = "/biblioteca";
+      router.push("/biblioteca");
       return;
     }
     if (cat === "Início") {
       if (setCategoriaAtiva) {
-        setCategoriaAtiva(cat);
+        setCategoriaAtiva("Início");
+        // Limpa query params sem recarregar a página se estivermos na home
+        window.history.pushState({}, '', '/');
         window.scrollTo(0, 0);
       } else {
-        window.location.href = "/";
+        router.push("/");
       }
       setIsMobileMenuOpen(false);
       return;
@@ -86,8 +91,8 @@ export default function Header({
       setCategoriaAtiva(cat);
       window.scrollTo(0, 0);
     } else {
-      // Se não houver setter (fora da home), redireciona com query param ou apenas home
-      window.location.href = "/";
+      // Se não houver setter (fora da home), redireciona para a página da categoria
+      router.push(`/${normalizeCategory(cat)}`);
     }
     setIsMobileMenuOpen(false);
   };
@@ -188,7 +193,17 @@ export default function Header({
               )}
 
               {/* THEME TOGGLE */}
-              <div className="hidden sm:block">
+              <div className="hidden sm:flex items-center gap-2">
+                <Link 
+                  href="/anuncie" 
+                  className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 hover:bg-emerald-500 hover:text-white px-3 py-1.5 rounded-full font-black text-[10px] uppercase tracking-widest transition-colors flex items-center gap-1 shadow-sm"
+                >
+                  <span className="relative flex h-1.5 w-1.5 shrink-0">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+                  </span>
+                  Anuncie
+                </Link>
                 <ThemeToggle />
               </div>
 

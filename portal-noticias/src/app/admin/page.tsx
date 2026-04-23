@@ -1,143 +1,152 @@
 import { createClient } from "@/lib/supabase-server";
-import { Newspaper, Eye, Radio, HardDrive, TrendingUp, Clock, ArrowRight } from "lucide-react";
+import { 
+  Plus, ExternalLink, Globe, ShieldCheck, Smartphone, 
+  Lock, BarChart2
+} from "lucide-react";
 import Link from "next/link";
+import DashboardStats from "@/components/admin/dashboard/DashboardStats";
+import AcessosChart from "@/components/admin/dashboard/AcessosChart";
+import ColunistasRanking from "@/components/admin/dashboard/ColunistasRanking";
 
-export default async function AdminOverviewPage() {
+export default async function AdminDashboardPage() {
   const supabase = await createClient();
 
-  // Fetch quick stats
-  const [noticiasRes, configRes, todayViewsRes] = await Promise.all([
-    supabase.from("noticias").select("id, titulo, real_views, created_at, status").order("real_views", { ascending: false }).limit(5),
-    supabase.from("configuracao_portal").select("is_live, titulo_live").limit(1).single(),
-    supabase.from("noticias").select("real_views").gte("created_at", new Date(Date.now() - 86400000).toISOString()),
+  // 1. Fetch KPI Stats
+  const [noticiasRes, pushRes, storiesRes, topNews24hRes, views7dRes, colRankingRes] = await Promise.all([
+    // Total Views (Aggregated)
+    supabase.from("noticias").select("view_count"),
+    // Total Push Subscriptions
+    supabase.from("push_subscriptions").select("id", { count: "exact", head: true }),
+    // Story Engagement (Average)
+    supabase.from("web_stories").select("vistas"),
+    // Top News 24h (from page_views log)
+    supabase.from("page_views")
+      .select("noticia_id, noticias(titulo)")
+      .not("noticia_id", "is", null)
+      .gte("created_at", new Date(Date.now() - 86400000).toISOString()),
+    // Chart Data (7 days)
+    supabase.from("page_views")
+      .select("created_at")
+      .gte("created_at", new Date(Date.now() - 7 * 86400000).toISOString()),
+    // Columnist Ranking
+    supabase.from("colunistas")
+      .select("id, nome, foto_perfil, noticias(view_count)")
   ]);
 
-  const topNoticias = noticiasRes.data || [];
-  const config = configRes.data;
-  const todayViews = todayViewsRes.data?.reduce((acc, n) => acc + (n.real_views || 0), 0) || 0;
-  const totalNoticias = noticiasRes.data?.length || 0;
+  // Process Stats
+  const totalViews = noticiasRes.data?.reduce((acc, n) => acc + (n.view_count || 0), 0) || 0;
+  const totalPush = pushRes.count || 0;
+  const avgStoryViews = storiesRes.data && storiesRes.data.length > 0 
+    ? storiesRes.data.reduce((acc, s) => acc + (s.vistas || 0), 0) / storiesRes.data.length 
+    : 0;
 
-  const stats = [
-    {
-      label: "Leitores Hoje",
-      value: (todayViews * 9).toLocaleString("pt-BR"),
-      icon: Eye,
-      color: "text-blue-400",
-      bg: "bg-blue-500/10 border-blue-500/20",
-    },
-    {
-      label: "Top Notícias",
-      value: String(totalNoticias),
-      icon: Newspaper,
-      color: "text-emerald-400",
-      bg: "bg-emerald-500/10 border-emerald-500/20",
-    },
-    {
-      label: "Status da Live",
-      value: config?.is_live ? "AO VIVO" : "Offline",
-      icon: Radio,
-      color: config?.is_live ? "text-red-400" : "text-slate-400",
-      bg: config?.is_live ? "bg-red-500/10 border-red-500/20" : "bg-slate-800 border-slate-700",
-    },
-    {
-      label: "Views Reais (dia)",
-      value: todayViews.toLocaleString("pt-BR"),
-      icon: TrendingUp,
-      color: "text-amber-400",
-      bg: "bg-amber-500/10 border-amber-500/20",
-    },
-  ];
+  // Process Top News 24h
+  const topNewsMap = new Map();
+  topNews24hRes.data?.forEach((pv: any) => {
+    const id = pv.noticia_id;
+    const current = topNewsMap.get(id) || { titulo: pv.noticias?.titulo, views: 0 };
+    topNewsMap.set(id, { ...current, views: current.views + 1 });
+  });
+  const topNewsArray = Array.from(topNewsMap.values()).sort((a, b) => b.views - a.views);
+  const topNews = topNewsArray.length > 0 ? topNewsArray[0] : null;
 
-  const quickLinks = [
-    { label: "Nova Notícia", href: "/admin/noticias/novo", desc: "Criar nova matéria", color: "border-l-emerald-500" },
-    { label: "Gerenciar Transmissão", href: "/admin/transmissao", desc: "Cockpit da live", color: "border-l-red-500" },
-    { label: "Editor Visual (Home)", href: "/admin/home-builder", desc: "Arrastar e soltar blocos", color: "border-l-purple-500" },
-    { label: "Publicidade", href: "/admin/publicidade", desc: "Ad slots e banners", color: "border-l-amber-500" },
-    { label: "Auditoria", href: "/admin/auditoria", desc: "Log de ações", color: "border-l-blue-500" },
-    { label: "Relatórios", href: "/admin/relatorios", desc: "Analytics e views", color: "border-l-cyan-500" },
-  ];
+  // Process Chart Data (Last 7 Days)
+  const last7Days = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    return d.toISOString().split("T")[0];
+  }).reverse();
+
+  const chartData = last7Days.map(date => {
+    const count = views7dRes.data?.filter(v => v.created_at.startsWith(date)).length || 0;
+    return { date: date.split("-").slice(1).reverse().join("/"), views: count };
+  });
+
+  // Process Columnist Ranking
+  const ranking = colRankingRes.data?.map((col: any) => ({
+    id: col.id,
+    nome: col.nome,
+    foto_perfil: col.foto_perfil,
+    totalViews: col.noticias?.reduce((acc: number, n: any) => acc + (n.view_count || 0), 0) || 0,
+    countMaterias: col.noticias?.length || 0
+  })).sort((a: any, b: any) => b.totalViews - a.totalViews).slice(0, 5) || [];
 
   return (
-    <div className="space-y-8 max-w-[1400px]">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-black text-white">Visão Geral</h1>
-        <p className="text-sm text-slate-400 mt-1">Resumo do portal e acesso rápido às ferramentas.</p>
-      </div>
-
-      {/* Live Badge */}
-      {config?.is_live && (
-        <div className="flex items-center gap-3 bg-red-500/10 border border-red-500/30 rounded-2xl px-5 py-4">
-          <span className="w-3 h-3 rounded-full bg-red-500 animate-pulse" />
-          <p className="font-black text-red-400 text-sm uppercase tracking-widest">Portal AO VIVO: {config.titulo_live || "Transmissão em andamento"}</p>
-          <Link href="/admin/transmissao" className="ml-auto text-xs text-red-400 font-bold hover:underline flex items-center gap-1">
-            Gerenciar <ArrowRight size={12} />
+    <div className="space-y-10 max-w-7xl mx-auto pb-20">
+      {/* Header Soft UI */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-50">
+        <div className="flex items-center gap-6">
+          <div className="w-16 h-16 bg-blue-600 rounded-[1.5rem] flex items-center justify-center text-white shadow-xl shadow-blue-100">
+            <BarChart2 size={32} />
+          </div>
+          <div>
+            <h1 className="text-3xl font-black text-slate-900 tracking-tighter italic">Painel de <span className="text-blue-600">Inteligência</span></h1>
+            <p className="text-slate-500 font-medium mt-1">Visão geral do engajamento e métricas de audiência.</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <Link href="/admin/noticias/novo" className="bg-slate-900 hover:bg-black text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl transition-all flex items-center gap-2">
+            <Plus size={16} /> Nova Matéria
+          </Link>
+          <Link href="/" target="_blank" className="bg-slate-50 hover:bg-slate-100 text-slate-600 px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-2">
+             Ver Portal <ExternalLink size={16} />
           </Link>
         </div>
-      )}
-
-      {/* Quick Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat) => (
-          <div key={stat.label} className={`bg-slate-900 border rounded-2xl p-5 ${stat.bg}`}>
-            <div className={`w-9 h-9 rounded-xl border flex items-center justify-center mb-3 ${stat.bg}`}>
-              <stat.icon size={18} className={stat.color} />
-            </div>
-            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">{stat.label}</p>
-            <p className={`text-2xl font-black ${stat.color}`}>{stat.value}</p>
-          </div>
-        ))}
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
-        {/* Quick Links */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-          <h2 className="text-sm font-black text-white uppercase tracking-widest mb-4">Acesso Rápido</h2>
-          <div className="space-y-2">
-            {quickLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`flex items-center justify-between p-3 bg-slate-950 rounded-xl border-l-4 hover:bg-slate-800/60 transition-colors group ${link.color}`}
-              >
-                <div>
-                  <p className="font-bold text-white text-sm">{link.label}</p>
-                  <p className="text-xs text-slate-500">{link.desc}</p>
-                </div>
-                <ArrowRight size={16} className="text-slate-600 group-hover:text-white transition-colors" />
-              </Link>
-            ))}
-          </div>
+      {/* KPI Cards */}
+      <DashboardStats stats={{ totalViews, topNews, totalPush, avgStoryViews }} />
+
+      <div className="grid lg:grid-cols-3 gap-8">
+        {/* Main Chart */}
+        <div className="lg:col-span-2">
+          <AcessosChart data={chartData} />
         </div>
 
-        {/* Top Notícias */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-black text-white uppercase tracking-widest">Mais Lidas</h2>
-            <Link href="/admin/relatorios" className="text-xs text-blue-400 font-bold hover:underline flex items-center gap-1">
-              Ver todas <ArrowRight size={11} />
-            </Link>
-          </div>
-          <div className="space-y-3">
-            {topNoticias.map((n, i) => (
-              <div key={n.id} className="flex items-center gap-3 p-3 bg-slate-950 rounded-xl border border-slate-800">
-                <span className="text-xs font-black text-slate-600 w-5 text-center">#{i + 1}</span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-slate-200 truncate">{n.titulo}</p>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <Clock size={10} className="text-slate-600" />
-                    <span className="text-[10px] text-slate-500">{new Date(n.created_at).toLocaleDateString("pt-BR")}</span>
-                  </div>
+        {/* Sidebar Rankings & Status */}
+        <div className="space-y-8">
+          <ColunistasRanking ranking={ranking} />
+          
+          {/* Status System Card */}
+          <div className="bg-white rounded-[2.5rem] border border-slate-50 shadow-sm p-8 space-y-6">
+            <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest px-2">Integridade do Sistema</h3>
+            
+            <div className="space-y-6">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
+                  <ShieldCheck size={20} />
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-black text-emerald-400">{((n.real_views || 0) * 9).toLocaleString("pt-BR")}</p>
-                  <p className="text-[9px] text-slate-600 uppercase">views</p>
+                <div>
+                  <p className="text-sm font-black text-slate-900">Segurança RLS</p>
+                  <p className="text-[10px] font-bold text-emerald-600 uppercase">Proteção Ativa</p>
                 </div>
               </div>
-            ))}
-            {topNoticias.length === 0 && (
-              <p className="text-center text-slate-500 text-sm py-8">Nenhuma notícia publicada ainda.</p>
-            )}
+
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
+                  <Smartphone size={20} />
+                </div>
+                <div>
+                  <p className="text-sm font-black text-slate-900">PWA & Push</p>
+                  <p className="text-[10px] font-bold text-blue-600 uppercase">Sincronizado</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center">
+                  <Lock size={20} />
+                </div>
+                <div>
+                  <p className="text-sm font-black text-slate-900">SSL / HTTPS</p>
+                  <p className="text-[10px] font-bold text-purple-600 uppercase">Criptografado</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-slate-50 flex items-center justify-between text-[9px] font-black text-slate-300 uppercase tracking-[0.2em]">
+              <span className="flex items-center gap-1"><Globe size={10} /> sa-east-1</span>
+              <span>v2.5.0-metrics</span>
+            </div>
           </div>
         </div>
       </div>

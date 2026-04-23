@@ -11,14 +11,14 @@ export const metadata: Metadata = {
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-screen bg-slate-900 text-slate-100">
+    <div className="flex min-h-screen bg-[#F8FAFC] text-slate-900 font-sans">
       {/* Sidebar — desktop only */}
       <AdminSidebar />
 
       {/* Main content area */}
       <div className="flex flex-col flex-1 min-w-0">
         <AdminTopbar />
-        <main className="flex-1 p-4 lg:p-6 overflow-auto">
+        <main className="flex-1 p-6 lg:p-10 overflow-auto no-scrollbar">
             <ConfirmDialogProvider>
               {children}
             </ConfirmDialogProvider>

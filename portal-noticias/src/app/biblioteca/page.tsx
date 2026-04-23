@@ -9,7 +9,7 @@ import {
   ChevronRight, Mic2, LayoutGrid, Info,
   MessageSquare, Heart, ThumbsUp, Flame, Send, Smile
 } from "lucide-react";
-import FooterAdBanner from "../../components/FooterAdBanner";
+import Footer from "../../components/Footer";
 
 interface Podcast {
   id: string;
@@ -457,17 +457,7 @@ export default function BibliotecaPage() {
 
       </main>
       
-      <FooterAdBanner 
-        imageUrl={config?.ad_slot_2?.image_url || config?.banner_anuncio_home}
-        link={config?.ad_slot_2?.link || config?.link_anuncio_home}
-        visible={true}
-      />
-
-      <footer className="py-12 border-t border-zinc-900 text-center bg-black/50 backdrop-blur-md">
-          <p className="text-zinc-600 text-[10px] font-black uppercase tracking-[0.3em] px-4">
-            © 2026 Nossa Web TV — Acervo Digital Industrializado
-          </p>
-      </footer>
+      <Footer config={config} />
     </div>
   );
 }

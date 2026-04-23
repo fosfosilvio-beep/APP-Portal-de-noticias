@@ -52,7 +52,6 @@ export default function FallbackImage({ src, alt, ...props }: FallbackImageProps
       {...props}
       src={imgSrc}
       alt={alt || "Imagem de Capa Indisponível"}
-      unoptimized={true}
       onError={() => {
         setHasError(true);
         setImgSrc(fallbackSrc);

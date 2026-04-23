@@ -20,6 +20,10 @@ interface AdSlot {
   dimensoes: string;
   codigo_html_ou_imagem: string | null;
   status_ativo: boolean;
+  cliente_nome?: string | null;
+  link_destino?: string | null;
+  validade_ate?: string | null;
+  cliques?: number;
 }
 
 // Mapa de posições para o Skeleton Visual
@@ -109,23 +113,65 @@ function SortableAdItem({ slot, onToggle, onDelete, onUpdate, onUploadImage }: {
               value={slot.codigo_html_ou_imagem || ""}
               onChange={(e) => onUpdate(slot.id, "codigo_html_ou_imagem", e.target.value)}
               rows={2}
-              placeholder="Cole URL de imagem ou snippet HTML de iframe..."
+              placeholder="Cole URL de imagem ou snippet HTML..."
               className="w-full text-xs font-mono px-3 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent bg-slate-50 text-zinc-900 font-bold placeholder:text-zinc-500 resize-none transition-all"
             />
+            
+            <div className="grid grid-cols-2 gap-2 mt-2">
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Nome do Cliente</label>
+                <input
+                  type="text"
+                  value={slot.cliente_nome || ""}
+                  onChange={(e) => onUpdate(slot.id, "cliente_nome", e.target.value)}
+                  placeholder="Ex: Supermercado X"
+                  className="w-full text-xs font-bold px-3 py-2 border border-slate-200 rounded-lg bg-white text-zinc-900 outline-none focus:ring-2 focus:ring-blue-600 transition-all"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Link de Destino</label>
+                <input
+                  type="url"
+                  value={slot.link_destino || ""}
+                  onChange={(e) => onUpdate(slot.id, "link_destino", e.target.value)}
+                  placeholder="https://cliente.com.br"
+                  className="w-full text-xs font-bold px-3 py-2 border border-slate-200 rounded-lg bg-white text-zinc-900 outline-none focus:ring-2 focus:ring-blue-600 transition-all"
+                />
+              </div>
+            </div>
           </div>
-          <div>
-            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Posição no Layout</label>
-            <select
-              value={slot.posicao_html}
-              onChange={(e) => onUpdate(slot.id, "posicao_html", e.target.value)}
-              className="w-full text-xs font-bold px-3 py-2 border border-slate-200 rounded-lg bg-white text-zinc-900 outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent cursor-pointer transition-all"
-            >
-              <option value="header_top">Header — Topo</option>
-              <option value="sidebar_right_1">Sidebar — Lateral 1</option>
-              <option value="sidebar_right_2">Sidebar — Lateral 2</option>
-              <option value="in_article">In-Article (Dentro do Texto)</option>
-              <option value="footer_top">Footer — Rodapé</option>
-            </select>
+          <div className="flex flex-col gap-2">
+            <div>
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Posição no Layout</label>
+              <select
+                value={slot.posicao_html}
+                onChange={(e) => onUpdate(slot.id, "posicao_html", e.target.value)}
+                className="w-full text-xs font-bold px-3 py-2 border border-slate-200 rounded-lg bg-white text-zinc-900 outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent cursor-pointer transition-all"
+              >
+                <option value="header_top">Header — Topo</option>
+                <option value="sidebar_right_1">Sidebar — Lateral 1</option>
+                <option value="sidebar_right_2">Sidebar — Lateral 2</option>
+                <option value="in_article">In-Article (Dentro do Texto)</option>
+                <option value="footer_top">Footer — Rodapé</option>
+              </select>
+            </div>
+            <div className="grid grid-cols-2 gap-2 mt-auto">
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Data de Expiração</label>
+                <input
+                  type="date"
+                  value={slot.validade_ate ? new Date(slot.validade_ate).toISOString().split('T')[0] : ""}
+                  onChange={(e) => onUpdate(slot.id, "validade_ate", e.target.value ? new Date(e.target.value).toISOString() : "")}
+                  className="w-full text-xs font-bold px-3 py-2 border border-slate-200 rounded-lg bg-white text-zinc-900 outline-none focus:ring-2 focus:ring-blue-600 transition-all"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Cliques Recebidos</label>
+                <div className="w-full text-xs font-black px-3 py-2 border border-emerald-200 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
+                  {slot.cliques || 0} CLIQUES
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

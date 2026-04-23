@@ -11,6 +11,8 @@ interface AdSlotData {
   dimensoes: string;
   codigo_html_ou_imagem: string | null;
   status_ativo: boolean;
+  validade_ate?: string | null;
+  link_destino?: string | null;
 }
 
 interface DynamicAdSlotProps {
@@ -41,18 +43,34 @@ export default function DynamicAdSlot({ position, className, fallback }: Dynamic
 
   if (loading) return <div className={`animate-pulse bg-slate-100 rounded-xl h-32 ${className}`} />;
 
+  const defaultFallback = (
+    <div className={`w-full overflow-hidden rounded-xl border-2 border-slate-200 border-dashed bg-slate-50 hover:bg-slate-100 hover:border-slate-300 transition-all duration-300 group ${className}`} style={{ minHeight: '90px' }}>
+      <a href="/anuncie" className="w-full h-full flex flex-col items-center justify-center py-4 px-2 text-slate-400 group-hover:text-cyan-600 transition-colors">
+         <span className="font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs mb-1">Anuncie Aqui</span>
+         <span className="text-[9px] sm:text-[10px] font-bold">Ver planos disponíveis</span>
+      </a>
+    </div>
+  );
+
+  // If no ad is found, or it has no content, return fallback
   if (!ad || !ad.codigo_html_ou_imagem) {
-    return fallback || null;
+    return fallback || defaultFallback;
+  }
+
+  // Check expiration
+  if (ad.validade_ate && new Date(ad.validade_ate) < new Date()) {
+    return fallback || defaultFallback;
   }
 
   const isHtml = ad.codigo_html_ou_imagem.includes("<") && ad.codigo_html_ou_imagem.includes(">");
+  const hrefUrl = ad.link_destino ? `/api/ads/click?id=${ad.id}` : "#";
 
   return (
     <div className={`w-full overflow-hidden rounded-xl border border-slate-200 transition-all duration-300 hover:shadow-md max-h-32 sm:max-h-64 md:max-h-none ${className}`}>
       {isHtml ? (
         <div dangerouslySetInnerHTML={{ __html: ad.codigo_html_ou_imagem }} />
       ) : (
-        <a href="#" target="_blank" className="relative block group">
+        <a href={hrefUrl} target={ad.link_destino ? "_blank" : "_self"} className="relative block group">
           <img 
             src={ad.codigo_html_ou_imagem} 
             alt={ad.nome_slot} 

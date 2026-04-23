@@ -3,9 +3,10 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { supabase } from "../../../lib/supabase";
-import { Tag, ChevronLeft, Sun, Play, Clock } from "lucide-react";
+import { Tag, ChevronLeft, Sun, Play, Clock, BookOpen } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import { getVisualCategory, normalizeCategory } from "../../../lib/category-utils";
 
 // Lightbox dinâmico para performance
 const Lightbox = dynamic(() => import("yet-another-react-lightbox"), { ssr: false });
@@ -16,8 +17,8 @@ import Fullscreen from "yet-another-react-lightbox/plugins/fullscreen";
 import Header from "../../../components/Header";
 import ShareBar from "../../../components/ShareBar";
 import NewsNarrator from "../../../components/NewsNarrator";
-import ArticleComments from "../../../components/ArticleComments";
-import FooterAdBanner from "../../../components/FooterAdBanner";
+import CommentsSection from "../../../components/noticias/CommentsSection";
+import Footer from "../../../components/Footer";
 import SmartPlayer from "../../../components/SmartPlayer";
 
 export default function NoticiaDetalhe() {
@@ -37,9 +38,43 @@ export default function NoticiaDetalhe() {
   const [photoIndex, setPhotoIndex] = useState(0);
   const [slides, setSlides] = useState<{ src: string }[]>([]);
 
+  // Estados de UX de Leitura
+  const [readingTime, setReadingTime] = useState(0);
+
   useEffect(() => {
     fetchData();
   }, [slug]);
+
+  // Efeito para UX de Leitura (Tempo + Highlighting)
+  useEffect(() => {
+    if (noticia && !loading) {
+      // Calcular tempo de leitura
+      const text = noticia.conteudo?.replace(/<[^>]*>/g, '') || '';
+      const words = text.trim().split(/\s+/).length;
+      const time = Math.ceil(words / 200); // 200 palavras por minuto
+      setReadingTime(time || 1);
+
+      // Configurar Highlighter Animado para tags <mark> geradas pela IA
+      setTimeout(() => {
+        const marks = document.querySelectorAll('#article-body mark, #article-body strong.highlight');
+        if (marks.length === 0) return;
+
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('animate-highlight');
+              observer.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.5 });
+
+        marks.forEach(mark => {
+          mark.classList.add('custom-highlight');
+          observer.observe(mark);
+        });
+      }, 500);
+    }
+  }, [noticia, loading]);
 
   // Dispara o incremento de +1 real_view ao carregar a notícia
   useEffect(() => {
@@ -141,7 +176,7 @@ export default function NoticiaDetalhe() {
       <Header 
         isLive={isLive} 
         config={config} 
-        categoriaAtiva={noticia?.categoria || "Geral"}
+        categoriaAtiva={getVisualCategory(noticia?.categoria)}
         setCategoriaAtiva={() => {}} // Dummy as it's a detail page
       />
 
@@ -166,10 +201,42 @@ export default function NoticiaDetalhe() {
                 <p className="text-sm mt-1">{error}</p>
               </div>
             ) : noticia && (
-              <article className="bg-white p-6 md:p-10 rounded-xl shadow-sm border border-zinc-200/60">
+              <article className="bg-white p-6 md:p-10 rounded-xl shadow-sm border border-zinc-200/60 relative">
+                <script
+                  type="application/ld+json"
+                  dangerouslySetInnerHTML={{
+                    __html: JSON.stringify({
+                      "@context": "https://schema.org",
+                      "@type": "NewsArticle",
+                      headline: noticia.titulo,
+                      image: [noticia.imagem_capa],
+                      datePublished: noticia.created_at || noticia.data_publicacao,
+                      dateModified: noticia.updated_at || noticia.created_at || noticia.data_publicacao,
+                      author: [{
+                        "@type": "Organization",
+                        "name": "Nossa Web TV",
+                        "url": "https://www.nossawebtv.com.br"
+                      }]
+                    })
+                  }}
+                />
+                <style dangerouslySetInnerHTML={{__html: `
+                  .custom-highlight {
+                    background: linear-gradient(to right, rgba(0, 174, 224, 0.4) 50%, transparent 50%);
+                    background-size: 200% 100%;
+                    background-position: right bottom;
+                    transition: background-position 1s cubic-bezier(0.22, 1, 0.36, 1);
+                    color: inherit;
+                    padding: 0 4px;
+                    border-radius: 4px;
+                  }
+                  .animate-highlight {
+                    background-position: left bottom;
+                  }
+                `}} />
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-4">
                   <span className="inline-block bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 uppercase tracking-widest rounded-sm self-start">
-                    {noticia.categoria || "Notícia"}
+                    {getVisualCategory(noticia.categoria)}
                   </span>
                   {noticia.is_sponsored && (
                     <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-800 text-xs font-black px-3 py-1 uppercase tracking-widest rounded-sm self-start border border-amber-200">
@@ -183,6 +250,12 @@ export default function NoticiaDetalhe() {
                   {(noticia.real_views ?? 0) > 0 && (
                     <span className="text-xs text-zinc-400 flex items-center gap-1 font-medium">
                       👁 {((noticia.real_views ?? 0) * 9).toLocaleString("pt-BR")} visualizações
+                    </span>
+                  )}
+                  {readingTime > 0 && (
+                    <span className="text-xs text-blue-500 flex items-center gap-1 font-black uppercase tracking-widest bg-blue-50 px-2 py-1 rounded-md ml-auto">
+                      <BookOpen size={14} />
+                      {readingTime} min de leitura
                     </span>
                   )}
                 </div>
@@ -254,7 +327,7 @@ export default function NoticiaDetalhe() {
 
                 <div className="mt-12">
                    <ShareBar url={`/noticia/${slug}`} title={noticia.titulo} />
-                   <ArticleComments noticiaId={noticia.id} />
+                   <CommentsSection noticiaId={noticia.id} />
                 </div>
               </article>
             )}
@@ -288,7 +361,10 @@ export default function NoticiaDetalhe() {
                 {["Entretenimento", "Educação", "Saúde", "Esportes", "Arapongas", "Polícia", "Política", "Geral"].map(cat => (
                   <span 
                     key={cat} 
-                    onClick={() => window.location.href = "/"}
+                    onClick={() => {
+                      // Agora redirecionamos para a rota dedicada da categoria
+                      window.location.href = `/${normalizeCategory(cat)}`;
+                    }}
                     className="px-3 py-1 bg-zinc-100 text-zinc-600 text-xs font-bold rounded-full hover:bg-blue-600 hover:text-white transition-colors cursor-pointer uppercase"
                   >
                     {cat}
@@ -325,23 +401,7 @@ export default function NoticiaDetalhe() {
         />
       )}
 
-      <FooterAdBanner
-        imageUrl={config?.ad_slot_1?.image_url || config?.banner_anuncio_home}
-        link={config?.ad_slot_1?.link || config?.link_anuncio_home}
-        visible={true}
-      />
-
-      <footer className="bg-[#0f172a] text-slate-400 py-12 mt-auto border-t-[5px] border-[#00AEE0] rounded-t-3xl">
-        <div className="container mx-auto px-4 lg:px-8 flex flex-col md:flex-row justify-between items-center text-sm gap-6">
-          <div className="flex flex-col items-center md:items-start">
-            <span className="font-black text-2xl text-white tracking-tighter leading-none mb-2">NOSSA<span className="text-[#00AEE0]">WEB</span><span className="text-slate-500 font-light">TV</span></span>
-            <p className="font-medium text-slate-500 text-xs text-center md:text-left max-w-xs">A maior fonte regional de notícias.</p>
-          </div>
-          <div className="flex flex-col items-center md:items-end">
-            <p className="font-bold text-slate-300">© {new Date().getFullYear()} Portal Nossa Web TV.</p>
-          </div>
-        </div>
-      </footer>
+      <Footer config={config} />
     </div>
   );
 }

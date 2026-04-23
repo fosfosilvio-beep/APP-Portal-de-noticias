@@ -11,19 +11,23 @@ Armazena todas as matérias jornalísticas publicadas no portal.
 | `titulo` | TEXT | Título principal da notícia. |
 | `subtitulo` | TEXT | Linha fina / Subtítulo. |
 | `conteudo` | TEXT | Corpo da matéria (suporta quebras de linha). |
-| `categoria` | TEXT | Tag de categoria (Ex: Polícia, Esporte, Arapongas). |
-| `imagem_capa` | TEXT (URL) | URL da imagem principal (local ou externa). |
-| `video_url` | TEXT (URL) | URL de vídeo (upload local ou link externo). |
-| `created_at` | TIMESTAMP | Data de criação / publicação. |
-| `ordem_prioridade` | INTEGER | Peso para ordenação na home (maior = topo). |
-| `mostrar_no_player` | BOOLEAN | Define se deve aparecer no SmartPlayer como destaque. |
-| `mostrar_na_home_recentes` | BOOLEAN | Define se deve aparecer no feed de recentes da home. |
-| `audio_url` | TEXT (URL) | URL do áudio gerado pelo Google TTS (Cache). |
-| `audio_content_hash` | TEXT | Hash do conteúdo usado para invalidar o cache do áudio. |
-| `seo_tags` | TEXT | Tags de palavras-chave para indexação. |
-| `is_sponsored` | BOOLEAN | Se `true`, exibe badge "Patrocinado" no card e na matéria. |
-| `sponsor_id` | UUID (FK, null) | Referência ao patrocinador (futuro: tabela sponsors). |
-| `real_views` | INTEGER | Contador de visualizações reais (+1 por acesso único/sessão). |
+| `categoria` | TEXT | Tag de categoria legada (slug). |
+| `categoria_id` | UUID (FK) | Link para a tabela `categorias`. |
+| `imagem_capa` | TEXT (URL) | URL da imagem principal. |
+| `video_url` | TEXT (URL) | URL de vídeo destacado. |
+| `galeria_urls` | TEXT[] | Lista de URLs de fotos para o álbum. |
+| `created_at` | TIMESTAMP | Data de criação. |
+| `publish_at` | TIMESTAMP | Data agendada para publicação. |
+| `status` | TEXT | Status: draft, in_review, scheduled, published, archived. |
+| `ordem_prioridade` | INTEGER | Peso para ordenação na home. |
+| `mostrar_na_home_recentes` | BOOLEAN | Define se aparece no feed de recentes. |
+| `audio_url` | TEXT (URL) | URL do áudio TTS. |
+| `seo_tags` | TEXT | Tags para indexação. |
+| `is_sponsored` | BOOLEAN | Badge "Patrocinado". |
+| `ad_id` | UUID (FK) | Anúncio vinculado à matéria. |
+| `titulo_config` | JSONB | Configuração visual do título. |
+| `subtitulo_config` | JSONB | Configuração visual do subtítulo. |
+| `real_views` | INTEGER | Contador de visualizações reais. |
 
 ## Lógica de Views (Bifurcação Frontend vs Admin)
 - **Banco de dados**: Guarda apenas `real_views` (incremento atômico via RPC `incrementar_views(uuid)`).

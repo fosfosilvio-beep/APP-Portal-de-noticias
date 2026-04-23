@@ -7,18 +7,23 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 export async function POST(req: NextRequest) {
   try {
-    const { noticiaId } = await req.json();
-    if (!noticiaId) {
-      return NextResponse.json({ error: "noticiaId é obrigatório" }, { status: 400 });
+    const { noticiaId, storyId } = await req.json();
+    
+    if (!noticiaId && !storyId) {
+      return NextResponse.json({ error: "noticiaId ou storyId é obrigatório" }, { status: 400 });
     }
 
-    // Usa a RPC atômica criada na migração
-    const { error } = await supabase.rpc("incrementar_views", {
-      p_noticia_id: noticiaId,
-    });
+    // Apenas insere na tabela de logs. 
+    // O gatilho 'tr_increment_views' no banco cuidará de incrementar o contador na tabela noticias ou web_stories.
+    const { error } = await supabase.from("page_views").insert([
+      { 
+        noticia_id: noticiaId || null,
+        story_id: storyId || null
+      }
+    ]);
 
     if (error) {
-      console.error("[track-view] RPC error:", error.message);
+      console.error("[track-view] Insert error:", error.message);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 

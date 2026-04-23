@@ -43,15 +43,33 @@ export default function FooterAdBanner({
           </a>
         ) : (
           /* Slot vazio — placeholder para venda */
-          <div className="w-full h-[80px] border-2 border-dashed border-zinc-700 rounded-2xl flex items-center justify-center gap-4 group hover:bg-zinc-800/30 transition-colors cursor-pointer">
-            <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+          <a href="/anuncie" className="w-full h-[80px] border-2 border-dashed border-zinc-700 rounded-2xl flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 group hover:bg-zinc-800/30 hover:border-cyan-500/50 transition-colors cursor-pointer">
+            <span className="text-[10px] font-black text-zinc-500 group-hover:text-cyan-400 uppercase tracking-widest transition-colors">
               🔖 Espaço Publicitário Premium — Rodapé
             </span>
-            <span className="text-[9px] font-medium text-zinc-600">
+            <span className="text-[9px] font-medium text-zinc-600 group-hover:text-cyan-600 transition-colors">
               Impacte milhares de leitores. Fale conosco.
             </span>
-          </div>
+          </a>
         )}
+        
+        {/* FOOTER LINKS */}
+        <div className="flex flex-col sm:flex-row items-center justify-between mt-8 pt-6 border-t border-zinc-800/60">
+          <p className="text-[10px] font-medium text-zinc-500 uppercase tracking-widest mb-4 sm:mb-0">
+            &copy; {new Date().getFullYear()} NOSSA WEB TV. Todos os direitos reservados.
+          </p>
+          <div className="flex items-center gap-6">
+            <a href="/anuncie" className="text-[10px] font-black text-cyan-500 hover:text-cyan-400 uppercase tracking-widest transition-colors">
+              Anuncie Conosco
+            </a>
+            <a href="/privacidade" className="text-[10px] font-bold text-zinc-500 hover:text-zinc-300 uppercase tracking-widest transition-colors">
+              Privacidade
+            </a>
+            <a href="/termos" className="text-[10px] font-bold text-zinc-500 hover:text-zinc-300 uppercase tracking-widest transition-colors">
+              Termos
+            </a>
+          </div>
+        </div>
       </div>
     </div>
   );

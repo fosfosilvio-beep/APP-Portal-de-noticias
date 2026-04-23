@@ -11,7 +11,7 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { 
   Send, Loader2, Save, FileText, Palette,
-  Type as TypeIcon, Hash, MousePointer2, Images, X, Upload, Megaphone, CalendarClock
+  Type as TypeIcon, Hash, MousePointer2, Images, X, Upload, Megaphone, CalendarClock, MessageCircle
 } from "lucide-react";
 import AiCopilot from "./AiCopilot";
 import { ScheduleDialog } from "../ScheduleDialog";
@@ -36,9 +36,11 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [adSlots, setAdSlots] = useState<any[]>([]);
   const [categorias, setCategorias] = useState<any[]>([]);
+  const [colunistas, setColunistas] = useState<any[]>([]);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [role, setRole] = useState<Role | null>(null);
+  const [sendToWhatsapp, setSendToWhatsapp] = useState(false);
 
   useEffect(() => {
     const fetchRole = async () => {
@@ -67,6 +69,7 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
       seo_tags: "",
       galeria_urls: [],
       ad_id: "",
+      colunista_id: "",
       titulo_config: { font: "var(--font-inter)", weight: "900", color: "default" },
       subtitulo_config: { font: "var(--font-inter)", weight: "400", color: "default" }
     }
@@ -89,35 +92,45 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
     }
   }, [editId]);
 
-  // Auto-save Rascunho
+  // Auto-save Rascunho (DB + LocalStorage)
   useEffect(() => {
     if (editId || loading) return;
     const interval = setInterval(async () => {
       const data = getValues();
       if (!data.titulo) return;
       
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) return;
-
-      await supabase.from("news_drafts").upsert({
-        user_id: userData.user.id,
-        data: data,
+      // 1. Salva no LocalStorage para máxima velocidade/offline
+      localStorage.setItem("news_draft_local", JSON.stringify({
+        data,
         updated_at: new Date().toISOString()
-      }, { onConflict: "user_id" });
+      }));
+
+      // 2. Salva no Banco (Redundância cross-device)
+      const { data: userData } = await supabase.auth.getUser();
+      if (userData.user) {
+        await supabase.from("news_drafts").upsert({
+          user_id: userData.user.id,
+          data: data,
+          updated_at: new Date().toISOString()
+        }, { onConflict: "user_id" });
+      }
       
       setLastSaved(new Date());
-    }, 30000);
+    }, 40000); // 40 segundos
     return () => clearInterval(interval);
   }, [editId, loading]);
 
   const fetchMetadata = async () => {
-    const [adsRes, catRes] = await Promise.all([
+    const [adsRes, catRes, colRes] = await Promise.all([
       supabase.from("ad_slots").select("id, nome_slot, posicao_html").eq("status_ativo", true),
-      supabase.from("categorias").select("id, nome").eq("ativa", true).order("ordem")
+      supabase.from("categorias").select("id, nome").eq("ativa", true).order("ordem"),
+      supabase.from("colunistas").select("id, nome").order("nome")
     ]);
     if (adsRes.data) setAdSlots(adsRes.data);
+    if (colRes.data) setColunistas(colRes.data);
     if (catRes.data) {
       const defaultCats = [
+        { id: "geral", nome: "Geral" },
         { id: "entretenimento", nome: "Entretenimento" },
         { id: "educacao", nome: "Educação" },
         { id: "saude", nome: "Saúde" },
@@ -154,6 +167,7 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
         seo_tags: data.seo_tags || "",
         galeria_urls: data.galeria_urls || [],
         ad_id: data.ad_id || "",
+        colunista_id: data.colunista_id || "",
         titulo_config: data.titulo_config || { font: "var(--font-inter)", weight: "900", color: "default" },
         subtitulo_config: data.subtitulo_config || { font: "var(--font-inter)", weight: "400", color: "default" }
       });
@@ -166,11 +180,32 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
   };
 
   const loadDraft = async () => {
+    let localDraft: any = null;
+    try {
+      const localStr = localStorage.getItem("news_draft_local");
+      if (localStr) localDraft = JSON.parse(localStr);
+    } catch (e) {
+      console.error("Erro ao ler rascunho local", e);
+    }
+
     const { data: userData } = await supabase.auth.getUser();
-    if (!userData.user) return;
+    if (!userData.user && localDraft) {
+      // Se não estiver logado, usa apenas o local
+      form.reset(localDraft.data as any);
+      setLastSaved(new Date(localDraft.updated_at));
+      return;
+    }
+
+    const { data } = await supabase.from("news_drafts").select("data, updated_at").eq("user_id", userData?.user?.id || "").single();
     
-    const { data } = await supabase.from("news_drafts").select("data, updated_at").eq("user_id", userData.user.id).single();
-    if (data && data.data) {
+    let dbDate = data ? new Date(data.updated_at).getTime() : 0;
+    let localDate = localDraft ? new Date(localDraft.updated_at).getTime() : 0;
+
+    // Prioriza o mais recente
+    if (localDraft && localDate >= dbDate) {
+      form.reset(localDraft.data as any);
+      setLastSaved(new Date(localDraft.updated_at));
+    } else if (data && data.data) {
       form.reset(data.data as any);
       setLastSaved(new Date(data.updated_at));
     }
@@ -225,6 +260,7 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
         ...data,
         slug: data.slug.trim().replace(/^https?:\/\//, "").split("/").filter(Boolean).pop() || data.slug,
         ad_id: data.ad_id || null,
+        colunista_id: data.colunista_id || null,
         categoria_id: data.categoria_id || null,
         // Garante que o nome da categoria seja salvo no campo legado
         categoria: selectedCat ? selectedCat.nome : "Geral",
@@ -245,6 +281,14 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
         const { data: userData } = await supabase.auth.getUser();
         if (userData.user) {
           await supabase.from("news_drafts").delete().eq("user_id", userData.user.id);
+        }
+
+        if (sendToWhatsapp) {
+          const portalUrl = typeof window !== "undefined" ? window.location.origin : "https://nossawebtv.com.br";
+          const link = `${portalUrl}/noticia/${payload.slug}`;
+          const text = `🚨 *NOVA MATÉRIA* 🚨\n\n*${payload.titulo}*\n\nLeia agora:\n${link}`;
+          const waUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
+          window.open(waUrl, "_blank");
         }
         
         router.push("/admin/noticias");
@@ -522,6 +566,20 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
                 ))}
               </select>
             </div>
+            
+            {/* COLUNISTA */}
+            <div>
+              <label className="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">Autor / Colunista</label>
+              <select
+                {...register("colunista_id")}
+                className="w-full text-sm font-bold px-3 py-2.5 border border-slate-800 rounded-lg outline-none focus:border-blue-400 bg-slate-950 text-white"
+              >
+                <option value="">Redação (Padrão)</option>
+                {colunistas.map(col => (
+                  <option key={col.id} value={col.id}>{col.nome}</option>
+                ))}
+              </select>
+            </div>
 
             {/* SLUG */}
             <div>
@@ -544,6 +602,23 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
                 placeholder="Ex: politica, economia..."
                 className="w-full text-xs font-medium px-3 py-2 border border-slate-800 rounded-lg outline-none focus:border-blue-400 bg-slate-950 resize-none text-white placeholder:text-slate-600"
               />
+            </div>
+            {/* ZAPNEWS TOGGLE */}
+            <div className="pt-4 mt-2 border-t border-slate-800">
+              <label className="flex items-center gap-3 p-4 bg-emerald-950/30 rounded-xl border border-emerald-900/50 cursor-pointer hover:bg-emerald-900/20 transition-colors group">
+                <div className="relative flex items-center justify-center">
+                  <input 
+                    type="checkbox" 
+                    checked={sendToWhatsapp}
+                    onChange={e => setSendToWhatsapp(e.target.checked)}
+                    className="w-5 h-5 rounded border-emerald-800 bg-slate-900 text-emerald-500 focus:ring-emerald-500/30 focus:ring-offset-0 peer"
+                  />
+                </div>
+                <div className="flex items-center gap-2 flex-1">
+                  <MessageCircle size={18} className="text-emerald-500 group-hover:scale-110 transition-transform" />
+                  <span className="text-xs font-black text-emerald-400 uppercase tracking-widest">Disparar ZapNews</span>
+                </div>
+              </label>
             </div>
           </div>
 

@@ -11,7 +11,17 @@ import DynamicAdSlot from "../DynamicAdSlot";
 import HeroSection from "./HeroSection";
 import NewsGrid from "./NewsGrid";
 import BreakingNewsMarquee from "../BreakingNewsMarquee";
+import StoriesBar from "./StoriesBar";
+import PushPrompt from "../PushPrompt";
+import ColunistasWidget from "./ColunistasWidget";
+import VideosWidget from "./VideosWidget";
+import EdicoesWidget from "./EdicoesWidget";
+import FeedNewsWidget from "./FeedNewsWidget";
+import ClassificadosWidget from "./ClassificadosWidget";
+import EnquetesWidget from "./EnquetesWidget";
+import Footer from "../Footer";
 import { createClient } from "@/lib/supabase-browser";
+import { getVisualCategory } from "@/lib/category-utils";
 
 interface HomeContentProps {
   initialConfig: any;
@@ -34,6 +44,13 @@ export default function HomeContent({ initialConfig, todasNoticias, bibliotecaLi
     const supabase = createClient();
     supabase.from("categorias").select("slug, nome, ordem").eq("ativa", true).order("ordem")
       .then(({ data }) => { if (data?.length) setCategorias(data); });
+
+    // Captura categoria via URL se existir
+    const params = new URLSearchParams(window.location.search);
+    const catParam = params.get("cat");
+    if (catParam) {
+      setCategoriaAtiva(catParam);
+    }
   }, []);
 
   useEffect(() => {
@@ -48,7 +65,9 @@ export default function HomeContent({ initialConfig, todasNoticias, bibliotecaLi
       
       // Removemos acentos para uma busca mais robusta se necessário, 
       // mas o ilike com % já ajuda na flexibilidade.
-      const searchTerm = `%${categoriaAtiva}%`;
+      // Normalizamos o termo de busca para bater com o banco (que está sem acento)
+      const normalizedTerm = categoriaAtiva.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const searchTerm = `%${normalizedTerm}%`;
 
       const { data, error } = await supabase
         .from("noticias")
@@ -71,8 +90,9 @@ export default function HomeContent({ initialConfig, todasNoticias, bibliotecaLi
     : noticiasCategoria.length > 0 
       ? noticiasCategoria 
       : todasNoticias.filter(n => {
-          const catName = n.categorias?.nome || n.categoria || "Geral";
-          return catName.toLowerCase() === categoriaAtiva.toLowerCase();
+          const rawCat = n.categorias?.nome || n.categoria || "Geral";
+          const catName = getVisualCategory(rawCat);
+          return catName.toLowerCase() === getVisualCategory(categoriaAtiva).toLowerCase();
         });
 
   return (
@@ -83,6 +103,8 @@ export default function HomeContent({ initialConfig, todasNoticias, bibliotecaLi
         categoriaAtiva={categoriaAtiva} 
         setCategoriaAtiva={setCategoriaAtiva}
       />
+
+      <StoriesBar />
 
       {/* Breaking News Marquee */}
       {breakingNews?.active && (
@@ -118,6 +140,10 @@ export default function HomeContent({ initialConfig, todasNoticias, bibliotecaLi
               <div className="flex flex-col space-y-16 animate-in fade-in slide-in-from-bottom-4 duration-1000">
                 
                 <HeroSection initialIsLive={isLive} initialLiveUrl={config?.url_live} />
+
+                <VideosWidget />
+
+                <ColunistasWidget />
                 
                 <NewsGrid title="Últimas Notícias" news={todasNoticias} />
 
@@ -215,6 +241,12 @@ export default function HomeContent({ initialConfig, todasNoticias, bibliotecaLi
           {/* LADO DIREITO (30% - BARRA LATERAL) */}
           <aside className="w-full lg:w-[30%] flex flex-col space-y-8">
             
+            <EnquetesWidget />
+
+            <FeedNewsWidget />
+            
+            <EdicoesWidget />
+
             {(config?.ui_settings?.widgets_visibility?.weather !== false) && (
               <div className="bg-slate-900 rounded-2xl p-7 text-white shadow-lg relative overflow-hidden group border border-slate-800">
                  <div className="absolute top-0 right-0 w-40 h-40 bg-[#00AEE0] rounded-full blur-[80px] opacity-20 group-hover:opacity-40 transition-opacity duration-700"></div>
@@ -311,6 +343,10 @@ export default function HomeContent({ initialConfig, todasNoticias, bibliotecaLi
             </div>
           </aside>
         </div>
+        
+        {/* CLASSIFICADOS WIDGET */}
+        <ClassificadosWidget />
+        
       </main>
 
       {/* BANNER PUBLICITÁRIO RODAPÉ (V2 DYNAMIC) */}
@@ -347,17 +383,9 @@ export default function HomeContent({ initialConfig, todasNoticias, bibliotecaLi
       />
 
       {/* RODAPÉ */}
-      <footer className="bg-[#0f172a] text-slate-400 py-12 mt-auto border-t-[5px] border-[#00AEE0] rounded-t-3xl">
-        <div className="container mx-auto px-4 lg:px-8 flex flex-col md:flex-row justify-between items-center text-sm gap-6">
-          <div className="flex flex-col items-center md:items-start">
-            <span className="font-black text-2xl text-white tracking-tighter leading-none mb-2">NOSSA<span className="text-[#00AEE0]">WEB</span><span className="text-slate-500 font-light">TV</span></span>
-            <p className="font-medium text-slate-500 text-xs text-center md:text-left max-w-xs">A maior fonte regional de notícias.</p>
-          </div>
-          <div className="flex flex-col items-center md:items-end">
-            <p className="font-bold text-slate-300">© {new Date().getFullYear()} Portal Nossa Web TV.</p>
-          </div>
-        </div>
-      </footer>
+      <Footer config={initialConfig} />
+
+      <PushPrompt />
     </div>
   );
 }
