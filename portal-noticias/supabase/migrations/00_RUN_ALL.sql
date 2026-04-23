@@ -4,9 +4,6 @@
 -- Execute no Supabase Dashboard → SQL Editor → New query
 -- ============================================================================
 
--- Desabilitar feedback para acelerar execução
-\set QUIET on
-
 -- ============================================================================
 -- v10: Phase 2B Tables (Admin modules base)
 -- ============================================================================
@@ -255,12 +252,4 @@ WHERE id = 1;
 -- FINALIZAÇÃO
 -- ============================================================================
 
--- Reabilitar feedback
-\set QUIET off
-
--- Exibir resultado
-SELECT
-  'Migrations v10-v15 EXECUTADAS COM SUCESSO!' as status,
-  NOW() as timestamp;
-
-SELECT tablename FROM pg_tables WHERE schemaname='public' ORDER BY tablename;
+-- ✅ Sucesso! Todas as migrations v10-v15 foram aplicadas.
