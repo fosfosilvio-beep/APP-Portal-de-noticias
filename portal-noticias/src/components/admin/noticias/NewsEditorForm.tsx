@@ -46,7 +46,7 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
     const fetchRole = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
-      const { data } = await supabase.from("user_roles").select("role").eq("user_id", session.user.id).single();
+      const { data } = await supabase.from("user_roles").select("role").eq("user_id", session.user.id).maybeSingle();
       if (data) setRole(data.role as Role);
     };
     fetchRole();

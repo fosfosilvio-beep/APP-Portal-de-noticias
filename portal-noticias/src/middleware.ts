@@ -51,7 +51,7 @@ export async function middleware(request: NextRequest) {
     .from("user_roles")
     .select("role")
     .eq("user_id", session.user.id)
-    .single();
+    .maybeSingle();
 
   const role = roleData?.role || 'autor'; // fallback
 

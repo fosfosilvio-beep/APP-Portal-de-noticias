@@ -50,8 +50,9 @@ export default function ColunistaForm({ colunista, onClose, onSuccess }: Colunis
 
     try {
       setUploading(true);
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${Math.random()}.${fileExt}`;
+      const fileExt = file.name.split(".").pop()?.toLowerCase();
+      const safeName = file.name.replace(`.${fileExt}`, '').replace(/[^a-zA-Z0-9]/g, '');
+      const fileName = `${safeName}-${Date.now()}.${fileExt}`;
       const filePath = `profiles/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
