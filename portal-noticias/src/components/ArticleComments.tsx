@@ -58,7 +58,7 @@ export default function ArticleComments({ noticiaId }: { noticiaId: string }) {
         schema: "public", 
         table: "comentarios_noticias",
         filter: `noticia_id=eq.${noticiaId}`
-      }, (payload) => {
+      }, (payload: any) => {
         setComentarios((prev) => [payload.new as Comentario, ...prev]);
       })
       .subscribe();

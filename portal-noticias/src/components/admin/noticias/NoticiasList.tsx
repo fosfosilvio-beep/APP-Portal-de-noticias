@@ -132,8 +132,8 @@ export default function NoticiasList() {
   const handleDragEnd = (event: any) => {
     const { active, over } = event;
     if (active.id !== over.id) {
-      const oldIndex = noticias.findIndex((item) => item.id === active.id);
-      const newIndex = noticias.findIndex((item) => item.id === over.id);
+      const oldIndex = noticias.findIndex((item: any) => item.id === active.id);
+      const newIndex = noticias.findIndex((item: any) => item.id === over.id);
       const newOrder = arrayMove(noticias, oldIndex, newIndex);
       
       // Optimistic update
@@ -168,7 +168,7 @@ export default function NoticiasList() {
     toast.success("Link copiado para a área de transferência!");
   };
 
-  const filteredData = noticias.filter(n => 
+  const filteredData = noticias.filter((n: any) => 
     n.titulo.toLowerCase().includes(searchTerm.toLowerCase()) || 
     (n.categorias?.nome || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -265,7 +265,7 @@ export default function NoticiasList() {
                 </tr>
               </thead>
               <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                <SortableContext items={filteredData.map(d => d.id)} strategy={verticalListSortingStrategy}>
+                <SortableContext items={filteredData.map((d: any) => d.id)} strategy={verticalListSortingStrategy}>
                   <tbody>
                     {table.getRowModel().rows.map(row => (
                       <SortableRow key={row.id} row={row} onEdit={() => {}} onDelete={handleDelete} onCopyLink={copyLink} />

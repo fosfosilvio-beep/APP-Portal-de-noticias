@@ -31,7 +31,7 @@ export default function ChatModerator() {
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "live_messages" },
-        async (payload) => {
+        async (payload: any) => {
           // Fetch profile for the new message
           const { data: profile } = await supabase
             .from("profiles")
@@ -46,7 +46,7 @@ export default function ChatModerator() {
       .on(
         "postgres_changes",
         { event: "DELETE", schema: "public", table: "live_messages" },
-        (payload) => {
+        (payload: any) => {
           setMessages((prev) => prev.filter((m) => m.id !== payload.old.id));
         }
       )

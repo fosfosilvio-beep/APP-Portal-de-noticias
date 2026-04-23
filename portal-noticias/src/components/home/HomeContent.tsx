@@ -43,7 +43,7 @@ export default function HomeContent({ initialConfig, todasNoticias, bibliotecaLi
   useEffect(() => {
     const supabase = createClient();
     supabase.from("categorias").select("slug, nome, ordem").eq("ativa", true).order("ordem")
-      .then(({ data }) => { if (data?.length) setCategorias(data); });
+      .then(({ data }: any) => { if (data?.length) setCategorias(data); });
 
     // Captura categoria via URL se existir
     const params = new URLSearchParams(window.location.search);

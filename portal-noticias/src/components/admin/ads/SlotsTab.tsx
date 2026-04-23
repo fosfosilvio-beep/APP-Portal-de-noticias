@@ -82,7 +82,7 @@ export default function SlotsTab() {
       </div>
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {slots.map((slot) => (
+        {slots.map((slot: any) => (
           <div key={slot.id} className="bg-slate-950 border border-slate-800 p-5 rounded-2xl relative group">
             <div className="flex justify-between items-start mb-3">
               <div>

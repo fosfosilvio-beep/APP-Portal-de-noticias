@@ -27,7 +27,7 @@ export default function HeroSection({ initialIsLive, initialLiveUrl }: HeroSecti
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "configuracao_portal" },
-        (payload) => {
+        (payload: any) => {
           setIsLive(payload.new.is_live);
           if (payload.new.url_live) {
             setLiveUrl(payload.new.url_live);

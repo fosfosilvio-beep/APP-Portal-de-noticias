@@ -30,15 +30,15 @@ export default function AdAnalyticsClient() {
       const impMap: Record<string, number> = {};
       const clickMap: Record<string, number> = {};
 
-      impressions?.forEach((imp) => {
+      impressions?.forEach((imp: any) => {
         impMap[imp.slot_id] = (impMap[imp.slot_id] || 0) + 1;
       });
 
-      clicks?.forEach((clk) => {
+      clicks?.forEach((clk: any) => {
         clickMap[clk.slot_id] = (clickMap[clk.slot_id] || 0) + 1;
       });
 
-      const aggregated = slots.map((s) => {
+      const aggregated = slots.map((s: any) => {
         const imp = impMap[s.id] || 0;
         const clk = clickMap[s.id] || 0;
         const ctr = imp > 0 ? ((clk / imp) * 100).toFixed(2) : 0;
@@ -50,7 +50,7 @@ export default function AdAnalyticsClient() {
         };
       });
 
-      setData(aggregated.filter(a => a.impressions > 0 || a.clicks > 0)); // Only show active
+      setData(aggregated.filter((a: any) => a.impressions > 0 || a.clicks > 0)); // Only show active
     } catch (err) {
       console.error(err);
     } finally {
