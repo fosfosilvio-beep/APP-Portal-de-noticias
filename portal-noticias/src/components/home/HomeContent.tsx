@@ -23,6 +23,8 @@ export default function HomeContent({ initialConfig, todasNoticias, bibliotecaLi
   const [categoriaAtiva, setCategoriaAtiva] = useState("Início");
   const [searchBiblioteca, setSearchBiblioteca] = useState("");
   const [categorias, setCategorias] = useState<any[]>([]);
+  const [noticiasCategoria, setNoticiasCategoria] = useState<any[]>([]);
+  const [isLoadingCat, setIsLoadingCat] = useState(false);
 
   const config = initialConfig;
   const isLive = config?.is_live || false;
@@ -34,10 +36,44 @@ export default function HomeContent({ initialConfig, todasNoticias, bibliotecaLi
       .then(({ data }) => { if (data?.length) setCategorias(data); });
   }, []);
 
-  const noticiasDaCategoriaAtiva = todasNoticias.filter(n => {
-    const catName = n.categorias?.nome || n.categoria || "Geral";
-    return catName.toLowerCase() === categoriaAtiva.toLowerCase();
-  });
+  useEffect(() => {
+    if (categoriaAtiva === "Início" || categoriaAtiva === "Biblioteca") {
+      setNoticiasCategoria([]);
+      return;
+    }
+
+    const fetchCategoriaNoticias = async () => {
+      setIsLoadingCat(true);
+      const supabase = createClient();
+      
+      // Removemos acentos para uma busca mais robusta se necessário, 
+      // mas o ilike com % já ajuda na flexibilidade.
+      const searchTerm = `%${categoriaAtiva}%`;
+
+      const { data, error } = await supabase
+        .from("noticias")
+        .select("*, categorias(id, nome, slug)")
+        .ilike("categoria", searchTerm)
+        .order("created_at", { ascending: false })
+        .limit(40);
+
+      if (!error && data) {
+        setNoticiasCategoria(data);
+      }
+      setIsLoadingCat(false);
+    };
+
+    fetchCategoriaNoticias();
+  }, [categoriaAtiva]);
+
+  const noticiasDaCategoriaAtiva = categoriaAtiva === "Início" 
+    ? todasNoticias 
+    : noticiasCategoria.length > 0 
+      ? noticiasCategoria 
+      : todasNoticias.filter(n => {
+          const catName = n.categorias?.nome || n.categoria || "Geral";
+          return catName.toLowerCase() === categoriaAtiva.toLowerCase();
+        });
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white text-slate-900 flex flex-col font-sans overflow-x-hidden">
@@ -160,7 +196,12 @@ export default function HomeContent({ initialConfig, todasNoticias, bibliotecaLi
               <div>
                  <h1 className="text-4xl font-black text-slate-900 mb-8 border-l-[6px] border-cyan-600 pl-4">{categoriaAtiva}</h1>
                  
-                 {!noticiasDaCategoriaAtiva.length ? (
+                 {isLoadingCat ? (
+                    <div className="py-20 text-center">
+                       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-600 mx-auto"></div>
+                       <p className="text-slate-500 mt-4 font-medium">Buscando matérias em {categoriaAtiva}...</p>
+                    </div>
+                 ) : !noticiasDaCategoriaAtiva.length ? (
                     <div className="bg-white rounded-2xl p-12 text-center border border-slate-200 shadow-sm">
                        <p className="text-slate-500 text-lg font-medium">Nenhuma matéria registrada em {categoriaAtiva}.</p>
                     </div>
