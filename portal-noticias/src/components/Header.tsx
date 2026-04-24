@@ -69,7 +69,7 @@ export default function Header({
     // 3. Realtime Listener
     const channel = supabase
       .channel("header_sync")
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "configuracao_portal" }, (payload) => {
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "configuracao_portal" }, (payload: any) => {
         setIsLiveInterno(payload.new.is_live);
         setConfigInterno(prev => ({ ...prev, ...payload.new }));
       })
