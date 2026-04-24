@@ -42,7 +42,7 @@ export default function NotificationBell() {
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "notificacoes" },
-        (payload) => {
+        (payload: any) => {
           setNotifs((prev) => [payload.new as Notificacao, ...prev.slice(0, 9)]);
         }
       )

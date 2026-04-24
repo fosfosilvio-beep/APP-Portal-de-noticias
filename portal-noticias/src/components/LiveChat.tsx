@@ -37,7 +37,7 @@ export default function LiveChat({ liveUrl }: LiveChatProps) {
       setSession(session);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
       setSession(session);
     });
 
@@ -74,7 +74,7 @@ export default function LiveChat({ liveUrl }: LiveChatProps) {
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "live_messages" },
-        async (payload) => {
+        async (payload: any) => {
            // Precisamos do profile no payload insert, faremos fetch adicional
            const { data: profileData } = await supabase
              .from("profiles")

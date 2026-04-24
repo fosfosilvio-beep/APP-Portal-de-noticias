@@ -141,7 +141,7 @@ export default function SmartPlayer({ customVideoUrl, startTime, endTime, onLive
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "configuracao_portal" },
-        async (payload) => {
+        async (payload: any) => {
           const newConf = payload.new as ConfiguracaoPortal;
           setConfig(newConf);
           setVideoAutomatico(null);
