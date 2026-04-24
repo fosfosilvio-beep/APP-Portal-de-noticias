@@ -7,7 +7,10 @@ import { getSupabaseBrowser } from './supabase';
 export const createClient = () => {
   const client = getSupabaseBrowser();
   if (!client) {
-    throw new Error('Supabase client não disponível - variáveis de ambiente não configuradas');
+    if (typeof window !== 'undefined') {
+      console.warn('Supabase client não disponível - variáveis de ambiente não configuradas');
+    }
+    return null as any;
   }
   return client;
 };

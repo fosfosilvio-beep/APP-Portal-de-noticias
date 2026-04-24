@@ -14,10 +14,11 @@ export interface LiveStatus {
 export function useLiveStatus() {
   const [status, setStatus] = useState<LiveStatus | null>(null);
   const [loading, setLoading] = useState(true);
-  const supabaseRef = useRef(createClient());
+  const supabaseRef = useRef<any>(null);
 
   useEffect(() => {
-    const supabase = supabaseRef.current;
+    const supabase = createClient();
+    supabaseRef.current = supabase;
     let mounted = true;
 
     async function fetchStatus() {
