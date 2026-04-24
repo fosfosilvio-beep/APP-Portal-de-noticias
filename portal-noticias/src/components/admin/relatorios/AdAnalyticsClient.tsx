@@ -60,8 +60,8 @@ export default function AdAnalyticsClient() {
 
   if (loading) return <div className="p-12 flex justify-center"><Loader2 className="animate-spin text-amber-500" /></div>;
 
-  const totalImpressions = data.reduce((acc, d) => acc + d.impressions, 0);
-  const totalClicks = data.reduce((acc, d) => acc + d.clicks, 0);
+  const totalImpressions = data.reduce((acc: number, d: any) => acc + d.impressions, 0);
+  const totalClicks = data.reduce((acc: number, d: any) => acc + d.clicks, 0);
   const avgCtr = totalImpressions > 0 ? ((totalClicks / totalImpressions) * 100).toFixed(2) : 0;
 
   return (

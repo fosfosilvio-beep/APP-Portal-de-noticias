@@ -6,6 +6,15 @@ import AcessosChart from "@/components/admin/dashboard/AcessosChart";
 export default async function MetricasPage() {
   const supabase = await createClient();
 
+  if (!supabase) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] bg-white rounded-[2.5rem] border border-slate-100 p-12 text-center">
+        <h2 className="text-xl font-black text-slate-900 mb-2">Erro de Conexão</h2>
+        <p className="text-slate-500 max-w-md mx-auto">As credenciais do banco de dados não foram encontradas.</p>
+      </div>
+    );
+  }
+
   // Fetch detailed metrics for the chart
   const { data: views7dRes } = await supabase.from("page_views")
     .select("created_at")
@@ -19,7 +28,7 @@ export default async function MetricasPage() {
   }).reverse();
 
   const chartData = last30Days.map(date => {
-    const count = views7dRes?.filter(v => v.created_at.startsWith(date)).length || 0;
+    const count = views7dRes?.filter((v: any) => v.created_at.startsWith(date)).length || 0;
     return { date: date.split("-").reverse().slice(0, 2).join("/"), views: count };
   });
 

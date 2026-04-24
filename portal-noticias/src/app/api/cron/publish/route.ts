@@ -27,7 +27,7 @@ export async function GET(req: Request) {
       console.log(`[CRON] Published ${data.length} scheduled news.`);
       
       // Log in admin_actions
-      const actions = data.map(news => ({
+      const actions = data.map((news: any) => ({
         user_id: null, // System action
         action: "auto_publish",
         entity_type: "noticias",

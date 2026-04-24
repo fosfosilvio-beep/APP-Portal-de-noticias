@@ -46,7 +46,7 @@ export default async function AdminDashboardPage() {
   ]);
 
   // Process Stats
-  const totalViews = noticiasRes.data?.reduce((acc, n) => acc + (n.view_count || 0), 0) || 0;
+  const totalViews = noticiasRes.data?.reduce((acc: number, n: any) => acc + (n.view_count || 0), 0) || 0;
   const totalPush = pushRes.count || 0;
   const totalNoticias = storiesRes.count || 0;
 
@@ -68,7 +68,7 @@ export default async function AdminDashboardPage() {
   }).reverse();
 
   const chartData = last7Days.map(date => {
-    const count = views7dRes.data?.filter(v => v.created_at.startsWith(date)).length || 0;
+    const count = views7dRes.data?.filter((v: any) => v.created_at.startsWith(date)).length || 0;
     return { date: date.split("-").slice(1).reverse().join("/"), views: count };
   });
 

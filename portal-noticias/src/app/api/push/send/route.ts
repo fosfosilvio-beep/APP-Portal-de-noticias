@@ -55,7 +55,7 @@ export async function POST(req: Request) {
 
     if (subError) throw subError;
 
-    const notifications = subscriptions.map((sub) => {
+    const notifications = subscriptions.map((sub: any) => {
       const payload = JSON.stringify({
         title,
         body: pushBody,

@@ -83,7 +83,7 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
     }
 
     checkAuth();
-  }, [pathname, router, supabase]);
+  }, [pathname, router]);
 
   if (loading) {
     return (

@@ -140,7 +140,7 @@ export default function PublicidadeManager() {
   };
 
   const ativos = banners.filter(b => b.status).length;
-  const cliquesTotal = banners.reduce((acc, b) => acc + (b.cliques || 0), 0);
+  const cliquesTotal = banners.reduce((acc: number, b: any) => acc + (b.cliques || 0), 0);
 
   return (
     <div className="space-y-8 max-w-[1400px] p-8 bg-slate-50/50 min-h-screen">

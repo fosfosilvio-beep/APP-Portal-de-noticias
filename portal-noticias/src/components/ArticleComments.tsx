@@ -104,6 +104,18 @@ export default function ArticleComments({ noticiaId }: { noticiaId: string }) {
     setEnviando(false);
   };
 
+  const handleSocialLogin = async (provider: 'google' | 'facebook') => {
+    const supabase = createClient();
+    if (supabase) {
+      await supabase.auth.signInWithOAuth({ 
+        provider,
+        options: {
+          redirectTo: window.location.origin
+        }
+      });
+    }
+  };
+
   return (
     <section className="mt-12 py-10 border-t border-slate-100">
       <div className="flex items-center gap-3 mb-8">
@@ -122,14 +134,14 @@ export default function ArticleComments({ noticiaId }: { noticiaId: string }) {
           <p className="text-slate-600 font-bold mb-6">Entre com suas redes sociais para participar da conversa</p>
           <div className="flex flex-wrap justify-center gap-4">
             <button 
-              onClick={() => supabase.auth.signInWithOAuth({ provider: 'google' })}
+              onClick={() => handleSocialLogin('google')}
               className="flex items-center gap-3 bg-white border border-slate-200 px-6 py-3 rounded-xl font-bold text-slate-700 hover:bg-slate-100 transition-all shadow-sm"
             >
               <img src="https://www.google.com/favicon.ico" className="w-4 h-4" alt="Google" />
               Google
             </button>
             <button 
-              onClick={() => supabase.auth.signInWithOAuth({ provider: 'facebook' })}
+              onClick={() => handleSocialLogin('facebook')}
               className="flex items-center gap-3 bg-[#1877F2] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#166fe5] transition-all shadow-sm"
             >
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>

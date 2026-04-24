@@ -85,7 +85,7 @@ export default function NewsViewsClient() {
     URL.revokeObjectURL(url);
   };
 
-  const totalViews = noticias.reduce((acc, n) => acc + (n.real_views || 0), 0);
+  const totalViews = noticias.reduce((acc: number, n: NoticiaView) => acc + (n.real_views || 0), 0);
 
   return (
     <div className="space-y-6">
