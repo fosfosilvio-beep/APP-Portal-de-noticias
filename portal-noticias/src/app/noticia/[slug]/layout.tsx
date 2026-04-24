@@ -1,6 +1,5 @@
 import { Metadata } from "next";
 import { createClient } from "@supabase/supabase-js";
-import { getPublicUrl } from "@/components/FallbackImage";
 
 // Build a Supabase client just for fetching metadata (read-only, public key is fine)
 const supabase = createClient(
@@ -31,7 +30,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   // Construct dynamic OG Image URL via our SocialSnap API
   const portalUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://nossawebtv.com.br";
-  const bgImage = getPublicUrl(noticia.imagem_capa) || "";
+  // Resolve URL pública da imagem: se já for http, usa direto; senão constrói via Supabase Storage
+  const rawImage = noticia.imagem_capa || "";
+  const bgImage = rawImage.startsWith("http")
+    ? rawImage
+    : rawImage
+    ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/media/${rawImage}`
+    : "";
   
   // URL safe parameters
   const ogUrl = new URL(`${portalUrl}/api/og`);
