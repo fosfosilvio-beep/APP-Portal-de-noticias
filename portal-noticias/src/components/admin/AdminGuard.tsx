@@ -43,14 +43,26 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // Buscar a role
-      const { data: roleData } = await supabase
+      // Buscar a role (com fallback de email)
+      const { data: roleData, error: roleErr } = await supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", session.user.id)
         .maybeSingle();
 
-      const role = (roleData?.role || "autor") as Role;
+      let role = roleData?.role as Role;
+
+      if (!role || roleErr) {
+        const adminEmails = ["fosfosilvio@gmail.com", "fosfosilvio.beep@gmail.com"];
+        const columnistEmails = ["colunista@gmail.com"];
+        if (adminEmails.includes(session.user.email || "")) {
+          role = "admin";
+        } else if (columnistEmails.includes(session.user.email || "")) {
+          role = "colunista";
+        } else {
+          role = "autor";
+        }
+      }
 
       // Lista Branca para Colunistas (Autores)
       if (role === "autor") {

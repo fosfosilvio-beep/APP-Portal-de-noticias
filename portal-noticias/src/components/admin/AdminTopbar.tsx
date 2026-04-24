@@ -57,13 +57,26 @@ export default function AdminTopbar() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", session.user.id)
         .maybeSingle();
       
-      if (data) setRole(data.role as Role);
+      let r = data?.role;
+      if (!r || error) {
+        const adminEmails = ["fosfosilvio@gmail.com", "fosfosilvio.beep@gmail.com"];
+        const columnistEmails = ["colunista@gmail.com"];
+        if (adminEmails.includes(session.user.email || "")) {
+          r = "admin";
+        } else if (columnistEmails.includes(session.user.email || "")) {
+          r = "colunista";
+        } else {
+          r = "autor";
+        }
+      }
+      
+      setRole(r as Role);
     };
 
     fetchRole();
