@@ -46,8 +46,15 @@ export default function Error({
           </button>
         </div>
         
-        <div className="bg-slate-50 px-8 py-4 flex justify-center">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">ID do Erro: {error.digest || "unknown"}</span>
+        <div className="bg-slate-50 px-8 py-4 flex flex-col items-center justify-center">
+          <div className="bg-red-50 border border-red-100 rounded-lg p-3 mb-4 w-full max-w-xs overflow-hidden">
+            <p className="text-red-800 text-[10px] font-mono break-all text-center">
+              {error.message || "Erro inesperado na aplicação"}
+            </p>
+          </div>
+          <p className="text-slate-400 text-[10px] font-mono uppercase tracking-widest">
+            ID: {error.digest || "N/A"}
+          </p>
         </div>
       </div>
     </div>
