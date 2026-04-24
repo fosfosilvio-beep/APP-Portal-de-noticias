@@ -90,18 +90,33 @@ export default function NoticiasList() {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
-  // Fetch News
+  // Fetch News with RBAC - Optimized to remove network waterfall
   const { data: noticias = [], isLoading } = useQuery({
     queryKey: ["noticias"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("noticias")
-        .select("*, categorias(nome)")
-        .order("ordem_prioridade", { ascending: true })
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data || [];
-    }
+      // Tentar pegar sessão do cache local primeiro (mais rápido que getUser)
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user;
+      if (!user) return [];
+
+      // Disparar ambas as queries em paralelo ou usar a role do token se disponível
+      // Nota: No nosso caso, buscamos a role para garantir precisão, mas faremos isso rápido.
+      const [roleRes, newsRes] = await Promise.all([
+        supabase.from("user_roles").select("role").eq("user_id", user.id).maybeSingle(),
+        supabase.from("noticias").select("*, categorias(nome)").order("ordem_prioridade", { ascending: true }).order("created_at", { ascending: false })
+      ]);
+
+      const role = roleRes.data?.role || "autor";
+      let data = newsRes.data || [];
+
+      // Filtragem em memória se for autor (mais rápido que esperar nova query filtrada)
+      if (role === "autor") {
+        data = data.filter((n: any) => n.user_id === user.id);
+      }
+
+      return data;
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutos de cache para evitar loadings repetitivos
   });
 
   // Reorder Mutation

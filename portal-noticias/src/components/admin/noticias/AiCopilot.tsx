@@ -63,7 +63,8 @@ export default function AiCopilot({ onGenerated }: AiCopilotProps) {
         />
 
         <button
-          onClick={handleGenerate}
+          type="button"
+          onClick={(e) => { e.preventDefault(); handleGenerate(); }}
           disabled={isGenerating || !prompt.trim()}
           className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-widest py-4 rounded-2xl transition-all shadow-lg shadow-blue-100 flex items-center justify-center gap-2"
         >

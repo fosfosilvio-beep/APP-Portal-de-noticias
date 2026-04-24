@@ -39,22 +39,17 @@ export async function middleware(request: NextRequest) {
     data: { session },
   } = await supabase.auth.getSession();
 
-  // If not authenticated, redirect to login
-  if (!session) {
+  // 1. Se estiver logado e tentar acessar a página de login, vai para o dashboard
+  if (session && pathname === "/admin/login") {
+    return NextResponse.redirect(new URL("/admin/dashboard", request.url));
+  }
+
+  // 2. Se NÃO estiver logado e tentar acessar qualquer rota admin (que não seja login), vai para o login
+  if (!session && pathname.startsWith("/admin") && pathname !== "/admin/login") {
     const loginUrl = new URL("/admin/login", request.url);
     loginUrl.searchParams.set("redirectTo", pathname);
     return NextResponse.redirect(loginUrl);
   }
-
-  // Check roles
-  const { data: roleData } = await supabase
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", session.user.id)
-    .maybeSingle();
-
-  const role = roleData?.role || 'autor'; // fallback
-
 
   return response;
 }

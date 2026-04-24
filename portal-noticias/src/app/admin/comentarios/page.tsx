@@ -4,8 +4,6 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { CheckCircle2, XCircle, Trash2, MessageSquare, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
-import AdminTopbar from "@/components/admin/AdminTopbar";
-import AdminSidebar from "@/components/admin/AdminSidebar";
 import Link from "next/link";
 
 export default function ComentariosAdmin() {
@@ -46,12 +44,7 @@ export default function ComentariosAdmin() {
   };
 
   return (
-    <div className="flex h-screen bg-slate-50 font-sans overflow-hidden">
-      <AdminSidebar />
-      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-        <AdminTopbar />
-        
-        <div className="p-8 max-w-7xl mx-auto w-full">
+    <div className="p-8 max-w-7xl mx-auto w-full">
           {/* TOPO */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
             <div className="flex items-center gap-4">
@@ -131,7 +124,5 @@ export default function ComentariosAdmin() {
             </div>
           )}
         </div>
-      </main>
-    </div>
   );
 }

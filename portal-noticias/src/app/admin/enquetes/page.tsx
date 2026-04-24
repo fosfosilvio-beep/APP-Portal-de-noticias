@@ -4,8 +4,6 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { Plus, Trash2, Edit, CheckCircle2, XCircle, PieChart, PlayCircle } from "lucide-react";
 import { toast } from "sonner";
-import AdminTopbar from "@/components/admin/AdminTopbar";
-import AdminSidebar from "@/components/admin/AdminSidebar";
 
 export default function EnquetesAdminPage() {
   const [enquetes, setEnquetes] = useState<any[]>([]);
@@ -97,12 +95,7 @@ export default function EnquetesAdminPage() {
   };
 
   return (
-    <div className="flex h-screen bg-slate-50 font-sans overflow-hidden">
-      <AdminSidebar />
-      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-        <AdminTopbar />
-        
-        <div className="p-8 max-w-5xl mx-auto w-full">
+    <div className="p-8 max-w-5xl mx-auto w-full">
           {/* TOPO */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
             <div className="flex items-center gap-4">
@@ -182,9 +175,6 @@ export default function EnquetesAdminPage() {
               })}
             </div>
           )}
-        </div>
-      </main>
-
       {/* MODAL */}
       {showModal && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">

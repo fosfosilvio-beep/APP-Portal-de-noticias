@@ -31,10 +31,7 @@ export default function AuditoriaManager() {
   const fetchActions = async () => {
     const { data, error } = await supabase
       .from("admin_actions")
-      .select(`
-        *,
-        profiles:user_id ( nome_completo, email )
-      `)
+      .select("*")
       .order("created_at", { ascending: false })
       .limit(100);
 

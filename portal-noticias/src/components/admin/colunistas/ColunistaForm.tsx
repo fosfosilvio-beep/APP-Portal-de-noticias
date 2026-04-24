@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { X, Upload, Loader2, Save, User, Link as LinkIcon, FileText } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { createColumnistUserAction } from "@/app/actions/admin";
 
 interface Colunista {
   id: string;
@@ -23,6 +24,7 @@ interface ColunistaFormProps {
 export default function ColunistaForm({ colunista, onClose, onSuccess }: ColunistaFormProps) {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [useExternalUrl, setUseExternalUrl] = useState(false);
   const [formData, setFormData] = useState({
     nome: colunista?.nome || "",
     cargo_descricao: colunista?.cargo_descricao || "",
@@ -56,13 +58,13 @@ export default function ColunistaForm({ colunista, onClose, onSuccess }: Colunis
       const filePath = `profiles/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from("colunistas")
+        .from("midia")
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from("colunistas")
+        .from("midia")
         .getPublicUrl(filePath);
 
       setFormData(prev => ({ ...prev, foto_perfil: publicUrl }));
@@ -79,23 +81,40 @@ export default function ColunistaForm({ colunista, onClose, onSuccess }: Colunis
     try {
       setLoading(true);
 
-      const payload = {
-        ...formData,
-      };
-
-      if (colunista) {
-        const { error } = await supabase
-          .from("colunistas")
-          .update(payload)
-          .eq("id", colunista.id);
-        if (error) throw error;
-        toast.success("Colunista atualizado!");
+      if (!colunista && (formData as any).email && (formData as any).password) {
+        // Modo Criação com Usuário
+        const res = await createColumnistUserAction({
+          ...formData,
+          email: (formData as any).email,
+          password: (formData as any).password
+        });
+        
+        if (!res.success) throw new Error(res.error);
+        toast.success("Colunista e Usuário criados!");
       } else {
-        const { error } = await supabase
-          .from("colunistas")
-          .insert([payload]);
-        if (error) throw error;
-        toast.success("Colunista cadastrado!");
+        // Modo Edição ou apenas Perfil
+        const payload = {
+          nome: formData.nome,
+          cargo_descricao: formData.cargo_descricao,
+          foto_perfil: formData.foto_perfil,
+          slug: formData.slug,
+          biografia: formData.biografia,
+        };
+
+        if (colunista) {
+          const { error } = await supabase
+            .from("colunistas")
+            .update(payload)
+            .eq("id", colunista.id);
+          if (error) throw error;
+          toast.success("Colunista atualizado!");
+        } else {
+          const { error } = await supabase
+            .from("colunistas")
+            .insert([payload]);
+          if (error) throw error;
+          toast.success("Perfil de colunista cadastrado!");
+        }
       }
 
       onSuccess();
@@ -120,7 +139,7 @@ export default function ColunistaForm({ colunista, onClose, onSuccess }: Colunis
               <h3 className="text-slate-900 font-black uppercase tracking-tighter text-xl">
                 {colunista ? "Editar Colunista" : "Novo Colunista"}
               </h3>
-              <p className="text-slate-500 text-xs font-medium uppercase tracking-widest">Preencha o perfil do autor</p>
+              <p className="text-slate-500 text-xs font-medium uppercase tracking-widest">Preencha o perfil e dados de acesso</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-slate-50 rounded-xl transition-colors text-slate-300 hover:text-slate-500">
@@ -128,7 +147,7 @@ export default function ColunistaForm({ colunista, onClose, onSuccess }: Colunis
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
+        <form onSubmit={handleSubmit} className="p-8 space-y-6 max-h-[85vh] overflow-y-auto custom-scrollbar">
           <div className="flex flex-col md:flex-row gap-8">
             {/* Foto Profile */}
             <div className="shrink-0 flex flex-col items-center gap-4">
@@ -146,10 +165,40 @@ export default function ColunistaForm({ colunista, onClose, onSuccess }: Colunis
                   </div>
                 )}
               </div>
-              <label className="cursor-pointer bg-slate-900 hover:bg-slate-800 text-white font-black px-4 py-2 rounded-xl text-[10px] uppercase tracking-widest transition-all flex items-center gap-2">
-                <Upload size={14} /> {formData.foto_perfil ? "Trocar Foto" : "Subir Foto"}
-                <input type="file" className="hidden" accept="image/*" onChange={handleFileUpload} disabled={uploading} />
-              </label>
+              
+              <div className="flex gap-2">
+                <button 
+                  type="button" 
+                  onClick={() => setUseExternalUrl(false)} 
+                  className={`flex-1 py-2 px-3 rounded-xl text-[9px] font-black uppercase transition-all ${!useExternalUrl ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-400'}`}
+                >
+                  Upload
+                </button>
+                <button 
+                  type="button" 
+                  onClick={() => setUseExternalUrl(true)} 
+                  className={`flex-1 py-2 px-3 rounded-xl text-[9px] font-black uppercase transition-all ${useExternalUrl ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-400'}`}
+                >
+                  Link
+                </button>
+              </div>
+
+              {useExternalUrl ? (
+                <div className="w-full space-y-2">
+                  <input 
+                    type="url" 
+                    value={formData.foto_perfil} 
+                    onChange={e => setFormData({...formData, foto_perfil: e.target.value})} 
+                    className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-2 text-[10px] font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-600/20" 
+                    placeholder="https://exemplo.com/foto.png" 
+                  />
+                </div>
+              ) : (
+                <label className="cursor-pointer bg-slate-900 hover:bg-slate-800 text-white font-black px-4 py-2 rounded-xl text-[10px] uppercase tracking-widest transition-all flex items-center gap-2">
+                  <Upload size={14} /> {formData.foto_perfil ? "Trocar" : "Subir"}
+                  <input type="file" className="hidden" accept="image/*" onChange={handleFileUpload} disabled={uploading} />
+                </label>
+              )}
             </div>
 
             <div className="flex-1 space-y-4">
@@ -174,10 +223,38 @@ export default function ColunistaForm({ colunista, onClose, onSuccess }: Colunis
                   type="text"
                   value={formData.cargo_descricao}
                   onChange={(e) => setFormData({ ...formData, cargo_descricao: e.target.value })}
-                  placeholder="Ex: Especialista em Política e Economia"
+                  placeholder="Ex: Diretor Geral"
                   className="w-full bg-slate-50 border-none rounded-2xl px-6 py-3 text-slate-900 font-bold placeholder:text-slate-300 outline-none focus:ring-2 focus:ring-blue-600/20 transition-all"
                 />
               </div>
+
+              {!colunista && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 p-6 rounded-3xl border border-slate-100">
+                  <div className="space-y-2 md:col-span-2">
+                    <p className="text-[9px] font-black text-blue-600 uppercase tracking-[0.2em] mb-2">Dados de Acesso (Login)</p>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">E-mail</label>
+                    <input
+                      required
+                      type="email"
+                      value={(formData as any).email || ""}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value } as any)}
+                      className="w-full bg-white border border-slate-100 rounded-xl px-4 py-2 text-sm font-bold outline-none focus:ring-2 focus:ring-blue-600/20"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Senha Inicial</label>
+                    <input
+                      required
+                      type="password"
+                      value={(formData as any).password || ""}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value } as any)}
+                      className="w-full bg-white border border-slate-100 rounded-xl px-4 py-2 text-sm font-bold outline-none focus:ring-2 focus:ring-blue-600/20"
+                    />
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Slug da URL</label>
@@ -207,7 +284,7 @@ export default function ColunistaForm({ colunista, onClose, onSuccess }: Colunis
             />
           </div>
 
-          <div className="flex gap-4 pt-4">
+          <div className="flex gap-4 pt-4 pb-2">
             <button
               type="button"
               onClick={onClose}
@@ -221,7 +298,7 @@ export default function ColunistaForm({ colunista, onClose, onSuccess }: Colunis
               className="flex-[2] bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl text-[10px] uppercase tracking-widest transition-all shadow-xl shadow-blue-100 flex items-center justify-center gap-2"
             >
               {loading ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
-              {colunista ? "Salvar Alterações" : "Publicar Perfil"}
+              {colunista ? "Salvar Alterações" : "Criar Colunista e Usuário"}
             </button>
           </div>
         </form>

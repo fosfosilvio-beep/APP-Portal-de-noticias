@@ -1,68 +1,74 @@
 import { NextRequest, NextResponse } from "next/server";
+import { generateWithFallback } from "@/lib/ai-provider";
 
 export async function POST(req: NextRequest) {
   try {
-    const { prompt } = await req.json();
+    const { prompt, content, guidelines } = await req.json();
 
-    if (!prompt) {
-      return NextResponse.json({ error: "Prompt is required" }, { status: 400 });
+    if (!prompt && !content) {
+      return NextResponse.json(
+        { error: "É necessário um prompt ou conteúdo para processar." },
+        { status: 400 }
+      );
     }
 
-    const openRouterKey = process.env.OPENROUTER_API_KEY;
-    if (!openRouterKey) {
-      return NextResponse.json({ error: "OPENROUTER_API_KEY not configured" }, { status: 500 });
-    }
+    // Define o modo: reescrita ou geração nova
+    const isRewrite = !!content;
 
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${openRouterKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "openai/gpt-oss-120b:free",
-        response_format: { type: "json_object" },
-        messages: [
-          {
-            role: "system",
-            content: `Você é um Editor de Jornalismo Profissional.
-Sua tarefa é gerar notícias completas a partir de um tópico fornecido pelo usuário.
-Você deve responder OBRIGATORIAMENTE em formato JSON válido contendo exatamente as chaves: "titulo", "subtitulo" e "conteudo".
+    const systemContext = isRewrite
+      ? `Você é um Editor de Jornalismo Sênior. Sua tarefa é REESCREVER o texto fornecido pelo usuário.
+Mantenha a essência jornalística, melhore o vocabulário e siga RIGOROSAMENTE as diretrizes extras fornecidas.`
+      : `Você é um Editor de Jornalismo Profissional. Sua tarefa é gerar notícias completas e profissionais a partir de um tópico fornecido.`;
+
+    const userRequest = isRewrite
+      ? `REESCREVA este texto jornalístico: "${content}"\n\nDIRETRIZES EXTRAS: ${guidelines || "Torne o texto mais profissional e atraente, evitando plágio."}`
+      : `Escreva uma matéria jornalística completa sobre o seguinte tópico: ${prompt}`;
+
+    const fullPrompt = `${systemContext}
+
+Responda OBRIGATORIAMENTE com um JSON válido contendo EXATAMENTE estas 3 chaves: "titulo", "subtitulo" e "conteudo".
 
 REGRAS PARA O CAMPO "conteudo":
-1. Formato HTML: O conteúdo deve estar em HTML limpo, usando <p>, <h2>, <h3>, etc.
-2. Box de Resumo (Obrigatório): No início do conteúdo, insira um bloco de resumo estilizado usando listas. Exemplo: <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100 mb-6 shadow-sm"><h3 class="font-black text-slate-900 mb-3">Resumo da Matéria</h3><ul class="list-disc pl-5 space-y-2 text-slate-700"><li>Ponto 1</li><li>Ponto 2</li></ul></div>
-3. Marcador Animado (UX Obrigatório): Destaque as partes cruciais do texto usando a tag <mark>. Nossa aplicação usa essa tag para um efeito visual de rolagem suave na cor #00AEE0. Exemplo: <mark>Esta é a informação mais importante do parágrafo.</mark>. Use <mark> pelo menos 3 vezes no texto.`
-          },
-          {
-            role: "user",
-            content: `Escreva uma matéria jornalística sobre o seguinte tópico: ${prompt}`
-          }
-        ]
-      })
-    });
+1. Formato HTML limpo, usando <p>, <h2>, <h3>.
+2. No início do conteúdo, insira um box de resumo: <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100 mb-6 shadow-sm"><h3 class="font-black text-slate-900 mb-3">Resumo da Matéria</h3><ul class="list-disc pl-5 space-y-2 text-slate-700"><li>Ponto 1</li><li>Ponto 2</li><li>Ponto 3</li></ul></div>
+3. Use a tag <mark> pelo menos 3 vezes para destacar trechos importantes.
+4. Mínimo de 4 parágrafos de conteúdo jornalístico.
 
-    if (!response.ok) {
-      const err = await response.text();
-      console.error("OpenRouter API Error:", err);
-      return NextResponse.json({ error: "Erro na API externa de IA." }, { status: response.status });
-    }
+SOLICITAÇÃO DO USUÁRIO:
+${userRequest}`;
 
-    const data = await response.json();
-    let contentText = data.choices[0].message.content;
+    // ── Motor com fallback automático: OpenRouter → Gemini ──────────────────
+    const { text: responseText, provider } = await generateWithFallback(fullPrompt);
 
+    // Limpa possíveis resíduos de markdown e faz o parse
+    const cleaned = responseText
+      .replace(/^```(?:json)?\s*/i, "")
+      .replace(/```\s*$/i, "")
+      .trim();
+
+    let parsed: Record<string, string>;
     try {
-      // Limpeza de possíveis formatações markdown e tentativa de parse
-      contentText = contentText.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim();
-      const parsedData = JSON.parse(contentText);
-      return NextResponse.json(parsedData);
-    } catch (parseError) {
-      console.error("Failed to parse JSON from AI. Raw response:", contentText);
-      return NextResponse.json({ error: "A IA gerou uma resposta inválida que não pôde ser lida." }, { status: 500 });
+      parsed = JSON.parse(cleaned);
+    } catch {
+      console.error(`[generate-news] Falha no parse JSON (provider: ${provider}):`, responseText);
+      return NextResponse.json(
+        { error: "A IA retornou uma resposta em formato inesperado. Tente novamente." },
+        { status: 500 }
+      );
     }
 
-  } catch (error: any) {
-    console.error("Generate News Error:", error);
-    return NextResponse.json({ error: error.message || "Erro interno do servidor" }, { status: 500 });
+    if (!parsed.titulo || !parsed.conteudo) {
+      return NextResponse.json(
+        { error: "Estrutura JSON inválida retornada pela IA." },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ ...parsed, _provider: provider });
+
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Erro interno do servidor.";
+    console.error("[generate-news] Erro geral:", error);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

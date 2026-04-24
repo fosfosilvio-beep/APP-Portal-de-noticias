@@ -54,10 +54,10 @@ export function ScheduleDialog({ open, onOpenChange, onSchedule }: ScheduleDialo
           </div>
         </div>
         <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)} className="text-slate-400 hover:text-white">
+          <Button type="button" variant="ghost" onClick={(e) => { e.preventDefault(); onOpenChange(false); }} className="text-slate-400 hover:text-white">
             Cancelar
           </Button>
-          <Button onClick={handleConfirm} className="bg-blue-600 hover:bg-blue-500 text-white">
+          <Button type="button" onClick={(e) => { e.preventDefault(); handleConfirm(); }} className="bg-blue-600 hover:bg-blue-500 text-white">
             Confirmar Agendamento
           </Button>
         </DialogFooter>

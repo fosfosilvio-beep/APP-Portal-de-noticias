@@ -118,53 +118,96 @@ export default function AdminSidebar() {
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-8 no-scrollbar">
-        {NAV_GROUPS.map((group) => (
-          <div key={group.label} className="space-y-2">
-            {!collapsed && (
-              <h3 className="px-3 text-[10px] font-black text-slate-400 tracking-[0.2em] uppercase">
-                {group.label}
-              </h3>
-            )}
-            <div className="space-y-1">
-              {group.items.map(({ label, href, icon: Icon, exact }) => {
-                const isActive = exact ? pathname === href : pathname.startsWith(href) && href !== "/admin";
-                const isExactActive = href === "/admin" && pathname === "/admin";
-                const active = isActive || isExactActive;
-
-                return (
-                  <Link
-                    key={href}
-                    href={href}
-                    title={collapsed ? label : undefined}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-200 group relative",
-                      active
-                        ? "bg-blue-50 text-blue-600 font-bold"
-                        : "text-slate-500 hover:text-slate-900 hover:bg-slate-50"
-                    )}
-                  >
-                    <Icon
-                      size={18}
-                      className={cn(
-                        "shrink-0 transition-colors",
-                        active ? "text-blue-600" : "text-slate-400 group-hover:text-slate-600"
-                      )}
-                    />
-                    {!collapsed && (
-                      <span className="text-sm truncate">{label}</span>
-                    )}
-                    {!collapsed && active && (
-                      <div className="ml-auto w-1 h-4 rounded-full bg-blue-600 shrink-0" />
-                    )}
-                    {collapsed && active && (
-                      <div className="absolute left-0 w-1 h-6 bg-blue-600 rounded-r-full" />
-                    )}
-                  </Link>
-                );
-              })}
-            </div>
+        {!role ? (
+          <div className="space-y-4 px-3">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="h-8 w-full bg-slate-50 animate-pulse rounded-lg" />
+            ))}
           </div>
-        ))}
+        ) : role === 'autor' ? (
+          <div className="space-y-1">
+            {NAV_GROUPS.filter(g => g.label === "CONTEÚDO").map(group => {
+              const noticiasItem = group.items.find(item => item.label === "Notícias");
+              if (!noticiasItem) return null;
+              
+              return (
+                <Link
+                  key={noticiasItem.href}
+                  href={noticiasItem.href}
+                  title={collapsed ? noticiasItem.label : undefined}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-200 group relative",
+                    pathname.startsWith(noticiasItem.href)
+                      ? "bg-blue-50 text-blue-600 font-bold"
+                      : "text-slate-500 hover:text-slate-900 hover:bg-slate-50"
+                  )}
+                >
+                  <noticiasItem.icon
+                    size={18}
+                    className={cn(
+                      "shrink-0 transition-colors",
+                      pathname.startsWith(noticiasItem.href) ? "text-blue-600" : "text-slate-400 group-hover:text-slate-600"
+                    )}
+                  />
+                  {!collapsed && (
+                    <span className="text-sm truncate">{noticiasItem.label}</span>
+                  )}
+                  {!collapsed && pathname.startsWith(noticiasItem.href) && (
+                    <div className="ml-auto w-1 h-4 rounded-full bg-blue-600 shrink-0" />
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        ) : (
+          NAV_GROUPS.map((group) => (
+            <div key={group.label} className="space-y-2">
+              {!collapsed && (
+                <h3 className="px-3 text-[10px] font-black text-slate-400 tracking-[0.2em] uppercase">
+                  {group.label}
+                </h3>
+              )}
+              <div className="space-y-1">
+                {group.items.map(({ label, href, icon: Icon, exact }) => {
+                  const isActive = exact ? pathname === href : pathname.startsWith(href) && href !== "/admin";
+                  const isExactActive = href === "/admin" && pathname === "/admin";
+                  const active = isActive || isExactActive;
+
+                  return (
+                    <Link
+                      key={href}
+                      href={href}
+                      title={collapsed ? label : undefined}
+                      className={cn(
+                        "flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-200 group relative",
+                        active
+                          ? "bg-blue-50 text-blue-600 font-bold"
+                          : "text-slate-500 hover:text-slate-900 hover:bg-slate-50"
+                      )}
+                    >
+                      <Icon
+                        size={18}
+                        className={cn(
+                          "shrink-0 transition-colors",
+                          active ? "text-blue-600" : "text-slate-400 group-hover:text-slate-600"
+                        )}
+                      />
+                      {!collapsed && (
+                        <span className="text-sm truncate">{label}</span>
+                      )}
+                      {!collapsed && active && (
+                        <div className="ml-auto w-1 h-4 rounded-full bg-blue-600 shrink-0" />
+                      )}
+                      {collapsed && active && (
+                        <div className="absolute left-0 w-1 h-6 bg-blue-600 rounded-r-full" />
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))
+        )}
       </nav>
 
       {/* Collapse toggle */}

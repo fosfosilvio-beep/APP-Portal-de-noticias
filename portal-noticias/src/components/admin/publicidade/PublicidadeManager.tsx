@@ -23,6 +23,8 @@ export default function PublicidadeManager() {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [useExternalUrl, setUseExternalUrl] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -50,41 +52,79 @@ export default function PublicidadeManager() {
     setLoading(false);
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setUploading(true);
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Math.random()}.${fileExt}`;
-
-    const { data, error } = await supabase.storage.from("publicidade").upload(fileName, file);
-    
-    if (error) {
-      toast.error("Erro no upload", error.message);
-    } else if (data) {
-      const { data: { publicUrl } } = supabase.storage.from("publicidade").getPublicUrl(data.path);
-      setFormData({ ...formData, imagem_url: publicUrl });
-      toast.success("Imagem carregada!");
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+      // Criar preview local
+      const objectUrl = URL.createObjectURL(selectedFile);
+      setFormData({ ...formData, imagem_url: objectUrl });
     }
-    setUploading(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.imagem_url) {
-      toast.error("Imagem obrigatória", "Faça o upload do banner primeiro.");
-      return;
-    }
+    setLoading(true);
 
-    const { error } = await supabase.from("publicidade_banners").insert([formData]);
-    if (error) {
-      toast.error("Erro ao salvar", error.message);
-    } else {
-      toast.success("Banner criado com sucesso!");
+    try {
+      let finalImageUrl = formData.imagem_url;
+
+      // === ETAPA A: UPLOAD (Se houver arquivo e não for URL externa) ===
+      if (!useExternalUrl && file) {
+        setUploading(true);
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('midia')
+          .upload(fileName, file);
+
+        if (uploadError) throw new Error(`Erro no Storage: ${uploadError.message}`);
+
+        const { data: publicUrlData } = supabase.storage
+          .from('midia')
+          .getPublicUrl(fileName);
+        
+        finalImageUrl = publicUrlData.publicUrl;
+        setUploading(false);
+      }
+
+      if (!finalImageUrl || finalImageUrl.startsWith('blob:')) {
+        throw new Error("A imagem é obrigatória. Aguarde o upload ou insira uma URL.");
+      }
+
+      // === ETAPA B: INSERÇÃO NO BANCO (Payload 100% Limpo) ===
+      const payload = {
+        titulo: formData.titulo,
+        imagem_url: finalImageUrl,
+        link_destino: formData.link_destino || '',
+        posicao: formData.posicao,
+        dimensoes: formData.dimensoes
+      };
+
+      console.log("ENVIANDO PAYLOAD:", payload);
+
+      const { error: dbError } = await (supabase as any)
+        .from('publicidade_banners')
+        .insert([payload]);
+
+      if (dbError) {
+        console.error("DETALHES DO ERRO DB:", dbError);
+        throw new Error(`Erro no DB: ${dbError.message}`);
+      }
+
+      toast.success("Banner cadastrado com sucesso!");
       setIsModalOpen(false);
       setFormData({ titulo: "", link_destino: "", posicao: "home_topo", dimensoes: "728x90", imagem_url: "" });
+      setFile(null);
       fetchBanners();
+
+    } catch (error: any) {
+      console.error("ERRO COMPLETO:", error);
+      toast.error(error.message || "Erro desconhecido.");
+    } finally {
+      setLoading(false);
+      setUploading(false);
     }
   };
 
@@ -237,26 +277,62 @@ export default function PublicidadeManager() {
               </div>
 
               <div>
-                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Arte / Imagem</label>
-                <div className="border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer relative">
-                  {formData.imagem_url ? (
-                    <div className="relative w-full flex flex-col items-center">
-                      <img src={formData.imagem_url} alt="Preview" className="max-h-32 object-contain rounded-lg" />
-                      <button type="button" onClick={() => setFormData({...formData, imagem_url: ''})} className="mt-2 text-[10px] font-black text-rose-500 uppercase">Remover Imagem</button>
-                    </div>
-                  ) : uploading ? (
-                    <div className="flex flex-col items-center">
-                      <Loader2 className="animate-spin text-amber-500 mb-2" />
-                      <span className="text-[10px] font-bold text-slate-400 uppercase">Subindo imagem...</span>
-                    </div>
-                  ) : (
-                    <>
-                      <ImageIcon className="text-slate-300 mb-2" size={32} />
-                      <input type="file" accept="image/*" onChange={handleFileChange} className="absolute inset-0 opacity-0 cursor-pointer" title="Escolha a imagem" />
-                      <span className="text-[10px] font-bold text-slate-400 uppercase">Clique para selecionar</span>
-                    </>
-                  )}
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-xs font-black text-slate-400 uppercase tracking-widest">Arte / Imagem</label>
+                  <div className="flex bg-slate-100 p-1 rounded-lg">
+                    <button 
+                      type="button" 
+                      onClick={() => setUseExternalUrl(false)} 
+                      className={`px-3 py-1 rounded-md text-[10px] font-black uppercase transition-all ${!useExternalUrl ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                    >
+                      Upload
+                    </button>
+                    <button 
+                      type="button" 
+                      onClick={() => setUseExternalUrl(true)} 
+                      className={`px-3 py-1 rounded-md text-[10px] font-black uppercase transition-all ${useExternalUrl ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                    >
+                      URL Externa
+                    </button>
+                  </div>
                 </div>
+
+                {useExternalUrl ? (
+                  <div className="space-y-2">
+                    <input 
+                      type="url" 
+                      value={formData.imagem_url} 
+                      onChange={e => setFormData({...formData, imagem_url: e.target.value})} 
+                      className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 font-medium text-slate-700 outline-none focus:ring-2 focus:ring-amber-500/20" 
+                      placeholder="https://exemplo.com/imagem.png" 
+                    />
+                    {formData.imagem_url && (
+                      <div className="relative w-full flex flex-col items-center p-4 border border-slate-100 rounded-2xl bg-slate-50">
+                        <img src={formData.imagem_url} alt="Preview" className="max-h-32 object-contain rounded-lg" onError={(e) => (e.currentTarget.src = 'https://placehold.co/600x400?text=Erro+no+Link')} />
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer relative">
+                    {formData.imagem_url ? (
+                      <div className="relative w-full flex flex-col items-center">
+                        <img src={formData.imagem_url} alt="Preview" className="max-h-32 object-contain rounded-lg" />
+                        <button type="button" onClick={() => setFormData({...formData, imagem_url: ''})} className="mt-2 text-[10px] font-black text-rose-500 uppercase">Remover Imagem</button>
+                      </div>
+                    ) : uploading ? (
+                      <div className="flex flex-col items-center">
+                        <Loader2 className="animate-spin text-amber-500 mb-2" />
+                        <span className="text-[10px] font-bold text-slate-400 uppercase">Subindo imagem...</span>
+                      </div>
+                    ) : (
+                      <>
+                        <ImageIcon className="text-slate-300 mb-2" size={32} />
+                        <input type="file" accept="image/*" onChange={handleFileChange} className="absolute inset-0 opacity-0 cursor-pointer" title="Escolha a imagem" />
+                        <span className="text-[10px] font-bold text-slate-400 uppercase">Clique para selecionar</span>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="pt-4 flex justify-end gap-3">

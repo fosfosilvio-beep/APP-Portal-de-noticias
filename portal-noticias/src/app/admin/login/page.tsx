@@ -26,9 +26,24 @@ export default function AdminLogin() {
       toast.error("Erro no Login", error.message);
       setLoading(false);
     } else {
+      // Buscar role para redirecionar corretamente
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user?.id)
+        .maybeSingle();
+
+      const role = roleData?.role || "autor";
+
       toast.success("Login bem sucedido!");
-      router.push("/admin/transmissao");
-      router.refresh(); // refresh the layout
+      
+      // Forçamos o reload completo para o middleware capturar a sessão imediatamente
+      if (role === "autor") {
+        window.location.href = "/admin/noticias";
+      } else {
+        window.location.href = "/admin/dashboard";
+      }
     }
   };
 

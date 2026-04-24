@@ -198,7 +198,8 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
         {/* IA MAGIC BUTTON */}
         <div className="relative mr-2 border-r border-neutral-800 pr-2">
           <button 
-            onClick={() => { setShowAIPopover(!showAIPopover); setShowFonts(false); setShowSizes(false); setShowColors(false); }}
+            type="button"
+            onClick={(e) => { e.preventDefault(); setShowAIPopover(!showAIPopover); setShowFonts(false); setShowSizes(false); setShowColors(false); }}
             className={`p-2 rounded-lg flex items-center gap-2 text-xs font-bold transition-all ${showAIPopover ? "bg-indigo-600 text-white" : "bg-indigo-600/10 text-indigo-400 hover:bg-indigo-600/20"}`}
             title="Gerador Mágico IA"
           >
@@ -212,7 +213,7 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
                 <span className="text-[10px] font-black uppercase text-indigo-400 tracking-widest flex items-center gap-2">
                   <Sparkles size={12} /> Diretrizes do Editor
                 </span>
-                <button onClick={() => setShowAIPopover(false)} className="text-neutral-500 hover:text-white">
+                <button type="button" onClick={(e) => { e.preventDefault(); setShowAIPopover(false); }} className="text-neutral-500 hover:text-white">
                   <X size={14} />
                 </button>
               </div>
@@ -223,7 +224,8 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
                 className="w-full h-24 bg-neutral-950 border border-neutral-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 placeholder:text-neutral-600 resize-none mb-3"
               />
               <button
-                onClick={handleRewrite}
+                type="button"
+                onClick={(e) => { e.preventDefault(); handleRewrite(); }}
                 disabled={isProcessing}
                 className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-bold py-2 rounded-lg transition-all flex items-center justify-center gap-2"
               >
@@ -237,7 +239,8 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
         {/* Font Family Selector (Dropdown) */}
         <div className="relative mr-2 border-r border-neutral-800 pr-2">
           <button 
-            onClick={() => { setShowFonts(!showFonts); setShowSizes(false); setShowColors(false); setShowAIPopover(false); }}
+            type="button"
+            onClick={(e) => { e.preventDefault(); setShowFonts(!showFonts); setShowSizes(false); setShowColors(false); setShowAIPopover(false); }}
             className={`px-3 py-2 rounded-lg flex items-center gap-2 text-xs font-bold transition-all ${showFonts ? "bg-blue-600 text-white" : "text-neutral-400 hover:bg-neutral-800 hover:text-white"}`}
             title="Escolher Fonte"
           >
@@ -254,7 +257,9 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
                   {fontFamilies.filter(f => f.group === group).map(font => (
                     <button
                       key={font.value}
-                      onClick={() => {
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
                         editor.chain().focus().setFontFamily(font.value).run();
                         setShowFonts(false);
                       }}
@@ -273,7 +278,8 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
         {/* Font Size Dropdown */}
         <div className="relative mr-2 border-r border-neutral-800 pr-2">
           <button 
-            onClick={() => { setShowSizes(!showSizes); setShowColors(false); setShowFonts(false); setShowAIPopover(false); }}
+            type="button"
+            onClick={(e) => { e.preventDefault(); setShowSizes(!showSizes); setShowColors(false); setShowFonts(false); setShowAIPopover(false); }}
             className={`p-2 rounded-lg flex items-center gap-1 text-xs font-bold transition-all ${showSizes ? "bg-blue-600 text-white" : "text-neutral-400 hover:bg-neutral-800 hover:text-white"}`}
             title="Tamanho da Fonte"
           >
@@ -285,7 +291,9 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
               {fontSizes.map(size => (
                 <button
                   key={size}
-                  onClick={() => {
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
                     // @ts-ignore
                     editor.chain().focus().setFontSize(size).run();
                     setShowSizes(false);
@@ -302,7 +310,8 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
         {/* Color Picker */}
         <div className="relative mr-2 border-r border-neutral-800 pr-2">
           <button 
-            onClick={() => { setShowColors(!showColors); setShowSizes(false); setShowFonts(false); setShowAIPopover(false); }}
+            type="button"
+            onClick={(e) => { e.preventDefault(); setShowColors(!showColors); setShowSizes(false); setShowFonts(false); setShowAIPopover(false); }}
             className={`p-2 rounded-lg flex items-center gap-2 text-xs font-bold transition-all ${showColors ? "bg-blue-600 text-white" : "text-neutral-400 hover:bg-neutral-800 hover:text-white"}`}
             title="Cor do Texto"
           >
@@ -314,7 +323,9 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
               {colors.map(color => (
                 <button
                   key={color.value}
-                  onClick={() => {
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
                     editor.chain().focus().setColor(color.value).run();
                     setShowColors(false);
                   }}
@@ -324,7 +335,8 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
                 />
               ))}
               <button 
-                onClick={() => { editor.chain().focus().unsetColor().run(); setShowColors(false); }}
+                type="button"
+                onClick={(e) => { e.preventDefault(); editor.chain().focus().unsetColor().run(); setShowColors(false); }}
                 className="col-span-4 text-[10px] font-bold text-neutral-500 pt-2 border-t border-neutral-800 hover:text-white"
               >
                 Resetar Cor
@@ -336,19 +348,22 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
         {/* Basic Styles */}
         <div className="flex items-center gap-1 mr-2 border-r border-neutral-800 pr-2">
           <button
-            onClick={() => editor.chain().focus().toggleBold().run()}
+            type="button"
+            onClick={(e) => { e.preventDefault(); editor.chain().focus().toggleBold().run(); }}
             className={`p-2 rounded-lg transition-all ${editor.isActive("bold") ? "bg-blue-600 text-white shadow-md shadow-blue-900/20" : "text-neutral-400 hover:bg-neutral-800 hover:text-white"}`}
           >
             <Bold size={18} />
           </button>
           <button
-            onClick={() => editor.chain().focus().toggleItalic().run()}
+            type="button"
+            onClick={(e) => { e.preventDefault(); editor.chain().focus().toggleItalic().run(); }}
             className={`p-2 rounded-lg transition-all ${editor.isActive("italic") ? "bg-blue-600 text-white shadow-md shadow-blue-900/20" : "text-neutral-400 hover:bg-neutral-800 hover:text-white"}`}
           >
             <Italic size={18} />
           </button>
           <button
-            onClick={() => editor.chain().focus().toggleUnderline().run()}
+            type="button"
+            onClick={(e) => { e.preventDefault(); editor.chain().focus().toggleUnderline().run(); }}
             className={`p-2 rounded-lg transition-all ${editor.isActive("underline") ? "bg-blue-600 text-white shadow-md shadow-blue-900/20" : "text-neutral-400 hover:bg-neutral-800 hover:text-white"}`}
           >
             <UnderlineIcon size={18} />
@@ -358,25 +373,29 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
         {/* Alignments */}
         <div className="flex items-center gap-1 mr-2 border-r border-neutral-800 pr-2">
           <button
-            onClick={() => editor.chain().focus().setTextAlign("left").run()}
+            type="button"
+            onClick={(e) => { e.preventDefault(); editor.chain().focus().setTextAlign("left").run(); }}
             className={`p-2 rounded-lg transition-all ${editor.isActive({ textAlign: "left" }) ? "bg-blue-600 text-white" : "text-neutral-400 hover:bg-neutral-800 hover:text-white"}`}
           >
             <AlignLeft size={18} />
           </button>
           <button
-            onClick={() => editor.chain().focus().setTextAlign("center").run()}
+            type="button"
+            onClick={(e) => { e.preventDefault(); editor.chain().focus().setTextAlign("center").run(); }}
             className={`p-2 rounded-lg transition-all ${editor.isActive({ textAlign: "center" }) ? "bg-blue-600 text-white" : "text-neutral-400 hover:bg-neutral-800 hover:text-white"}`}
           >
             <AlignCenter size={18} />
           </button>
           <button
-            onClick={() => editor.chain().focus().setTextAlign("right").run()}
+            type="button"
+            onClick={(e) => { e.preventDefault(); editor.chain().focus().setTextAlign("right").run(); }}
             className={`p-2 rounded-lg transition-all ${editor.isActive({ textAlign: "right" }) ? "bg-blue-600 text-white" : "text-neutral-400 hover:bg-neutral-800 hover:text-white"}`}
           >
             <AlignRight size={18} />
           </button>
           <button
-            onClick={() => editor.chain().focus().setTextAlign("justify").run()}
+            type="button"
+            onClick={(e) => { e.preventDefault(); editor.chain().focus().setTextAlign("justify").run(); }}
             className={`p-2 rounded-lg transition-all ${editor.isActive({ textAlign: "justify" }) ? "bg-blue-600 text-white" : "text-neutral-400 hover:bg-neutral-800 hover:text-white"}`}
           >
             <AlignJustify size={18} />
@@ -386,13 +405,15 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
         {/* Headings */}
         <div className="flex items-center gap-1">
           <button
-            onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+            type="button"
+            onClick={(e) => { e.preventDefault(); editor.chain().focus().toggleHeading({ level: 1 }).run(); }}
             className={`p-2 rounded-lg transition-all ${editor.isActive("heading", { level: 1 }) ? "bg-blue-600 text-white" : "text-neutral-400 hover:bg-neutral-800 hover:text-white"}`}
           >
             <Heading1 size={18} />
           </button>
           <button
-            onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+            type="button"
+            onClick={(e) => { e.preventDefault(); editor.chain().focus().toggleHeading({ level: 2 }).run(); }}
             className={`p-2 rounded-lg transition-all ${editor.isActive("heading", { level: 2 }) ? "bg-blue-600 text-white" : "text-neutral-400 hover:bg-neutral-800 hover:text-white"}`}
           >
             <Heading2 size={18} />
@@ -402,19 +423,22 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
         {/* Extras: Lists, Link, Reset */}
         <div className="flex items-center gap-1 ml-auto">
           <button
-            onClick={() => editor.chain().focus().toggleBulletList().run()}
+            type="button"
+            onClick={(e) => { e.preventDefault(); editor.chain().focus().toggleBulletList().run(); }}
             className={`p-2 rounded-lg transition-all ${editor.isActive("bulletList") ? "bg-blue-600 text-white" : "text-neutral-400 hover:bg-neutral-800 hover:text-white"}`}
           >
             <List size={18} />
           </button>
           <button
-            onClick={addLink}
+            type="button"
+            onClick={(e) => { e.preventDefault(); addLink(); }}
             className={`p-2 rounded-lg transition-all ${editor.isActive("link") ? "bg-blue-600 text-white" : "text-neutral-400 hover:bg-neutral-800 hover:text-white"}`}
           >
             <LinkIcon size={18} />
           </button>
           <button
-            onClick={() => editor.chain().focus().unsetAllMarks().clearNodes().run()}
+            type="button"
+            onClick={(e) => { e.preventDefault(); editor.chain().focus().unsetAllMarks().clearNodes().run(); }}
             className="p-2 rounded-lg text-neutral-400 hover:bg-red-500/10 hover:text-red-500 transition-all ml-4"
             title="Resetar Estilos"
           >
