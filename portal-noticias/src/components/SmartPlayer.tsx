@@ -78,7 +78,10 @@ export const detectLivePlatform = (url: string | null): "youtube" | "facebook" |
 // Props
 // ─────────────────────────────────────────────────────────────────────────────
 interface SmartPlayerProps {
-  customVideoUrl?: string;
+  url?: string;
+  isLive?: boolean;
+  title?: string;
+  customVideoUrl?: string; // Legacy
   startTime?: number;
   endTime?: number;
   onLiveChange?: (isLive: boolean, liveUrl: string | null) => void;
@@ -87,8 +90,16 @@ interface SmartPlayerProps {
 // ─────────────────────────────────────────────────────────────────────────────
 // Componente
 // ─────────────────────────────────────────────────────────────────────────────
-export default function SmartPlayer({ customVideoUrl, startTime, endTime, onLiveChange }: SmartPlayerProps) {
-  const [config, setConfig] = useState<ConfiguracaoPortal | null>(null);
+export default function SmartPlayer({ 
+  url, 
+  isLive, 
+  title, 
+  customVideoUrl, 
+  startTime, 
+  endTime, 
+  onLiveChange 
+}: SmartPlayerProps) {
+  const [configInterno, setConfigInterno] = useState<ConfiguracaoPortal | null>(null);
   const [loading, setLoading] = useState(true);
   const [videoAutomatico, setVideoAutomatico] = useState<string | null>(null);
   const [displayViewers, setDisplayViewers] = useState(0);
@@ -146,7 +157,7 @@ export default function SmartPlayer({ customVideoUrl, startTime, endTime, onLive
 
       if (error) console.error("[SmartPlayer] Erro:", error);
       else if (data) {
-        setConfig(data);
+        setConfigInterno(data);
         if (!data.is_live) await resolverFallback();
         onLiveChange?.(data.is_live, data.url_live_facebook);
       }
@@ -156,6 +167,22 @@ export default function SmartPlayer({ customVideoUrl, startTime, endTime, onLive
       setLoading(false);
     }
   }, [resolverFallback, onLiveChange]);
+
+  // --- Props Override ---
+  const activeIsLive = isLive !== undefined ? isLive : (configInterno?.is_live ?? false);
+  const activeTitle = title || configInterno?.titulo_live || "";
+
+  const activeVideoUrl = url || (activeIsLive
+    ? (configInterno?.mostrar_live_facebook
+      ? (configInterno?.url_live_facebook || configInterno?.url_live_youtube)
+      : (configInterno?.url_live_youtube || configInterno?.url_live_facebook))
+    : (customVideoUrl || videoAutomatico));
+
+  const config = {
+    ...configInterno,
+    is_live: activeIsLive,
+    titulo_live: activeTitle,
+  };
 
   // ─── Inicialização + Realtime ──────────────────────────────────────────────
   useEffect(() => {
@@ -169,7 +196,7 @@ export default function SmartPlayer({ customVideoUrl, startTime, endTime, onLive
         { event: "UPDATE", schema: "public", table: "configuracao_portal" },
         async (payload: any) => {
           const newConf = payload.new as ConfiguracaoPortal;
-          setConfig(newConf);
+          setConfigInterno(newConf);
           setVideoAutomatico(null);
           if (!newConf.is_live) await resolverFallback();
           const activeUrl = newConf.mostrar_live_facebook ? newConf.url_live_facebook : newConf.url_live_youtube;
@@ -183,14 +210,9 @@ export default function SmartPlayer({ customVideoUrl, startTime, endTime, onLive
   }, []);
 
   // ─── Bifurcação de Sinal ───────────────────────────────────────────────────
-  const isAcervo = !config?.is_live && (customVideoUrl || videoAutomatico);
-  const activeVideoUrl = config?.is_live
-    ? (config.mostrar_live_facebook
-      ? (config.url_live_facebook || config.url_live_youtube)
-      : (config.url_live_youtube || config.url_live_facebook))
-    : (customVideoUrl || videoAutomatico);
+  const isAcervo = !activeIsLive && (customVideoUrl || videoAutomatico);
 
-  const isYouTube = detectLivePlatform(activeVideoUrl) === 'youtube';
+  const isYouTube = detectLivePlatform(activeVideoUrl || null) === 'youtube';
   const embedUrl = activeVideoUrl ? convertEmbedUrl(activeVideoUrl, startTime, endTime) : null;
 
   // ── KEY FORCING: atualiza a key APENAS quando a URL muda de fato ───────────
