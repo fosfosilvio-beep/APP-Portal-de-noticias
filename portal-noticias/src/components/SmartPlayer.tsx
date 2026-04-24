@@ -142,7 +142,7 @@ export default function SmartPlayer({ customVideoUrl, startTime, endTime, onLive
         .limit(1)
         // Trick simples para forçar leitura real do backend no cliente
         .order("id", { ascending: true })
-        .single();
+        .maybeSingle();
 
       if (error) console.error("[SmartPlayer] Erro:", error);
       else if (data) {

@@ -32,19 +32,23 @@ export default function AdSlot({ posicao, className = "", bannerId }: AdSlotProp
       return;
     }
 
-    const { data } = await query.order("created_at", { ascending: false }).limit(1).single();
+    const { data, error } = await query.order("created_at", { ascending: false }).limit(1).maybeSingle();
 
     if (data) {
       setBanner(data);
-      // Registrar visualização sem travar o render
-      supabase.rpc("incrementar_visualizacao_banner", { banner_id: data.id }).catch(() => {});
+      // Registrar visualização sem travar o render (usando then em vez de catch direto para evitar TypeError)
+      supabase.rpc("incrementar_visualizacao_banner", { banner_id: data.id }).then((res: any) => {
+        if (res.error) console.warn("Erro ao registrar visualização:", res.error);
+      });
     }
     setLoading(false);
   };
 
   const handleClick = () => {
     if (banner) {
-      supabase.rpc("incrementar_clique_banner", { banner_id: banner.id }).catch(() => {});
+      supabase.rpc("incrementar_clique_banner", { banner_id: banner.id }).then((res: any) => {
+        if (res.error) console.warn("Erro ao registrar clique:", res.error);
+      });
     }
   };
 

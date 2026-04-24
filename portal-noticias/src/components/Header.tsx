@@ -47,11 +47,13 @@ export default function Header({
   const [session, setSession] = useState<any>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const [isLiveInterno, setIsLiveInterno] = useState(isLive);
   const [configInterno, setConfigInterno] = useState(config);
 
   useEffect(() => {
+    setMounted(true);
     // 1. Auth session
     supabase.auth.getSession().then(({ data: { session } }: any) => setSession(session));
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e: any, s: any) => setSession(s));
@@ -135,6 +137,12 @@ export default function Header({
   const logoTextoUrl = getPublicUrl(ui.logoTextoUrl);
   const primaryColor = activeConfig?.ui_settings?.primary_color || ui.primaryColor || "#00AEE0";
   const fontFamily = activeConfig?.ui_settings?.font_family || ui.fontFamily || "Inter, sans-serif";
+
+  if (!mounted) {
+    return (
+       <div className="w-full flex flex-col font-sans sticky top-0 z-50 bg-black h-[100px] border-b border-zinc-800"></div>
+    );
+  }
 
   return (
     <>

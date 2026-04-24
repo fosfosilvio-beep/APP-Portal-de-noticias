@@ -14,6 +14,8 @@ interface HeroSectionProps {
 export default function HeroSection({ initialIsLive, initialLiveUrl }: HeroSectionProps) {
   const [isLive, setIsLive] = useState(initialIsLive);
   const [liveUrl, setLiveUrl] = useState<string | null>(initialLiveUrl || null);
+  const [mounted, setMounted] = useState(false);
+  const supabase = createClient();
 
   const handleLiveChange = useCallback((live: boolean, url: string | null) => {
     setIsLive(live);
@@ -21,7 +23,7 @@ export default function HeroSection({ initialIsLive, initialLiveUrl }: HeroSecti
   }, []);
 
   useEffect(() => {
-    const supabase = createClient();
+    setMounted(true);
     
     // Força checagem imediata ao montar (bypass Next.js e Browser cache)
     const fetchCurrentState = async () => {
@@ -52,6 +54,9 @@ export default function HeroSection({ initialIsLive, initialLiveUrl }: HeroSecti
       supabase.removeChannel(configChannel);
     };
   }, []);
+
+  // Renderiza apenas após montagem para evitar erros de hidratação (#418)
+  if (!mounted) return null;
 
   return (
     <div className={isLive ? "block" : "hidden"}>
