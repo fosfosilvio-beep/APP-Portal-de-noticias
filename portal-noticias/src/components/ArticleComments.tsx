@@ -14,7 +14,6 @@ interface Comentario {
 }
 
 export default function ArticleComments({ noticiaId }: { noticiaId: string }) {
-  const supabase = createClient();
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [comentarios, setComentarios] = useState<Comentario[]>([]);
   const [novoComentario, setNovoComentario] = useState("");
@@ -22,6 +21,9 @@ export default function ArticleComments({ noticiaId }: { noticiaId: string }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const supabase = createClient();
+    if (!supabase) return;
+
     supabase.auth.getSession().then((result: any) => {
       setUser(result.data?.session?.user ?? null);
     });
@@ -37,6 +39,9 @@ export default function ArticleComments({ noticiaId }: { noticiaId: string }) {
     if (!noticiaId) return;
 
     const fetchComments = async () => {
+      const supabase = createClient();
+      if (!supabase) return;
+
       const { data, error } = await supabase
         .from("comentarios_noticias")
         .select("*")
@@ -51,6 +56,9 @@ export default function ArticleComments({ noticiaId }: { noticiaId: string }) {
     fetchComments();
 
     // Inscricao Realtime para novos comentarios
+    const supabase = createClient();
+    if (!supabase) return;
+
     const channel = supabase
       .channel(`comments-${noticiaId}`)
       .on("postgres_changes", { 
@@ -74,7 +82,8 @@ export default function ArticleComments({ noticiaId }: { noticiaId: string }) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !novoComentario.trim() || enviando) return;
+    const supabase = createClient();
+    if (!supabase || !user || !novoComentario.trim() || enviando) return;
 
     setEnviando(true);
     const { error } = await supabase.from("comentarios_noticias").insert([

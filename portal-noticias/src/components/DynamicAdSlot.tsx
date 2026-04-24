@@ -25,10 +25,11 @@ interface DynamicAdSlotProps {
 export default function DynamicAdSlot({ position, className, fallback }: DynamicAdSlotProps) {
   const [ad, setAd] = useState<AdSlotData | null>(null);
   const [loading, setLoading] = useState(true);
-  const supabase = createClient();
-
   useEffect(() => {
     async function loadAd() {
+      const supabase = createClient();
+      if (!supabase) return;
+
       const { data } = await supabase
         .from("ad_slots")
         .select("*")

@@ -25,9 +25,10 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
   const [authorized, setAuthorized] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
-  const supabase = createClient();
-
   useEffect(() => {
+    const supabase = createClient();
+    if (!supabase) return;
+
     async function checkAuth() {
       // EXCEÇÃO: Se estiver na página de login, não faz nada
       if (pathname === "/admin/login") {

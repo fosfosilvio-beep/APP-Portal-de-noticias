@@ -14,13 +14,14 @@ interface AdSlotProps {
 export default function AdSlot({ posicao, className = "", bannerId }: AdSlotProps) {
   const [banner, setBanner] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const supabase = createClient();
-
   useEffect(() => {
     fetchBanner();
   }, [posicao, bannerId]);
 
   const fetchBanner = async () => {
+    const supabase = createClient();
+    if (!supabase) return;
+    
     let query = supabase.from("publicidade_banners").select("*").eq("status", true);
     
     if (bannerId) {
@@ -46,6 +47,8 @@ export default function AdSlot({ posicao, className = "", bannerId }: AdSlotProp
 
   const handleClick = () => {
     if (banner) {
+      const supabase = createClient();
+      if (!supabase) return;
       supabase.rpc("incrementar_clique_banner", { banner_id: banner.id }).then((res: any) => {
         if (res.error) console.warn("Erro ao registrar clique:", res.error);
       });
