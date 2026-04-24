@@ -15,19 +15,16 @@ const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
 
 try {
   if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
-    let safePublicKey = VAPID_PUBLIC_KEY.replace(/-/g, '+').replace(/_/g, '/');
-    while (safePublicKey.length % 4 !== 0) {
-      safePublicKey += '=';
-    }
-    safePublicKey = safePublicKey.replace(/=+$/, '');
+    // web-push espera uma string base64 URL-safe (usando - e _) sem padding (=)
+    const cleanPublicKey = VAPID_PUBLIC_KEY.trim().replace(/=+$/, '');
     webpush.setVapidDetails(
       'mailto:contato@nossawebtv.com.br',
-      safePublicKey,
-      VAPID_PRIVATE_KEY
+      cleanPublicKey,
+      VAPID_PRIVATE_KEY.trim()
     );
   }
 } catch (err) {
-  console.warn('[push/send] VAPID config inválida:', err);
+  console.warn('[push/send] VAPID config inválida ou ausente:', err);
 }
 
 export async function POST(req: Request) {
