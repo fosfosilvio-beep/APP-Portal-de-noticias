@@ -212,44 +212,65 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
   };
 
   /**
-   * Gera um slug base a partir do texto e garante unicidade
-   * consultando o banco via RPC `slug_disponivel`.
-   * Se o slug já existir, adiciona sufixo -2, -3... até encontrar um livre.
+   * Gera slug único com 3 camadas de proteção:
+   *   1. RPC slug_disponivel (banco) — mais preciso
+   *   2. SELECT direto — fallback se o RPC não existir ainda
+   *   3. Sufixo timestamp base36 — última linha de defesa (nunca colide)
    */
   const generateSlug = async (text: string, excluirId?: string): Promise<string> => {
-    // Regex robusto: remove acentos, aspas, dois-pontos, pontos e qualquer
-    // caractere não-alfanumérico gerado por títulos de IA.
     const base = text
       .toLowerCase()
       .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")  // remove acentos diacríticos
-      .replace(/["'`:.,!?@#$%^&*()+=<>{}[\]|\\\//]/g, "") // caracteres especiais
-      .replace(/[^\w\s-]/g, "")           // qualquer outro caractere não-word
-      .replace(/\s+/g, "-")              // espaços → hífens
-      .replace(/-{2,}/g, "-")            // hífens duplicados
-      .replace(/^-|-$/g, "");            // hífens nas extremidades
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/["'`:.,!?@#$%^&*()+=<>{}[\]|\\/]/g, "")
+      .replace(/[^\w\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-{2,}/g, "-")
+      .replace(/^-|-$/g, "");
 
     let candidate = base;
-    let attempt = 1;
 
-    // Verifica unicidade via RPC; em caso de falha de rede, usa o base
+    // Camada 1: RPC slug_disponivel
     try {
+      let attempt = 1;
       while (true) {
-        const { data: disponivel } = await supabase.rpc("slug_disponivel", {
+        const { data: disponivel, error: rpcErr } = await supabase.rpc("slug_disponivel", {
           p_slug: candidate,
           p_excluir_id: excluirId || null,
         });
-        if (disponivel !== false) break; // null (erro) ou true → aceita
+        if (rpcErr) throw rpcErr;
+        if (disponivel !== false) break;
         attempt++;
         candidate = `${base}-${attempt}`;
+        if (attempt > 10) { candidate = `${base}-${Date.now().toString(36)}`; break; }
       }
-    } catch (e) {
-      console.warn("[generateSlug] Falha na verificação de colisão:", e);
+    } catch {
+      // Camada 2: SELECT direto (sem depender do RPC)
+      try {
+        let attempt = 1;
+        while (true) {
+          const query = supabase
+            .from("noticias")
+            .select("id", { count: "exact", head: true })
+            .eq("slug", candidate);
+          if (excluirId) query.neq("id", excluirId);
+          const { count } = await query;
+          if (!count || count === 0) break;
+          attempt++;
+          candidate = `${base}-${attempt}`;
+          if (attempt > 10) { candidate = `${base}-${Date.now().toString(36)}`; break; }
+        }
+      } catch {
+        // Camada 3: timestamp base36 — nunca colide
+        candidate = `${base}-${Date.now().toString(36)}`;
+        console.warn("[generateSlug] Fallback timestamp:", candidate);
+      }
     }
 
     setValue("slug", candidate, { shouldValidate: true });
     return candidate;
   };
+
 
   const handleGaleriaUpload = async (files: FileList) => {
     toast.promise(
@@ -308,6 +329,24 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
         if (error) throw error;
         toast.success("Matéria atualizada com sucesso!");
       } else {
+        // ── Verificação FINAL de unicidade antes do INSERT ──────────────────
+        // Proteção extra independente do RPC — usa SELECT direto
+        let finalSlug = payload.slug;
+        try {
+          const { count } = await supabase
+            .from("noticias")
+            .select("id", { count: "exact", head: true })
+            .eq("slug", finalSlug);
+          if (count && count > 0) {
+            finalSlug = `${finalSlug}-${Date.now().toString(36)}`;
+            payload.slug = finalSlug;
+            setValue("slug", finalSlug);
+            console.warn("[onSubmit] Slug colidía — novo slug:", finalSlug);
+          }
+        } catch {
+          // Se o SELECT falhar, o banco vai retornar 409 e tratamos no catch externo
+        }
+
         const { error } = await supabase.from("noticias").insert([payload]);
         if (error) throw error;
         toast.success("Notícia publicada com sucesso!");
