@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase-server";
 import HomeContent from "@/components/home/HomeContent";
 import PuckRenderer from "@/components/home/PuckRenderer";
 
-export const revalidate = 30;
+export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const supabase = await createClient();

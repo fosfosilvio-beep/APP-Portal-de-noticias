@@ -56,7 +56,7 @@ export default function HeroSection({ initialIsLive, initialLiveUrl }: HeroSecti
   }, []);
 
   return (
-    <div className={isLive ? "block" : "hidden"}>
+    <div className={isLive ? "block" : "hidden"} suppressHydrationWarning>
       {mounted && isLive && (
         <section className="w-full flex flex-col gap-6 animate-in fade-in zoom-in-95 duration-700">
           <div className="w-full transition-all duration-700 ease-in-out">

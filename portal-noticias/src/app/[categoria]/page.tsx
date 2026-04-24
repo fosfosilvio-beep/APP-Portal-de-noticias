@@ -4,7 +4,7 @@ import NewsGrid from "@/components/home/NewsGrid";
 import { getVisualCategory } from "@/lib/category-utils";
 import BreakingNewsMarquee from "@/components/BreakingNewsMarquee";
 
-export const revalidate = 30;
+export const dynamic = "force-dynamic";
 
 export default async function CategoryPage({ params }: { params: { categoria: string } }) {
   const { categoria: slug } = params;

@@ -79,6 +79,8 @@ export const metadata: Metadata = {
   },
 };
 
+export const dynamic = "force-dynamic";
+
 import { Providers } from "../components/Providers";
 
 export default function RootLayout({
@@ -103,6 +105,7 @@ export default function RootLayout({
     <html
       lang="pt-BR"
       className={`${fontVariables} h-full antialiased`}
+      suppressHydrationWarning
     >
       <head>
         <meta httpEquiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
@@ -124,7 +127,7 @@ export default function RootLayout({
           `
         }} />
       </head>
-      <body className="min-h-full flex flex-col font-sans overflow-x-hidden">
+      <body className="min-h-full flex flex-col font-sans overflow-x-hidden" suppressHydrationWarning>
         <Providers>{children}</Providers>
       </body>
     </html>

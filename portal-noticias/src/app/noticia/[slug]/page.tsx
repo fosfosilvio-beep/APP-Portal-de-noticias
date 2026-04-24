@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
+
 import { supabase } from "../../../lib/supabase";
 import { Tag, ChevronLeft, Sun, Play, Clock, BookOpen } from "lucide-react";
 import Link from "next/link";
