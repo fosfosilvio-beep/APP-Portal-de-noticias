@@ -211,9 +211,44 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
     }
   };
 
-  const generateSlug = (text: string) => {
-    const clean = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\w ]+/g, "").replace(/ +/g, "-");
-    setValue("slug", clean, { shouldValidate: true });
+  /**
+   * Gera um slug base a partir do texto e garante unicidade
+   * consultando o banco via RPC `slug_disponivel`.
+   * Se o slug já existir, adiciona sufixo -2, -3... até encontrar um livre.
+   */
+  const generateSlug = async (text: string, excluirId?: string): Promise<string> => {
+    // Regex robusto: remove acentos, aspas, dois-pontos, pontos e qualquer
+    // caractere não-alfanumérico gerado por títulos de IA.
+    const base = text
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")  // remove acentos diacríticos
+      .replace(/["'`:.,!?@#$%^&*()+=<>{}[\]|\\\//]/g, "") // caracteres especiais
+      .replace(/[^\w\s-]/g, "")           // qualquer outro caractere não-word
+      .replace(/\s+/g, "-")              // espaços → hífens
+      .replace(/-{2,}/g, "-")            // hífens duplicados
+      .replace(/^-|-$/g, "");            // hífens nas extremidades
+
+    let candidate = base;
+    let attempt = 1;
+
+    // Verifica unicidade via RPC; em caso de falha de rede, usa o base
+    try {
+      while (true) {
+        const { data: disponivel } = await supabase.rpc("slug_disponivel", {
+          p_slug: candidate,
+          p_excluir_id: excluirId || null,
+        });
+        if (disponivel !== false) break; // null (erro) ou true → aceita
+        attempt++;
+        candidate = `${base}-${attempt}`;
+      }
+    } catch (e) {
+      console.warn("[generateSlug] Falha na verificação de colisão:", e);
+    }
+
+    setValue("slug", candidate, { shouldValidate: true });
+    return candidate;
   };
 
   const handleGaleriaUpload = async (files: FileList) => {
@@ -277,7 +312,8 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
         if (error) throw error;
         toast.success("Notícia publicada com sucesso!");
         
-        // Clear draft
+        // Limpa rascunho (localStorage + banco)
+        localStorage.removeItem("news_draft_local");
         const { data: userData } = await supabase.auth.getUser();
         if (userData.user) {
           await supabase.from("news_drafts").delete().eq("user_id", userData.user.id);
@@ -358,7 +394,7 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
                 type="text"
                 {...register("titulo", {
                   onChange: (e) => {
-                    if (!editId) generateSlug(e.target.value);
+                    if (!editId) generateSlug(e.target.value, undefined);
                   }
                 })}
                 value={titulo}
@@ -445,7 +481,7 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
         {/* IA Copilot */}
         <AiCopilot onGenerated={(data) => {
           setValue("titulo", data.titulo, { shouldValidate: true, shouldDirty: true });
-          if (!editId) generateSlug(data.titulo);
+          if (!editId) generateSlug(data.titulo, undefined);
           if (data.subtitulo) setValue("subtitulo", data.subtitulo, { shouldValidate: true, shouldDirty: true });
           if (data.conteudo) setValue("conteudo", data.conteudo, { shouldValidate: true, shouldDirty: true });
         }} />

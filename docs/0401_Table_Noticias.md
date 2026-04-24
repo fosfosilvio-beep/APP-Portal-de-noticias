@@ -25,9 +25,22 @@ Armazena todas as matérias jornalísticas publicadas no portal.
 | `seo_tags` | TEXT | Tags para indexação. |
 | `is_sponsored` | BOOLEAN | Badge "Patrocinado". |
 | `ad_id` | UUID (FK) | Anúncio vinculado à matéria. |
-| `titulo_config` | JSONB | Configuração visual do título. |
-| `subtitulo_config` | JSONB | Configuração visual do subtítulo. |
-| `real_views` | INTEGER | Contador de visualizações reais. |
+| `colunista_id` | UUID (FK) | Link para a tabela `colunistas`. |
+| `ad_id` | UUID (FK) | Anúncio vinculado (`ad_slots.id`). Substitui logicamente `sponsor_id`. |
+
+## Tabelas Relacionadas (criadas em `20260424_audit_fix.sql`)
+
+| Tabela | Propósito |
+| :--- | :--- |
+| `categorias` | Categorias editoriais (`id, nome, slug, ativa, ordem`). Seed de 10 categorias padrão. |
+| `colunistas` | Autores colunistas (`id, nome, slug, bio, foto_url, ativa`). |
+| `news_drafts` | Rascunhos por usuário. `UNIQUE(user_id)` — um rascunho ativo por autor. |
+
+## RPC: `slug_disponivel(p_slug, p_excluir_id)`
+Verificação de unicidade de slug antes do INSERT/UPDATE. Retorna `TRUE` se o slug está livre.
+- Chamada pelo `NewsEditorForm` na função `generateSlug` (fallback `-2`, `-3`...).
+- Permissão: `GRANT EXECUTE` para `anon` e `authenticated`.
+
 
 ## Lógica de Views (Bifurcação Frontend vs Admin)
 - **Banco de dados**: Guarda apenas `real_views` (incremento atômico via RPC `incrementar_views(uuid)`).
