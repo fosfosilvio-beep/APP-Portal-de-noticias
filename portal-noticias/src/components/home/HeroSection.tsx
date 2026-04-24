@@ -1,93 +1,63 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Tv } from "lucide-react";
-import { createClient } from "@/lib/supabase-browser";
+import { useState, useEffect } from "react";
 import SmartPlayer from "../SmartPlayer";
-import LiveChat from "../LiveChat";
+import { useLiveStatus } from "../../hooks/useLiveStatus";
 
-interface HeroSectionProps {
-  initialIsLive: boolean;
-  initialLiveUrl?: string | null;
-}
-
-export default function HeroSection({ initialIsLive, initialLiveUrl }: HeroSectionProps) {
-  const [isLive, setIsLive] = useState(initialIsLive);
-  const [liveUrl, setLiveUrl] = useState<string | null>(initialLiveUrl || null);
+export default function HeroSection() {
+  const { status, loading } = useLiveStatus();
   const [mounted, setMounted] = useState(false);
-  const supabase = createClient();
-
-  const handleLiveChange = useCallback((live: boolean, url: string | null) => {
-    setIsLive(live);
-    setLiveUrl(url);
-  }, []);
 
   useEffect(() => {
     setMounted(true);
-    
-    // Força checagem imediata ao montar (bypass Next.js e Browser cache)
-    const fetchCurrentState = async () => {
-      // Adicionar um header customizado ou query param faria o Supabase ignorar cache HTTP
-      const { data } = await supabase.from("configuracao_portal").select("is_live, url_live_youtube, url_live_facebook").limit(1).single();
-      if (data && data.is_live !== isLive) {
-        setIsLive(data.is_live);
-        setLiveUrl(data.url_live_youtube || data.url_live_facebook);
-      }
-    };
-    fetchCurrentState();
-
-    const configChannel = supabase
-      .channel("hero_config_changes")
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "configuracao_portal" },
-        (payload: any) => {
-          setIsLive(payload.new.is_live);
-          if (payload.new.url_live_youtube || payload.new.url_live_facebook) {
-            setLiveUrl(payload.new.url_live_youtube || payload.new.url_live_facebook);
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(configChannel);
-    };
   }, []);
 
+  if (!mounted || loading || !status?.is_live) return null;
+
   return (
-    <div className={isLive ? "block" : "hidden"} suppressHydrationWarning>
-      {mounted && isLive && (
-        <section className="w-full flex flex-col gap-6 animate-in fade-in zoom-in-95 duration-700">
-          <div className="w-full transition-all duration-700 ease-in-out">
-            {/* Banner de alerta ativo */}
-            <div className="flex items-center gap-3 bg-red-600/10 border border-red-500/20 rounded-2xl px-5 py-3 mb-4">
-              <span className="relative flex h-3 w-3 shrink-0">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600" />
+    <section className="w-full flex flex-col gap-6 animate-in fade-in zoom-in-95 duration-700">
+      <div className="w-full transition-all duration-700 ease-in-out">
+        <div className="bg-slate-950 rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border border-white/5 relative group">
+          
+          {/* Badge AO VIVO */}
+          <div className="absolute top-4 left-4 z-20 flex items-center gap-3">
+            <div className="flex items-center gap-2 px-3 py-1 bg-red-600 rounded-lg shadow-lg shadow-red-900/20">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
               </span>
-              <p className="text-red-400 font-black text-xs uppercase tracking-widest">
-                Transmissão ao Vivo em andamento — Assista agora!
-              </p>
-              <Tv className="ml-auto text-red-500/60 shrink-0" size={18} />
+              <span className="font-black text-white text-xs uppercase tracking-widest">AO VIVO</span>
             </div>
-
-            {/* Player + Chat lado a lado */}
-            <div className="flex flex-col lg:flex-row gap-4 mb-6">
-              <div className="min-w-0 w-full lg:w-[65%] overflow-hidden bg-slate-950 rounded-2xl lg:rounded-3xl shadow-2xl shadow-red-900/20 border border-red-900/30">
-                <SmartPlayer
-                  customVideoUrl={undefined}
-                  onLiveChange={handleLiveChange}
-                />
-              </div>
-
-              <div className="w-full lg:w-[35%] min-w-0 min-h-[320px] lg:min-h-0">
-                <LiveChat liveUrl={liveUrl} />
-              </div>
+            
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-black/60 backdrop-blur-md rounded-lg border border-white/10">
+              <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+              <span className="text-[10px] font-bold text-white uppercase tracking-tighter">
+                Transmissão Oficial
+              </span>
             </div>
           </div>
-        </section>
-      )}
-    </div>
+
+          <div className="aspect-video w-full bg-black relative">
+            <SmartPlayer 
+              url={status.url_youtube || status.url_facebook || ""} 
+              isLive={true}
+              title={status.titulo || "Transmissão Ao Vivo"}
+            />
+          </div>
+
+          {/* Info Bar */}
+          <div className="p-4 sm:p-6 bg-gradient-to-r from-slate-900 to-slate-950 border-t border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex-1">
+              <h2 className="text-lg sm:text-xl font-black text-white uppercase tracking-tight line-clamp-1">
+                {status.titulo || "Acompanhe nossa programação"}
+              </h2>
+              <p className="text-slate-400 text-xs sm:text-sm font-medium line-clamp-1 mt-0.5">
+                {status.descricao || "Fique por dentro das principais notícias em tempo real."}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
