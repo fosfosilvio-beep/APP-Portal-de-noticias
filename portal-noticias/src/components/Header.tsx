@@ -48,11 +48,43 @@ export default function Header({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
+  const [isLiveInterno, setIsLiveInterno] = useState(isLive);
+  const [configInterno, setConfigInterno] = useState(config);
+
   useEffect(() => {
+    // 1. Auth session
     supabase.auth.getSession().then(({ data: { session } }: any) => setSession(session));
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e: any, s: any) => setSession(s));
-    return () => subscription.unsubscribe();
+
+    // 2. Sincronização Live/Config (Bypass Cache)
+    const syncConfig = async () => {
+      const { data } = await supabase.from("configuracao_portal").select("*").limit(1).single();
+      if (data) {
+        setIsLiveInterno(data.is_live);
+        setConfigInterno(data);
+      }
+    };
+    syncConfig();
+
+    // 3. Realtime Listener
+    const channel = supabase
+      .channel("header_sync")
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "configuracao_portal" }, (payload) => {
+        setIsLiveInterno(payload.new.is_live);
+        setConfigInterno(prev => ({ ...prev, ...payload.new }));
+      })
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+      supabase.removeChannel(channel);
+    };
   }, []);
+
+  // Usar os estados internos que são sincronizados em realtime
+  const activeConfig = configInterno || config;
+  const activeIsLive = isLiveInterno;
+
 
   // Bloqueia scroll do body quando drawer está aberto
   useEffect(() => {
@@ -97,12 +129,12 @@ export default function Header({
     setIsMobileMenuOpen(false);
   };
 
-  const brandName = config?.ui_settings?.brand_name || ui.siteName || "NOSSA WEB TV";
-  const rawLogoUrl = config?.ui_settings?.logo_url || config?.logo_url || ui.logoUrl;
+  const brandName = activeConfig?.ui_settings?.brand_name || ui.siteName || "NOSSA WEB TV";
+  const rawLogoUrl = activeConfig?.ui_settings?.logo_url || activeConfig?.logo_url || ui.logoUrl;
   const logoUrl = getPublicUrl(rawLogoUrl);
   const logoTextoUrl = getPublicUrl(ui.logoTextoUrl);
-  const primaryColor = config?.ui_settings?.primary_color || ui.primaryColor || "#00AEE0";
-  const fontFamily = config?.ui_settings?.font_family || ui.fontFamily || "Inter, sans-serif";
+  const primaryColor = activeConfig?.ui_settings?.primary_color || ui.primaryColor || "#00AEE0";
+  const fontFamily = activeConfig?.ui_settings?.font_family || ui.fontFamily || "Inter, sans-serif";
 
   return (
     <>
@@ -206,15 +238,15 @@ export default function Header({
 
               {/* Ao Vivo */}
               <div className={`text-[10px] uppercase tracking-widest flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border transition-all duration-500 ${
-                isLive
+                activeIsLive
                   ? "bg-red-900/40 text-red-400 border-red-800/60 font-black animate-pulse"
                   : "bg-zinc-900 text-zinc-500 border-zinc-700 opacity-70 font-bold"
               }`}>
                 <span className="relative flex h-1.5 w-1.5 shrink-0">
-                  {isLive && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />}
-                  <span className={`relative inline-flex rounded-full h-1.5 w-1.5 ${isLive ? "bg-red-500" : "bg-zinc-500"}`} />
+                  {activeIsLive && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />}
+                  <span className={`relative inline-flex rounded-full h-1.5 w-1.5 ${activeIsLive ? "bg-red-500" : "bg-zinc-500"}`} />
                 </span>
-                <span className="hidden sm:inline">{isLive ? "Ao Vivo" : "Offline"}</span>
+                <span className="hidden sm:inline">{activeIsLive ? "Ao Vivo" : "Offline"}</span>
               </div>
 
               {/* Hambúrguer mobile */}
@@ -260,15 +292,15 @@ export default function Header({
 
 
         {/* BREAKING NEWS / RADAR */}
-        {config?.ui_settings?.breaking_news_alert?.text ? (
-          <div className="w-full overflow-hidden flex items-center h-9 shadow-sm" style={{ backgroundColor: config.ui_settings.breaking_news_alert.color || "#e11d48" }}>
+        {activeConfig?.ui_settings?.breaking_news_alert?.text ? (
+          <div className="w-full overflow-hidden flex items-center h-9 shadow-sm" style={{ backgroundColor: activeConfig.ui_settings.breaking_news_alert.color || "#e11d48" }}>
             <div className="container mx-auto px-4 lg:px-8 flex items-center">
               <span className="font-black text-[9px] uppercase tracking-widest bg-black/20 border border-white/20 text-white px-3 py-1 rounded shadow-inner z-10 shrink-0">Breaking</span>
               <div className="w-full flex whitespace-nowrap overflow-hidden pr-4 ml-4">
                 <div className="animate-marquee flex gap-10 opacity-90 text-[11px] font-bold uppercase tracking-tight text-white">
-                  <span>{config.ui_settings.breaking_news_alert.text}</span>
+                  <span>{activeConfig.ui_settings.breaking_news_alert.text}</span>
                   <span className="text-white/50">•</span>
-                  <span>{config.ui_settings.breaking_news_alert.text}</span>
+                  <span>{activeConfig.ui_settings.breaking_news_alert.text}</span>
                 </div>
               </div>
             </div>
@@ -374,13 +406,13 @@ export default function Header({
 
         {/* Status ao Vivo */}
         <div className="px-5 py-4 border-t border-zinc-800">
-          <div className={`flex items-center gap-3 p-3 rounded-xl ${isLive ? "bg-red-950/50 border border-red-800/50" : "bg-zinc-900 border border-zinc-800"}`}>
+          <div className={`flex items-center gap-3 p-3 rounded-xl ${activeIsLive ? "bg-red-950/50 border border-red-800/50" : "bg-zinc-900 border border-zinc-800"}`}>
             <span className="relative flex h-2.5 w-2.5 shrink-0">
-              {isLive && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />}
-              <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${isLive ? "bg-red-500" : "bg-zinc-600"}`} />
+              {activeIsLive && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />}
+              <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${activeIsLive ? "bg-red-500" : "bg-zinc-600"}`} />
             </span>
-            <span className={`text-xs font-black uppercase tracking-widest ${isLive ? "text-red-400" : "text-zinc-500"}`}>
-              {isLive ? "TV Ao Vivo — Assistindo Agora" : "TV Offline"}
+            <span className={`text-xs font-black uppercase tracking-widest ${activeIsLive ? "text-red-400" : "text-zinc-500"}`}>
+              {activeIsLive ? "TV Ao Vivo — Assistindo Agora" : "TV Offline"}
             </span>
           </div>
           <p className="text-center text-zinc-700 text-[10px] font-bold mt-3 uppercase tracking-widest">Nossa Web TV © 2025</p>

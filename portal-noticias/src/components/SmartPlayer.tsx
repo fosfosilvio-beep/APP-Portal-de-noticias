@@ -140,6 +140,8 @@ export default function SmartPlayer({ customVideoUrl, startTime, endTime, onLive
         .from("configuracao_portal")
         .select("id, is_live, url_live_facebook, url_live_youtube, mostrar_live_facebook, fake_viewers_boost, live_last_ended_at, titulo_live, descricao_live, organic_views_enabled")
         .limit(1)
+        // Trick simples para forçar leitura real do backend no cliente
+        .order("id", { ascending: true })
         .single();
 
       if (error) console.error("[SmartPlayer] Erro:", error);

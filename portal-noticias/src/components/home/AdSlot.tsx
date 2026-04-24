@@ -6,29 +6,33 @@ import Link from "next/link";
 import { Megaphone } from "lucide-react";
 
 interface AdSlotProps {
-  posicao: 'home_topo' | 'home_meio' | 'noticia_lateral' | 'noticia_meio';
+  posicao?: 'home_topo' | 'home_meio' | 'noticia_lateral' | 'noticia_meio';
   className?: string;
+  bannerId?: string;
 }
 
-export default function AdSlot({ posicao, className = "" }: AdSlotProps) {
+export default function AdSlot({ posicao, className = "", bannerId }: AdSlotProps) {
   const [banner, setBanner] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
 
   useEffect(() => {
     fetchBanner();
-  }, [posicao]);
+  }, [posicao, bannerId]);
 
   const fetchBanner = async () => {
-    // Busca o banner mais recente (ou randômico se houvesse lógica) que esteja ativo na posição X
-    const { data } = await supabase
-      .from("publicidade_banners")
-      .select("*")
-      .eq("status", true)
-      .eq("posicao", posicao)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .single();
+    let query = supabase.from("publicidade_banners").select("*").eq("status", true);
+    
+    if (bannerId) {
+      query = query.eq("id", bannerId);
+    } else if (posicao) {
+      query = query.eq("posicao", posicao);
+    } else {
+      setLoading(false);
+      return;
+    }
+
+    const { data } = await query.order("created_at", { ascending: false }).limit(1).single();
 
     if (data) {
       setBanner(data);
