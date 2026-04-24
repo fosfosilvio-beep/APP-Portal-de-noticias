@@ -31,7 +31,32 @@ export default function LiveChat({ liveUrl }: LiveChatProps) {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Busca sessão atual
+  // --- Lógica para YouTube Chat ---
+  const isYouTube = liveUrl?.includes("youtube.com") || liveUrl?.includes("youtu.be");
+  let youtubeChatUrl = "";
+
+  if (isYouTube && liveUrl) {
+    let videoId = "";
+    try {
+      if (liveUrl.includes("v=")) {
+        videoId = new URL(liveUrl).searchParams.get("v") || "";
+      } else if (liveUrl.includes("youtu.be/")) {
+        videoId = liveUrl.split("youtu.be/")[1]?.split("?")[0];
+      } else if (liveUrl.includes("/live/")) {
+        videoId = liveUrl.split("/live/")[1]?.split("?")[0];
+      }
+    } catch (e) {
+      console.warn("Erro ao extrair ID do vídeo para o chat:", e);
+    }
+    
+    if (videoId) {
+      // O embed_domain deve ser o domínio onde o site está hospedado
+      const domain = typeof window !== "undefined" ? window.location.hostname : "nossawebtv.com.br";
+      youtubeChatUrl = `https://www.youtube.com/live_chat?v=${videoId}&embed_domain=${domain}`;
+    }
+  }
+
+  // Busca sessão atual (apenas se não for YouTube chat ou para persistência)
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }: any) => {
       setSession(session);
@@ -44,8 +69,10 @@ export default function LiveChat({ liveUrl }: LiveChatProps) {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Busca msgs históricas e inscreve Realtime
+  // Busca msgs históricas e inscreve Realtime (Apenas se NÃO for YouTube chat)
   useEffect(() => {
+    if (isYouTube && youtubeChatUrl) return;
+
     const fetchMessages = async () => {
       const { data } = await supabase
         .from("live_messages")
@@ -68,14 +95,12 @@ export default function LiveChat({ liveUrl }: LiveChatProps) {
 
     fetchMessages();
 
-    // Inscreve
     const channel = supabase
       .channel("public:live_messages")
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "live_messages" },
         async (payload: any) => {
-           // Precisamos do profile no payload insert, faremos fetch adicional
            const { data: profileData } = await supabase
              .from("profiles")
              .select("id, nome_completo, avatar_url")
@@ -100,7 +125,7 @@ export default function LiveChat({ liveUrl }: LiveChatProps) {
       });
 
     return () => { supabase.removeChannel(channel) };
-  }, []);
+  }, [isYouTube, youtubeChatUrl]);
 
   // Rolagem Auto
   useEffect(() => {
@@ -127,52 +152,69 @@ export default function LiveChat({ liveUrl }: LiveChatProps) {
      await supabase.auth.signOut();
   };
 
+  // --- RENDER YOUTUBE CHAT ---
+  if (isYouTube && youtubeChatUrl) {
+    return (
+      <div className="w-full h-full min-h-[400px] lg:h-full flex flex-col bg-black rounded-2xl overflow-hidden border border-white/10 shadow-xl">
+        <div className="bg-zinc-900 py-3 px-4 border-b border-white/5 flex items-center justify-between">
+          <h3 className="text-white font-black text-xs uppercase tracking-widest flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
+            Chat do YouTube
+          </h3>
+        </div>
+        <iframe 
+          src={youtubeChatUrl}
+          className="w-full h-full flex-1 border-0"
+          title="YouTube Live Chat"
+        />
+      </div>
+    );
+  }
+
+  // --- RENDER NATIVE CHAT ---
   return (
-    <div className="w-full h-full min-h-[480px] lg:h-[600px] flex flex-col bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-xl font-sans">
+    <div className="w-full h-full min-h-[400px] lg:h-full flex flex-col bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-xl font-sans">
       {/* HEADER */}
-      <div className="bg-slate-50 py-4 px-5 border-b border-slate-100 flex items-center justify-between shrink-0">
-        <h3 className="text-slate-900 font-black text-sm tracking-wide flex items-center gap-2">
-          <span className="relative flex h-2.5 w-2.5">
+      <div className="bg-slate-50 py-3 px-4 border-b border-slate-100 flex items-center justify-between shrink-0">
+        <h3 className="text-slate-900 font-black text-xs tracking-widest uppercase flex items-center gap-2">
+          <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-600" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-red-600" />
           </span>
           Chat ao Vivo
         </h3>
         {session ? (
-           <button onClick={handleLogout} className="flex items-center gap-1 text-[10px] text-slate-400 hover:text-red-500 font-bold uppercase transition-colors">
-              <LogOut size={12} /> Sair
+           <button onClick={handleLogout} className="flex items-center gap-1 text-[9px] text-slate-400 hover:text-red-500 font-black uppercase transition-colors">
+              <LogOut size={10} /> Sair
            </button>
         ) : (
-           <span className="text-slate-400 text-[10px] font-bold uppercase tracking-widest cursor-pointer hover:text-cyan-600" onClick={() => setIsAuthModalOpen(true)}>
-             Fazer Login
+           <span className="text-slate-400 text-[9px] font-black uppercase tracking-widest cursor-pointer hover:text-blue-600" onClick={() => setIsAuthModalOpen(true)}>
+             Entrar
            </span>
         )}
       </div>
 
       {/* ÁREA DE MENSAGENS */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/50">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/30">
         {messages.length === 0 && (
            <div className="h-full flex flex-col items-center justify-center text-slate-300">
-              <MessageSquare size={32} className="mb-2 opacity-50" />
-              <p className="text-xs font-bold uppercase tracking-widest">Nenhuma mensagem ainda</p>
+              <MessageSquare size={24} className="mb-2 opacity-50" />
+              <p className="text-[10px] font-black uppercase tracking-widest text-center">Inicie a conversa</p>
            </div>
         )}
         {messages.map((msg) => {
           const isMe = session?.user?.id === msg.profile_id;
           return (
             <div key={msg.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} max-w-[90%] ${isMe ? 'ml-auto' : ''}`}>
-              <div className="flex items-center gap-2 mb-1 px-1">
+              <div className="flex items-center gap-1.5 mb-1 px-1">
                 {!isMe && (
-                   <img src={msg.profiles?.avatar_url || "https://ui-avatars.com/api/?name=User"} alt="" className="w-5 h-5 rounded-full object-cover shadow-sm bg-slate-200 border border-slate-100" />
+                   <img src={msg.profiles?.avatar_url || "https://ui-avatars.com/api/?name=User"} alt="" className="w-4 h-4 rounded-full object-cover border border-slate-100" />
                 )}
-                <span className="text-[10px] font-bold text-slate-500">
+                <span className="text-[9px] font-black uppercase text-slate-400 tracking-tight">
                    {isMe ? 'Você' : (msg.profiles?.nome_completo || 'Espectador')}
                 </span>
-                {msg.is_admin_msg && (
-                   <span className="bg-red-500 text-white text-[8px] px-1.5 py-0.5 rounded uppercase tracking-wider font-black">Admin</span>
-                )}
               </div>
-              <div className={`px-4 py-2.5 rounded-2xl text-sm shadow-sm border ${isMe ? 'bg-[#00AEE0] text-white rounded-br-none border-[#009FD0]' : 'bg-white text-slate-700 rounded-bl-none border-slate-100'}`}>
+              <div className={`px-3 py-2 rounded-xl text-xs shadow-sm border ${isMe ? 'bg-blue-600 text-white rounded-br-none border-blue-700' : 'bg-white text-slate-700 rounded-bl-none border-slate-100'}`}>
                 {msg.conteudo}
               </div>
             </div>
@@ -182,30 +224,30 @@ export default function LiveChat({ liveUrl }: LiveChatProps) {
       </div>
 
       {/* INPUT AREA */}
-      <div className="bg-white border-t border-slate-100 p-4 shrink-0">
+      <div className="bg-white border-t border-slate-100 p-3 shrink-0">
          {!session ? (
            <button 
              onClick={() => setIsAuthModalOpen(true)}
-             className="w-full py-3 px-4 rounded-xl border-2 border-dashed border-slate-200 text-slate-400 font-bold hover:bg-slate-50 hover:text-cyan-600 hover:border-cyan-200 transition-all flex items-center justify-center gap-2 text-sm"
+             className="w-full py-2.5 px-4 rounded-xl border border-dashed border-slate-300 text-slate-400 font-bold hover:bg-slate-50 hover:text-blue-600 hover:border-blue-200 transition-all flex items-center justify-center gap-2 text-[10px] uppercase tracking-widest"
            >
-              Acesse com o Google para participar
+              Faça login para participar
            </button>
          ) : (
            <form onSubmit={handleSendMessage} className="flex items-center gap-2">
              <input 
                type="text" 
-               placeholder="Escreva sua mensagem..."
+               placeholder="Comentar..."
                value={newMessage}
                onChange={(e) => setNewMessage(e.target.value)}
-               className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all"
+               className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-blue-500 transition-all"
                maxLength={250}
              />
              <button 
                type="submit" 
                disabled={!newMessage.trim()}
-               className="bg-[#00AEE0] text-white p-3 rounded-xl hover:bg-[#009FD0] disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-md"
+               className="bg-blue-600 text-white p-2.5 rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-colors shadow-sm"
              >
-               <Send size={18} />
+               <Send size={14} />
              </button>
            </form>
          )}

@@ -280,22 +280,7 @@ export default function SmartPlayer({
     <div className="w-full min-w-0 overflow-hidden rounded-xl bg-white shadow-sm border border-slate-200 font-sans">
 
       {/* ═══ BARRA DE STATUS — COMPLETAMENTE FORA DO PLAYER ═══ */}
-      {config.is_live && (
-        <div className="flex flex-row justify-between items-center px-3 sm:px-4 py-2.5 border-b border-red-100 bg-red-50">
-          <div className="flex items-center gap-2">
-            <span className="relative flex h-2.5 w-2.5 shrink-0">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-600" />
-            </span>
-            <span className="bg-red-600 text-white px-2.5 py-1 text-[10px] sm:text-xs rounded-full font-black uppercase tracking-wider">
-              REC · {displayViewers.toLocaleString("pt-BR")}
-            </span>
-          </div>
-          <span className="bg-gradient-to-r from-orange-500 to-pink-600 text-white px-3 py-1 text-[10px] sm:text-xs rounded-full font-black uppercase tracking-widest">
-            EXCLUSIVO
-          </span>
-        </div>
-      )}
+      {/* BARRA DE STATUS REMOVIDA PARA EVITAR DUPLICAÇÃO COM HEROSECTION */}
 
       {isAcervo && (
         <div className="flex items-center gap-2 px-3 sm:px-4 py-2.5 border-b border-cyan-100 bg-cyan-50">
