@@ -13,12 +13,17 @@ const PushSendSchema = z.object({
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
 
-if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
-  webpush.setVapidDetails(
-    'mailto:contato@nossawebtv.com.br',
-    VAPID_PUBLIC_KEY,
-    VAPID_PRIVATE_KEY
-  );
+try {
+  if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
+    const safePublicKey = VAPID_PUBLIC_KEY.replace(/-/g, '+').replace(/_/g, '/');
+    webpush.setVapidDetails(
+      'mailto:contato@nossawebtv.com.br',
+      safePublicKey,
+      VAPID_PRIVATE_KEY
+    );
+  }
+} catch (err) {
+  console.warn('[push/send] VAPID config inválida:', err);
 }
 
 export async function POST(req: Request) {
