@@ -137,7 +137,14 @@ export default function HomeContent({ initialConfig, todasNoticias, bibliotecaLi
               <div className="flex flex-col space-y-16 animate-in fade-in slide-in-from-bottom-4 duration-1000">
                 
                 {/* Moderação Live / Web TV */}
-                <HeroSection initialIsLive={isLive} initialLiveUrl={config?.url_live} />
+                <HeroSection 
+                  initialIsLive={isLive} 
+                  initialLiveUrl={
+                    config?.mostrar_live_facebook 
+                      ? (config?.url_live_facebook || config?.url_live_youtube)
+                      : (config?.url_live_youtube || config?.url_live_facebook)
+                  } 
+                />
 
                 {/* Grade de Notícias */}
                 <NewsGrid title="Últimas Notícias" news={todasNoticias.slice(0, 8)} />

@@ -122,7 +122,7 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
 
   const fetchMetadata = async () => {
     const [adsRes, catRes, colRes] = await Promise.all([
-      supabase.from("ad_slots").select("id, nome_slot, posicao_html").eq("status_ativo", true),
+      supabase.from("publicidade_banners").select("id, titulo, posicao").eq("status", true),
       supabase.from("categorias").select("id, nome").eq("ativa", true).order("ordem"),
       supabase.from("colunistas").select("id, nome").order("nome")
     ]);
@@ -537,7 +537,7 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
               >
                 <option value="">— Nenhum —</option>
                 {adSlots.map((ad) => (
-                  <option key={ad.id} value={ad.id}>{ad.nome_slot} ({ad.posicao_html})</option>
+                  <option key={ad.id} value={ad.id}>{ad.titulo} ({ad.posicao.replace('_', ' ')})</option>
                 ))}
               </select>
             </div>

@@ -24,11 +24,31 @@ export interface ConfiguracaoPortal {
 // ─────────────────────────────────────────────────────────────────────────────
 export const convertEmbedUrl = (rawUrl: string | null, startTime?: number, endTime?: number): string => {
   if (!rawUrl) return "";
+  
+  // Tratamento nativo para YouTube
   if (rawUrl.includes("youtube.com") || rawUrl.includes("youtu.be")) {
+    // Se já for embed, mantém
+    if (rawUrl.includes("/embed/")) return rawUrl;
+
     let videoId = "";
-    if (rawUrl.includes("watch?v=")) videoId = rawUrl.split("watch?v=")[1]?.split("&")[0];
-    else if (rawUrl.includes("youtu.be/")) videoId = rawUrl.split("youtu.be/")[1]?.split("?")[0];
-    else if (rawUrl.includes("/live/")) videoId = rawUrl.split("/live/")[1]?.split("?")[0];
+    
+    try {
+      const urlObj = new URL(rawUrl);
+      if (urlObj.searchParams.has("v")) {
+        videoId = urlObj.searchParams.get("v") || "";
+      } else if (urlObj.hostname === "youtu.be") {
+        videoId = urlObj.pathname.slice(1);
+      } else if (urlObj.pathname.includes("/live/")) {
+        videoId = urlObj.pathname.split("/live/")[1].split("?")[0];
+      } else if (urlObj.pathname.includes("/shorts/")) {
+        videoId = urlObj.pathname.split("/shorts/")[1].split("?")[0];
+      }
+    } catch (e) {
+      // Fallback manual se a URL for malformada
+      if (rawUrl.includes("watch?v=")) videoId = rawUrl.split("watch?v=")[1]?.split("&")[0];
+      else if (rawUrl.includes("youtu.be/")) videoId = rawUrl.split("youtu.be/")[1]?.split("?")[0];
+      else if (rawUrl.includes("/live/")) videoId = rawUrl.split("/live/")[1]?.split("?")[0];
+    }
     
     if (videoId) {
       let embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0`;
@@ -37,9 +57,13 @@ export const convertEmbedUrl = (rawUrl: string | null, startTime?: number, endTi
       return embedUrl;
     }
   }
-  if (rawUrl.includes("facebook.com") && !rawUrl.includes("plugins/video.php")) {
+  
+  // Tratamento nativo para Facebook
+  if (rawUrl.includes("facebook.com") || rawUrl.includes("fb.watch")) {
+    if (rawUrl.includes("plugins/video.php")) return rawUrl;
     return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(rawUrl)}&show_text=false&width=auto`;
   }
+  
   return rawUrl;
 };
 

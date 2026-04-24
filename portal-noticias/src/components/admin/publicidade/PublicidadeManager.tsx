@@ -164,25 +164,107 @@ export default function PublicidadeManager() {
         </button>
       </div>
 
-      {/* DASHBOARD RÁPIDO */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-[2rem] p-6 border border-slate-50 shadow-sm flex items-center gap-6">
-          <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600">
-            <Eye size={24} />
+      {/* DASHBOARD RÁPIDO & WIREFRAME */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-1 flex flex-col gap-6">
+          <div className="bg-white rounded-[2rem] p-6 border border-slate-50 shadow-sm flex items-center gap-6">
+            <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600">
+              <Eye size={24} />
+            </div>
+            <div>
+              <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Banners Ativos</h4>
+              <span className="text-3xl font-black text-slate-900">{ativos}</span>
+            </div>
           </div>
-          <div>
-            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Banners Ativos</h4>
-            <span className="text-3xl font-black text-slate-900">{ativos}</span>
+          <div className="bg-white rounded-[2rem] p-6 border border-slate-50 shadow-sm flex items-center gap-6">
+            <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
+              <MousePointerClick size={24} />
+            </div>
+            <div>
+              <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Cliques (Total)</h4>
+              <span className="text-3xl font-black text-slate-900">{cliquesTotal}</span>
+            </div>
           </div>
         </div>
-        <div className="bg-white rounded-[2rem] p-6 border border-slate-50 shadow-sm flex items-center gap-6">
-          <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
-            <MousePointerClick size={24} />
+
+        {/* WIREFRAME VISUAL */}
+        <div className="lg:col-span-2 bg-white rounded-[2.5rem] p-8 border border-slate-50 shadow-sm">
+          <h3 className="font-black text-slate-800 uppercase tracking-widest text-xs mb-6">Mapa de Anúncios (Wireframe)</h3>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+            {/* WIREFRAME: HOME */}
+            <div className="flex flex-col items-center bg-slate-50 p-4 rounded-[2rem] border border-slate-100 relative">
+              <span className="bg-slate-900 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full absolute -top-3">Layout: Home</span>
+              
+              <div className="w-full max-w-[200px] bg-white border border-slate-200 rounded-lg shadow-sm flex flex-col mt-4 overflow-hidden">
+                {/* Header Falso */}
+                <div className="h-6 w-full bg-slate-800 flex items-center px-2">
+                  <div className="w-4 h-2 bg-slate-600 rounded-sm"></div>
+                </div>
+                
+                {/* Ad: Home Topo */}
+                <div className="p-2 w-full">
+                  <div className={`h-8 w-full rounded border-2 border-dashed flex items-center justify-center transition-colors ${formData.posicao === 'home_topo' ? 'border-amber-500 bg-amber-50 text-amber-600' : 'border-slate-300 bg-slate-100 text-slate-400'}`}>
+                    <span className="text-[8px] font-black uppercase">Home Topo</span>
+                  </div>
+                </div>
+                
+                {/* Conteúdo da Home */}
+                <div className="px-2 pb-2 flex gap-2">
+                  <div className="w-2/3 space-y-2">
+                    <div className="h-12 w-full bg-slate-200 rounded"></div>
+                    <div className="h-8 w-full bg-slate-100 rounded"></div>
+                    <div className="h-8 w-full bg-slate-100 rounded"></div>
+                  </div>
+                  <div className="w-1/3 space-y-2">
+                    <div className="h-16 w-full bg-slate-200 rounded"></div>
+                  </div>
+                </div>
+
+                {/* Ad: Home Meio */}
+                <div className="px-2 pb-2 w-full">
+                  <div className={`h-8 w-full rounded border-2 border-dashed flex items-center justify-center transition-colors ${formData.posicao === 'home_meio' ? 'border-amber-500 bg-amber-50 text-amber-600' : 'border-slate-300 bg-slate-100 text-slate-400'}`}>
+                    <span className="text-[8px] font-black uppercase">Home Meio</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* WIREFRAME: NOTÍCIA */}
+            <div className="flex flex-col items-center bg-slate-50 p-4 rounded-[2rem] border border-slate-100 relative">
+              <span className="bg-slate-900 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full absolute -top-3">Layout: Notícia Interna</span>
+              
+              <div className="w-full max-w-[200px] bg-white border border-slate-200 rounded-lg shadow-sm flex flex-col mt-4 overflow-hidden">
+                <div className="h-6 w-full bg-slate-800 flex items-center px-2">
+                  <div className="w-4 h-2 bg-slate-600 rounded-sm"></div>
+                </div>
+                
+                <div className="p-2 w-full flex gap-2">
+                  <div className="w-2/3 space-y-2">
+                    <div className="h-4 w-full bg-slate-200 rounded"></div>
+                    <div className="h-12 w-full bg-slate-100 rounded"></div>
+                    
+                    {/* Ad: Notícia Meio */}
+                    <div className={`h-8 w-full rounded border-2 border-dashed flex items-center justify-center transition-colors ${formData.posicao === 'noticia_meio' ? 'border-amber-500 bg-amber-50 text-amber-600' : 'border-slate-300 bg-slate-100 text-slate-400'}`}>
+                      <span className="text-[8px] font-black uppercase text-center leading-tight">Meio do Texto</span>
+                    </div>
+
+                    <div className="h-8 w-full bg-slate-100 rounded"></div>
+                  </div>
+                  
+                  <div className="w-1/3 space-y-2">
+                    {/* Ad: Notícia Lateral */}
+                    <div className={`h-16 w-full rounded border-2 border-dashed flex flex-col items-center justify-center transition-colors ${formData.posicao === 'noticia_lateral' ? 'border-amber-500 bg-amber-50 text-amber-600' : 'border-slate-300 bg-slate-100 text-slate-400'}`}>
+                      <span className="text-[8px] font-black uppercase text-center leading-tight">Notícia<br/>Lateral</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div>
-            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Cliques (Total)</h4>
-            <span className="text-3xl font-black text-slate-900">{cliquesTotal}</span>
-          </div>
+          <p className="text-center text-[10px] text-slate-500 mt-4 font-bold uppercase tracking-widest">
+            {isModalOpen ? "O painel destaca a área do banner que você está criando." : "Clique em 'Novo Banner' para ver as áreas de destaque."}
+          </p>
         </div>
       </div>
 

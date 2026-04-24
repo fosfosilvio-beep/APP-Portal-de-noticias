@@ -1,0 +1,5 @@
+[2026-04-24 07:15:05] INFO: Iniciando sessão de teste e correção do Painel Administrativo.
+[2026-04-24 07:15:05] INFO: Lendo índices de documentação conforme Protocolo de Reconhecimento.
+[2026-04-24 07:29:00] ERROR: Identificado que as tabelas 'enquetes', 'publicidade_banners' e 'admin_actions' estão ausentes no banco.
+[2026-04-24 07:29:00] INFO: Corrigido erro de acessibilidade (DialogTitle) em src/components/ui/command.tsx.
+[2026-04-24 07:29:00] INFO: Criado script SUPABASE_FIX.sql para reparação total do banco de dados.
