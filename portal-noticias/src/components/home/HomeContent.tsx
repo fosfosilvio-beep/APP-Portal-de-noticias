@@ -24,6 +24,7 @@ interface HomeContentProps {
 }
 
 export default function HomeContent({ initialConfig, todasNoticias, bibliotecaLives }: HomeContentProps) {
+  const [isMounted, setIsMounted] = useState(false);
   const [categoriaAtiva, setCategoriaAtiva] = useState("Início");
   const [searchBiblioteca, setSearchBiblioteca] = useState("");
   const [categorias, setCategorias] = useState<any[]>([]);
@@ -35,6 +36,7 @@ export default function HomeContent({ initialConfig, todasNoticias, bibliotecaLi
   const breakingNews = config?.ui_settings?.breaking_news_alert;
 
   useEffect(() => {
+    setIsMounted(true);
     const supabase = createClient();
     supabase.from("categorias").select("slug, nome, ordem").eq("ativa", true).order("ordem")
       .then(({ data }: any) => { if (data?.length) setCategorias(data); });
@@ -83,6 +85,8 @@ export default function HomeContent({ initialConfig, todasNoticias, bibliotecaLi
           const catName = getVisualCategory(rawCat);
           return catName.toLowerCase() === getVisualCategory(categoriaAtiva).toLowerCase();
         });
+
+  if (!isMounted) return null;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white text-slate-900 flex flex-col font-sans overflow-x-hidden">

@@ -82,7 +82,7 @@ export default function Header({
 
   // Se não montou, renderizamos uma versão estática mínima para evitar Erro #418
   if (!mounted) {
-     return <div className="w-full h-16 bg-black flex items-center px-4"></div>;
+     return null;
   }
 
   return (

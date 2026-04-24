@@ -51,11 +51,12 @@ export function useLiveStatus() {
 
     fetchStatus();
 
+    const channelId = Math.random().toString(36).substring(7);
     const channel = supabase
-      .channel("live_status_sync")
+      .channel(`live_status_sync_${channelId}`)
       .on(
         "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "portal_live_status" },
+        { event: "*", schema: "public", table: "portal_live_status" },
         (payload: any) => {
           if (mounted) {
             setStatus((prev) => ({ ...prev, ...payload.new } as LiveStatus));

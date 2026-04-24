@@ -103,15 +103,19 @@ export default function SmartPlayer({
   const [loading, setLoading] = useState(true);
   const [videoAutomatico, setVideoAutomatico] = useState<string | null>(null);
   const [displayViewers, setDisplayViewers] = useState(0);
-
-  // ── KEY FORCING: a chave para erradicar áudio fantasma ─────────────────────
-  // Ao mudar playerKey, React desmonta o nó DOM antigo (iframe) por completo
-  // e instancia um novo do zero. Nenhum useEffect de cleanup manual necessário.
-  const [playerKey, setPlayerKey] = useState(Date.now());
+  const [playerKey, setPlayerKey] = useState(0);
+  const [mounted, setMounted] = useState(false);
   const playerContainerRef = useRef<HTMLDivElement>(null);
 
-  // Efeito de limpeza forçada: ao desmontar, limpamos o conteúdo HTML do container do player.
-  // Isso garante que qualquer iframe (que produz áudio) seja destruído imediatamente.
+  // channelId estável via useRef — inicializado apenas no cliente
+  const channelIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+    setPlayerKey(Date.now());
+    channelIdRef.current = `smart_player_${Math.random().toString(36).substring(2, 9)}`;
+  }, []);
+
   useEffect(() => {
     return () => {
       if (playerContainerRef.current) {
@@ -119,9 +123,6 @@ export default function SmartPlayer({
       }
     };
   }, []);
-
-  // channelId estável via useRef — não recria subscription a cada re-render
-  const channelIdRef = useRef(`smart_player_${Math.random().toString(36).substring(2, 9)}`);
 
   // ─── Fallback chain ────────────────────────────────────────────────────────
   const resolverFallback = useCallback(async () => {
@@ -187,7 +188,7 @@ export default function SmartPlayer({
   // ─── Inicialização + Realtime ──────────────────────────────────────────────
   useEffect(() => {
     fetchConfig();
-    if (!supabase) return;
+    if (!supabase || !channelIdRef.current) return;
 
     const channel = supabase
       .channel(channelIdRef.current)
@@ -249,7 +250,7 @@ export default function SmartPlayer({
   }, [config?.fake_viewers_boost, config?.is_live, config?.organic_views_enabled]);
 
   // ─── Estados de renderização ───────────────────────────────────────────────
-  if (loading) {
+  if (!mounted || loading) {
     return (
       <div className="w-full min-w-0">
         <div className="w-full aspect-video animate-pulse rounded-xl bg-slate-200" />
