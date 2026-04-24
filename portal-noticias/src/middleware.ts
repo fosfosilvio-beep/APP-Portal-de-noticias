@@ -55,13 +55,6 @@ export async function middleware(request: NextRequest) {
 
   const role = roleData?.role || 'autor'; // fallback
 
-  // Implement basic Role-Based Access Control
-  // E.g., 'autor' can't access /admin/auditoria or /admin/publicidade
-  if (role === 'autor') {
-    if (pathname.startsWith('/admin/auditoria') || pathname.startsWith('/admin/publicidade')) {
-      return NextResponse.redirect(new URL("/admin/transmissao", request.url));
-    }
-  }
 
   return response;
 }

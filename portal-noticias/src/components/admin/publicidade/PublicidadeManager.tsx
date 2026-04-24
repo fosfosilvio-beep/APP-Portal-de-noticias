@@ -103,7 +103,7 @@ export default function PublicidadeManager() {
   const cliquesTotal = banners.reduce((acc, b) => acc + (b.cliques || 0), 0);
 
   return (
-    <div className="space-y-8 max-w-[1400px]">
+    <div className="space-y-8 max-w-[1400px] p-8 bg-slate-50/50 min-h-screen">
       
       {/* HEADER */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-50">
@@ -160,10 +160,10 @@ export default function PublicidadeManager() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {banners.map(banner => (
-              <div key={banner.id} className="border border-slate-100 rounded-3xl overflow-hidden group">
+              <div key={banner.id} className="border border-slate-100 rounded-3xl overflow-hidden group bg-white shadow-sm hover:shadow-xl transition-all duration-500">
                 <div className="bg-slate-50 h-32 relative overflow-hidden flex items-center justify-center">
                   <img src={banner.imagem_url} alt={banner.titulo} className="w-full h-full object-cover" />
-                  <div className="absolute top-3 left-3 bg-white/90 backdrop-blur px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest text-slate-600">
+                  <div className="absolute top-3 left-3 bg-white/90 backdrop-blur px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest text-slate-600 border border-slate-100">
                     {banner.posicao.replace('_', ' ')}
                   </div>
                 </div>
@@ -171,14 +171,14 @@ export default function PublicidadeManager() {
                   <h4 className="font-bold text-slate-800 mb-4 truncate">{banner.titulo}</h4>
                   
                   <div className="flex items-center justify-between text-xs font-bold text-slate-500 mb-6">
-                    <span className="flex items-center gap-1"><MousePointerClick size={14}/> {banner.cliques}</span>
-                    <span className="flex items-center gap-1"><Eye size={14}/> {banner.visualizacoes}</span>
+                    <span className="flex items-center gap-1"><MousePointerClick size={14}/> {banner.cliques} cliques</span>
+                    <span className="flex items-center gap-1"><Eye size={14}/> {banner.visualizacoes} views</span>
                   </div>
 
-                  <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+                  <div className="flex items-center justify-between pt-4 border-t border-slate-50">
                     <button 
                       onClick={() => toggleStatus(banner.id, banner.status)}
-                      className={`flex items-center gap-1 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg ${banner.status ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}
+                      className={`flex items-center gap-1 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg transition-all ${banner.status ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}
                     >
                       <Power size={12} /> {banner.status ? 'Ativo' : 'Inativo'}
                     </button>
@@ -196,16 +196,16 @@ export default function PublicidadeManager() {
       {/* MODAL NOVO BANNER */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-[2.5rem] p-8 w-full max-w-xl shadow-2xl">
+          <div className="bg-white rounded-[2.5rem] p-8 w-full max-w-xl shadow-2xl animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center mb-8">
               <h3 className="text-xl font-black text-slate-900 italic">Novo <span className="text-amber-600">Banner</span></h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600 font-bold">X</button>
+              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600 font-bold p-2">X</button>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Título da Campanha</label>
-                <input required type="text" value={formData.titulo} onChange={e => setFormData({...formData, titulo: e.target.value})} className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 font-medium text-slate-700" placeholder="Ex: Black Friday Imóveis" />
+                <input required type="text" value={formData.titulo} onChange={e => setFormData({...formData, titulo: e.target.value})} className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 font-medium text-slate-700 focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none transition-all" placeholder="Ex: Black Friday Imóveis" />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -217,7 +217,7 @@ export default function PublicidadeManager() {
                       const pos = e.target.value;
                       setFormData({...formData, posicao: pos, dimensoes: positionDimensions[pos]});
                     }} 
-                    className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 font-medium text-slate-700"
+                    className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 font-medium text-slate-700 outline-none focus:ring-2 focus:ring-amber-500/20"
                   >
                     <option value="home_topo">Home - Topo</option>
                     <option value="home_meio">Home - Meio</option>
@@ -233,27 +233,35 @@ export default function PublicidadeManager() {
 
               <div>
                 <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Link de Destino</label>
-                <input type="url" value={formData.link_destino} onChange={e => setFormData({...formData, link_destino: e.target.value})} className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 font-medium text-slate-700" placeholder="https://" />
+                <input type="url" value={formData.link_destino} onChange={e => setFormData({...formData, link_destino: e.target.value})} className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 font-medium text-slate-700 outline-none focus:ring-2 focus:ring-amber-500/20" placeholder="https://" />
               </div>
 
               <div>
                 <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Arte / Imagem</label>
-                <div className="border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center justify-center bg-slate-50">
+                <div className="border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer relative">
                   {formData.imagem_url ? (
-                    <img src={formData.imagem_url} alt="Preview" className="max-h-32 object-contain" />
+                    <div className="relative w-full flex flex-col items-center">
+                      <img src={formData.imagem_url} alt="Preview" className="max-h-32 object-contain rounded-lg" />
+                      <button type="button" onClick={() => setFormData({...formData, imagem_url: ''})} className="mt-2 text-[10px] font-black text-rose-500 uppercase">Remover Imagem</button>
+                    </div>
                   ) : uploading ? (
-                    <Loader2 className="animate-spin text-amber-500" />
+                    <div className="flex flex-col items-center">
+                      <Loader2 className="animate-spin text-amber-500 mb-2" />
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">Subindo imagem...</span>
+                    </div>
                   ) : (
                     <>
                       <ImageIcon className="text-slate-300 mb-2" size={32} />
-                      <input type="file" accept="image/*" onChange={handleFileChange} className="text-xs text-slate-500" />
+                      <input type="file" accept="image/*" onChange={handleFileChange} className="absolute inset-0 opacity-0 cursor-pointer" title="Escolha a imagem" />
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">Clique para selecionar</span>
                     </>
                   )}
                 </div>
               </div>
 
-              <div className="pt-4 flex justify-end">
-                <button type="submit" disabled={uploading || !formData.imagem_url} className="bg-amber-500 hover:bg-amber-600 text-white px-8 py-4 rounded-xl font-black text-xs uppercase tracking-widest disabled:opacity-50">
+              <div className="pt-4 flex justify-end gap-3">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="px-6 py-4 rounded-xl font-black text-xs uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-colors">Cancelar</button>
+                <button type="submit" disabled={uploading || !formData.imagem_url} className="bg-amber-500 hover:bg-amber-600 text-white px-8 py-4 rounded-xl font-black text-xs uppercase tracking-widest disabled:opacity-50 shadow-lg shadow-amber-200 transition-all active:scale-95">
                   Cadastrar Anúncio
                 </button>
               </div>
