@@ -32,7 +32,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
         .from('configuracao_portal')
         .select('ui_settings, nome_plataforma, logo_url')
         .limit(1)
-        .single();
+        .maybeSingle();
         
         if (data && !error) {
           const rawUI = data.ui_settings as any || {};

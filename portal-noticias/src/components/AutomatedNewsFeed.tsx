@@ -78,10 +78,10 @@ export default function AutomatedNewsFeed() {
               </div>
               <div className="p-5 flex flex-col flex-1 relative z-20">
                 <span className="text-[10px] font-bold text-zinc-500 mb-2 uppercase tracking-wide">
-                  {new Date(item.data).toLocaleDateString('pt-BR')} — {new Date(item.data).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})}
+                  {item?.data ? `${new Date(item.data).toLocaleDateString('pt-BR')} — ${new Date(item.data).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})}` : "Agora"}
                 </span>
                 <h3 className="font-bold text-zinc-100 text-[15px] leading-snug group-hover:text-red-400 transition-colors drop-shadow-sm">
-                  {item.titulo}
+                  {item?.titulo || "Notícia em atualização"}
                 </h3>
               </div>
            </a>

@@ -28,7 +28,13 @@ export default function PuckRenderer({ data, config }: PuckRendererProps) {
       <Header isLive={isLive} config={config} categoriaAtiva="Início" setCategoriaAtiva={() => {}} />
 
       <main className="container mx-auto px-4 lg:px-8 py-8 flex-grow">
-        <Render config={puckConfig} data={data} />
+        {data && typeof data === 'object' && Object.keys(data).length > 0 ? (
+          <Render config={puckConfig} data={data} />
+        ) : (
+          <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+             <p className="font-medium">Conteúdo em carregamento ou indisponível.</p>
+          </div>
+        )}
       </main>
 
       <footer className="bg-[#0f172a] text-slate-400 py-12 mt-auto border-t-[5px] border-[#00AEE0] rounded-t-3xl">

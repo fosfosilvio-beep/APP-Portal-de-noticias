@@ -147,23 +147,27 @@ export default function SmartPlayer({
 
   const fetchConfig = useCallback(async () => {
     try {
-      if (!supabase) throw new Error("Client Supabase não encontrado.");
+      if (!supabase) {
+        console.warn("[SmartPlayer] Supabase client not available.");
+        return;
+      }
+      
       const { data, error } = await supabase
         .from("configuracao_portal")
         .select("id, is_live, url_live_facebook, url_live_youtube, mostrar_live_facebook, fake_viewers_boost, live_last_ended_at, titulo_live, descricao_live, organic_views_enabled")
         .limit(1)
-        // Trick simples para forçar leitura real do backend no cliente
         .order("id", { ascending: true })
         .maybeSingle();
 
-      if (error) console.error("[SmartPlayer] Erro:", error);
-      else if (data) {
+      if (error) {
+        console.error("[SmartPlayer] Fetch error:", error.message);
+      } else if (data) {
         setConfigInterno(data);
-        if (!data.is_live) await resolverFallback();
-        onLiveChange?.(data.is_live, data.url_live_facebook);
+        if (!data?.is_live) await resolverFallback();
+        onLiveChange?.(!!data?.is_live, data?.url_live_facebook || null);
       }
     } catch (err) {
-      console.error("[SmartPlayer] Erro inesperado:", err);
+      console.error("[SmartPlayer] Unexpected error in fetchConfig:", err);
     } finally {
       setLoading(false);
     }

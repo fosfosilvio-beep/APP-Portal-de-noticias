@@ -43,7 +43,10 @@ export default function PlantaoPolicialWidget() {
         .order("created_at", { ascending: false })
         .limit(3);
 
-      if (error) throw error;
+      if (error) {
+        console.warn("[PlantaoPolicial] Fetch error:", error.message);
+        return;
+      }
       if (data) setOcorrencias(data);
     } catch (err) {
       console.error("Erro ao buscar plantão:", err);
@@ -53,10 +56,15 @@ export default function PlantaoPolicialWidget() {
   };
 
   const formatTime = (dateStr: string) => {
-    return new Date(dateStr).toLocaleTimeString("pt-BR", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    if (!dateStr) return "--:--";
+    try {
+      return new Date(dateStr).toLocaleTimeString("pt-BR", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch (e) {
+      return "--:--";
+    }
   };
 
   return (

@@ -63,11 +63,11 @@ export default function NewsCard({ noticia, index = 0 }: NewsCardProps) {
           <div className="absolute bottom-0 left-0 w-full p-2 sm:p-4 flex flex-col z-30">
             <div className="flex items-center gap-1 mb-1">
               <span className="text-[7px] sm:text-[9px] text-slate-300 font-bold uppercase tracking-widest bg-black/60 backdrop-blur-sm px-1.5 py-0.5 rounded-full border border-white/5">
-                {new Date(noticia.created_at).toLocaleDateString()}
+                {noticia?.created_at ? new Date(noticia.created_at).toLocaleDateString() : "Sem data"}
               </span>
             </div>
             <h3 className="text-xs sm:text-base md:text-lg font-bold text-slate-50 leading-snug group-hover:text-cyan-400 transition-colors line-clamp-2 sm:line-clamp-3">
-              {noticia.titulo}
+              {noticia?.titulo || "Sem título"}
             </h3>
           </div>
         </div>
