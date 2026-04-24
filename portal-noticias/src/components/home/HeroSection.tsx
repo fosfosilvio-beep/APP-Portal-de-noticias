@@ -22,6 +22,16 @@ export default function HeroSection({ initialIsLive, initialLiveUrl }: HeroSecti
 
   useEffect(() => {
     const supabase = createClient();
+    
+    // Força checagem imediata ao montar (bypass Next.js cache)
+    const fetchCurrentState = async () => {
+      const { data } = await supabase.from("configuracao_portal").select("is_live").single();
+      if (data && data.is_live !== isLive) {
+        setIsLive(data.is_live);
+      }
+    };
+    fetchCurrentState();
+
     const configChannel = supabase
       .channel("hero_config_changes")
       .on(
