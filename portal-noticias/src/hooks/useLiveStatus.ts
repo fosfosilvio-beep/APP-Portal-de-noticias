@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase-browser";
 
 export interface LiveStatus {
@@ -14,14 +14,15 @@ export interface LiveStatus {
 export function useLiveStatus() {
   const [status, setStatus] = useState<LiveStatus | null>(null);
   const [loading, setLoading] = useState(true);
-  const supabase = createClient();
+  const supabaseRef = useRef(createClient());
 
   useEffect(() => {
+    const supabase = supabaseRef.current;
     let mounted = true;
 
     async function fetchStatus() {
       try {
-        const { data, error } = await supabase
+        const { data } = await supabase
           .from("portal_live_status")
           .select("*")
           .eq("id", 1)
@@ -31,7 +32,6 @@ export function useLiveStatus() {
           if (data) {
             setStatus(data);
           } else {
-            // Fallback se a tabela não existir ou estiver vazia
             setStatus({
               is_live: false,
               url_youtube: null,
@@ -50,7 +50,6 @@ export function useLiveStatus() {
 
     fetchStatus();
 
-    // Realtime Sync
     const channel = supabase
       .channel("live_status_sync")
       .on(
