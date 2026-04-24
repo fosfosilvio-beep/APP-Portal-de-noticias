@@ -138,12 +138,6 @@ export default function Header({
   const primaryColor = activeConfig?.ui_settings?.primary_color || ui.primaryColor || "#00AEE0";
   const fontFamily = activeConfig?.ui_settings?.font_family || ui.fontFamily || "Inter, sans-serif";
 
-  if (!mounted) {
-    return (
-       <div className="w-full flex flex-col font-sans sticky top-0 z-50 bg-black h-[100px] border-b border-zinc-800"></div>
-    );
-  }
-
   return (
     <>
       <div className="w-full flex flex-col font-sans sticky top-0 z-50">

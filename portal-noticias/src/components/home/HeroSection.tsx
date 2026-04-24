@@ -55,12 +55,9 @@ export default function HeroSection({ initialIsLive, initialLiveUrl }: HeroSecti
     };
   }, []);
 
-  // Renderiza apenas após montagem para evitar erros de hidratação (#418)
-  if (!mounted) return null;
-
   return (
     <div className={isLive ? "block" : "hidden"}>
-      {isLive && (
+      {mounted && isLive && (
         <section className="w-full flex flex-col gap-6 animate-in fade-in zoom-in-95 duration-700">
           <div className="w-full transition-all duration-700 ease-in-out">
             {/* Banner de alerta ativo */}
