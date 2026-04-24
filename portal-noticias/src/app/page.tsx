@@ -14,14 +14,16 @@ export default async function Home() {
   try {
     supabase = await createClient();
 
-    // 1. Fetch config
-    const { data: configResult } = await supabase
-      .from("configuracao_portal")
-      .select("*")
-      .limit(1)
-      .single();
+    if (supabase) {
+      // 1. Fetch config
+      const { data: configResult } = await supabase
+        .from("configuracao_portal")
+        .select("*")
+        .limit(1)
+        .single();
 
-    configData = configResult;
+      configData = configResult;
+    }
   } catch (err) {
     console.error('[Home] Supabase config fetch error:', err);
   }

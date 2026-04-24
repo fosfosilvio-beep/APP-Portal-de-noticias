@@ -10,6 +10,17 @@ export default async function CategoryPage({ params }: { params: { categoria: st
   const { categoria: slug } = params;
   const supabase = await createClient();
 
+  if (!supabase) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-slate-800 mb-2">Portal em Manutenção</h1>
+          <p className="text-slate-500">Em breve voltamos com as notícias</p>
+        </div>
+      </div>
+    );
+  }
+
   // 1. Fetch config
   const { data: configData } = await supabase
     .from("configuracao_portal")

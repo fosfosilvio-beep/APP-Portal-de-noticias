@@ -11,6 +11,18 @@ import ColunistasRanking from "@/components/admin/dashboard/ColunistasRanking";
 export default async function AdminDashboardPage() {
   const supabase = await createClient();
 
+  if (!supabase) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] bg-white rounded-[2.5rem] border border-slate-100 p-12 text-center">
+        <div className="w-16 h-16 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mb-4">
+          <Lock size={32} />
+        </div>
+        <h2 className="text-xl font-black text-slate-900 mb-2">Erro de Conexão</h2>
+        <p className="text-slate-500 max-w-md mx-auto">As credenciais do banco de dados não foram encontradas. Verifique as variáveis de ambiente na Vercel.</p>
+      </div>
+    );
+  }
+
   // 1. Fetch KPI Stats
   const [noticiasRes, pushRes, storiesRes, topNews24hRes, views7dRes, colRankingRes] = await Promise.all([
     // Total Views (Aggregated)
