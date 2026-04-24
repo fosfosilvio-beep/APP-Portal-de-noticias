@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { Render } from "@measured/puck";
 import { puckConfig } from "@/lib/puck-config";
 import "@measured/puck/puck.css";
@@ -11,7 +12,14 @@ interface PuckRendererProps {
 }
 
 export default function PuckRenderer({ data, config }: PuckRendererProps) {
+  const [isMounted, setIsMounted] = React.useState(false);
   const isLive = config?.is_live || false;
+
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) return null;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white text-slate-900 flex flex-col font-sans overflow-x-hidden">

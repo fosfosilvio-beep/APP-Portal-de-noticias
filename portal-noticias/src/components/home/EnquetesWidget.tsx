@@ -10,8 +10,10 @@ export default function EnquetesWidget() {
   const [loading, setLoading] = useState(true);
   const [voted, setVoted] = useState(false);
   const [isVoting, setIsVoting] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     fetchActiveEnquete();
   }, []);
 
@@ -23,11 +25,11 @@ export default function EnquetesWidget() {
       .eq("status", "active")
       .order("created_at", { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
 
     if (data) {
       setEnquete(data);
-      if (localStorage.getItem(`voted_enquete_${data.id}`)) {
+      if (typeof window !== 'undefined' && localStorage.getItem(`voted_enquete_${data.id}`)) {
         setVoted(true);
       }
     }
@@ -62,7 +64,7 @@ export default function EnquetesWidget() {
     setIsVoting(false);
   };
 
-  if (loading || !enquete) return null;
+  if (!mounted || loading || !enquete) return null;
 
   const totalVotos = enquete.opcoes.reduce((acc: number, op: any) => acc + (op.votos || 0), 0);
 
