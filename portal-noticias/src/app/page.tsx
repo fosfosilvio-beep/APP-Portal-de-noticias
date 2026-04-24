@@ -15,13 +15,17 @@ export default async function Home() {
     supabase = await createClient();
 
     if (supabase) {
-      // 1. Fetch config
-      const { data: configResult } = await supabase
+      // 1. Fetch config - Usando maybeSingle para evitar crash se a tabela estiver vazia
+      const { data: configResult, error: configError } = await supabase
         .from("configuracao_portal")
         .select("*")
-        .limit(1)
-        .single();
+        .eq("id", 1) // Geralmente o id da config é 1
+        .maybeSingle();
 
+      if (configError) {
+        console.error('[Home] Supabase config error:', configError.message);
+      }
+      
       configData = configResult;
     }
   } catch (err) {
@@ -44,11 +48,15 @@ export default async function Home() {
   
   if (usePuck && supabase) {
     try {
-      const { data: layoutData } = await supabase
+      const { data: layoutData, error: layoutError } = await supabase
         .from("page_layout")
         .select("published_data")
         .eq("slug", "home")
-        .single();
+        .maybeSingle();
+
+      if (layoutError) {
+        console.error('[Home] Puck layout error:', layoutError.message);
+      }
 
       if (layoutData?.published_data) {
         return <PuckRenderer data={layoutData.published_data} config={configData} />;
