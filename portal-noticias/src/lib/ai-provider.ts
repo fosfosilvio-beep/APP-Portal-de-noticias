@@ -22,7 +22,7 @@ export interface AIProviderResult {
  */
 export async function generateWithFallback(
   prompt: string,
-  openRouterModel = "anthropic/claude-3.5-sonnet:beta"
+  openRouterModel = "openai/gpt-oss-20b:free"
 ): Promise<AIProviderResult> {
   const openRouterKey = process.env.OPENROUTER_API_KEY;
   const geminiKey = process.env.GEMINI_API_KEY;
