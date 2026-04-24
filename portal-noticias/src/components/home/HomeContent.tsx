@@ -7,7 +7,7 @@ import Header from "../Header";
 import HeroBanner from "../HeroBanner";
 import AutomatedNewsFeed from "../AutomatedNewsFeed";
 import PlantaoPolicialWidget from "../PlantaoPolicialWidget";
-import DynamicAdSlot from "../DynamicAdSlot";
+import AdSlot from "./AdSlot";
 import HeroSection from "./HeroSection";
 import NewsGrid from "./NewsGrid";
 import BreakingNewsMarquee from "../BreakingNewsMarquee";
@@ -124,7 +124,7 @@ export default function HomeContent({ initialConfig, todasNoticias, bibliotecaLi
         {/* Ad de Topo */}
         {categoriaAtiva === "Início" && (
           <div className="mb-8 max-w-5xl mx-auto">
-            <DynamicAdSlot position="topo" className="h-24 sm:h-32" />
+            <AdSlot posicao="home_topo" className="h-24 sm:h-32" />
           </div>
         )}
 
@@ -251,7 +251,7 @@ export default function HomeContent({ initialConfig, todasNoticias, bibliotecaLi
 
 
             {/* Ad Lateral */}
-            <DynamicAdSlot position="lateral" className="min-h-[300px]" />
+            <AdSlot posicao="noticia_lateral" className="min-h-[300px]" />
 
             {/* Clima se ativado */}
             {(config?.ui_settings?.widgets_visibility?.weather !== false) && (
@@ -269,7 +269,7 @@ export default function HomeContent({ initialConfig, todasNoticias, bibliotecaLi
         
         {/* Ad Inferior */}
         <div className="mt-12 max-w-5xl mx-auto">
-          <DynamicAdSlot position="inferior" className="h-24 sm:h-32" />
+          <AdSlot posicao="home_meio" className="h-24 sm:h-32" />
         </div>
       </main>
 

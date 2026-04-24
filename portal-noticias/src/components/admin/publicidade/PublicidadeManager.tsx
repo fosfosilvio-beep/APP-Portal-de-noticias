@@ -1,0 +1,267 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase-browser";
+import { Megaphone, Plus, Image as ImageIcon, MousePointerClick, Eye, Trash2, Power, Loader2 } from "lucide-react";
+import { toast } from "@/lib/toast";
+
+interface Banner {
+  id: string;
+  titulo: string;
+  imagem_url: string;
+  link_destino: string;
+  posicao: string;
+  dimensoes: string;
+  status: boolean;
+  cliques: number;
+  visualizacoes: number;
+}
+
+export default function PublicidadeManager() {
+  const supabase = createClient();
+  const [banners, setBanners] = useState<Banner[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  // Form State
+  const [formData, setFormData] = useState({
+    titulo: "",
+    link_destino: "",
+    posicao: "home_topo",
+    dimensoes: "728x90",
+    imagem_url: ""
+  });
+
+  const positionDimensions: Record<string, string> = {
+    'home_topo': '728x90',
+    'home_meio': '728x90',
+    'noticia_lateral': '300x250',
+    'noticia_meio': '728x90'
+  };
+
+  useEffect(() => {
+    fetchBanners();
+  }, []);
+
+  const fetchBanners = async () => {
+    const { data } = await supabase.from("publicidade_banners").select("*").order("created_at", { ascending: false });
+    if (data) setBanners(data);
+    setLoading(false);
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random()}.${fileExt}`;
+
+    const { data, error } = await supabase.storage.from("publicidade").upload(fileName, file);
+    
+    if (error) {
+      toast.error("Erro no upload", error.message);
+    } else if (data) {
+      const { data: { publicUrl } } = supabase.storage.from("publicidade").getPublicUrl(data.path);
+      setFormData({ ...formData, imagem_url: publicUrl });
+      toast.success("Imagem carregada!");
+    }
+    setUploading(false);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.imagem_url) {
+      toast.error("Imagem obrigatória", "Faça o upload do banner primeiro.");
+      return;
+    }
+
+    const { error } = await supabase.from("publicidade_banners").insert([formData]);
+    if (error) {
+      toast.error("Erro ao salvar", error.message);
+    } else {
+      toast.success("Banner criado com sucesso!");
+      setIsModalOpen(false);
+      setFormData({ titulo: "", link_destino: "", posicao: "home_topo", dimensoes: "728x90", imagem_url: "" });
+      fetchBanners();
+    }
+  };
+
+  const toggleStatus = async (id: string, currentStatus: boolean) => {
+    const { error } = await supabase.from("publicidade_banners").update({ status: !currentStatus }).eq("id", id);
+    if (!error) fetchBanners();
+  };
+
+  const deleteBanner = async (id: string) => {
+    if (!confirm("Deletar banner permanentemente?")) return;
+    const { error } = await supabase.from("publicidade_banners").delete().eq("id", id);
+    if (!error) fetchBanners();
+  };
+
+  const ativos = banners.filter(b => b.status).length;
+  const cliquesTotal = banners.reduce((acc, b) => acc + (b.cliques || 0), 0);
+
+  return (
+    <div className="space-y-8 max-w-[1400px]">
+      
+      {/* HEADER */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-50">
+        <div className="flex items-center gap-6">
+          <div className="w-16 h-16 bg-amber-50 rounded-[1.5rem] flex items-center justify-center text-amber-600 shadow-sm border border-amber-100">
+            <Megaphone size={32} />
+          </div>
+          <div>
+            <h1 className="text-3xl font-black text-slate-900 tracking-tighter italic">Ad <span className="text-amber-600">Manager</span></h1>
+            <p className="text-slate-500 font-medium mt-1">Gestão de espaços publicitários e monetização.</p>
+          </div>
+        </div>
+        <button 
+          onClick={() => setIsModalOpen(true)}
+          className="bg-slate-900 hover:bg-black text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl transition-all flex items-center gap-2"
+        >
+          <Plus size={16} /> Novo Banner
+        </button>
+      </div>
+
+      {/* DASHBOARD RÁPIDO */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-white rounded-[2rem] p-6 border border-slate-50 shadow-sm flex items-center gap-6">
+          <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600">
+            <Eye size={24} />
+          </div>
+          <div>
+            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Banners Ativos</h4>
+            <span className="text-3xl font-black text-slate-900">{ativos}</span>
+          </div>
+        </div>
+        <div className="bg-white rounded-[2rem] p-6 border border-slate-50 shadow-sm flex items-center gap-6">
+          <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
+            <MousePointerClick size={24} />
+          </div>
+          <div>
+            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Cliques (Total)</h4>
+            <span className="text-3xl font-black text-slate-900">{cliquesTotal}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* GRID DE BANNERS */}
+      <div className="bg-white border border-slate-100 rounded-[2.5rem] shadow-sm overflow-hidden p-8">
+        <h3 className="font-black text-slate-800 uppercase tracking-widest text-xs mb-8">Campanhas e Banners</h3>
+        
+        {loading ? (
+          <div className="p-12 flex justify-center"><Loader2 className="animate-spin text-amber-500" /></div>
+        ) : banners.length === 0 ? (
+          <div className="text-center py-20 border-2 border-dashed border-slate-100 rounded-3xl">
+            <Megaphone className="mx-auto text-slate-200 mb-4" size={48} />
+            <p className="text-slate-400 font-bold">Nenhum banner cadastrado.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {banners.map(banner => (
+              <div key={banner.id} className="border border-slate-100 rounded-3xl overflow-hidden group">
+                <div className="bg-slate-50 h-32 relative overflow-hidden flex items-center justify-center">
+                  <img src={banner.imagem_url} alt={banner.titulo} className="w-full h-full object-cover" />
+                  <div className="absolute top-3 left-3 bg-white/90 backdrop-blur px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest text-slate-600">
+                    {banner.posicao.replace('_', ' ')}
+                  </div>
+                </div>
+                <div className="p-5">
+                  <h4 className="font-bold text-slate-800 mb-4 truncate">{banner.titulo}</h4>
+                  
+                  <div className="flex items-center justify-between text-xs font-bold text-slate-500 mb-6">
+                    <span className="flex items-center gap-1"><MousePointerClick size={14}/> {banner.cliques}</span>
+                    <span className="flex items-center gap-1"><Eye size={14}/> {banner.visualizacoes}</span>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+                    <button 
+                      onClick={() => toggleStatus(banner.id, banner.status)}
+                      className={`flex items-center gap-1 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg ${banner.status ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}
+                    >
+                      <Power size={12} /> {banner.status ? 'Ativo' : 'Inativo'}
+                    </button>
+                    <button onClick={() => deleteBanner(banner.id)} className="p-2 text-rose-400 hover:bg-rose-50 rounded-lg transition-colors">
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* MODAL NOVO BANNER */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-[2.5rem] p-8 w-full max-w-xl shadow-2xl">
+            <div className="flex justify-between items-center mb-8">
+              <h3 className="text-xl font-black text-slate-900 italic">Novo <span className="text-amber-600">Banner</span></h3>
+              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600 font-bold">X</button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div>
+                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Título da Campanha</label>
+                <input required type="text" value={formData.titulo} onChange={e => setFormData({...formData, titulo: e.target.value})} className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 font-medium text-slate-700" placeholder="Ex: Black Friday Imóveis" />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Posição</label>
+                  <select 
+                    value={formData.posicao} 
+                    onChange={e => {
+                      const pos = e.target.value;
+                      setFormData({...formData, posicao: pos, dimensoes: positionDimensions[pos]});
+                    }} 
+                    className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 font-medium text-slate-700"
+                  >
+                    <option value="home_topo">Home - Topo</option>
+                    <option value="home_meio">Home - Meio</option>
+                    <option value="noticia_lateral">Notícia - Lateral</option>
+                    <option value="noticia_meio">Notícia - Meio do Texto</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Tamanho Ideal</label>
+                  <input readOnly value={formData.dimensoes} className="w-full bg-slate-100 border border-slate-100 rounded-xl px-4 py-3 font-bold text-slate-500 cursor-not-allowed" />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Link de Destino</label>
+                <input type="url" value={formData.link_destino} onChange={e => setFormData({...formData, link_destino: e.target.value})} className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 font-medium text-slate-700" placeholder="https://" />
+              </div>
+
+              <div>
+                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Arte / Imagem</label>
+                <div className="border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center justify-center bg-slate-50">
+                  {formData.imagem_url ? (
+                    <img src={formData.imagem_url} alt="Preview" className="max-h-32 object-contain" />
+                  ) : uploading ? (
+                    <Loader2 className="animate-spin text-amber-500" />
+                  ) : (
+                    <>
+                      <ImageIcon className="text-slate-300 mb-2" size={32} />
+                      <input type="file" accept="image/*" onChange={handleFileChange} className="text-xs text-slate-500" />
+                    </>
+                  )}
+                </div>
+              </div>
+
+              <div className="pt-4 flex justify-end">
+                <button type="submit" disabled={uploading || !formData.imagem_url} className="bg-amber-500 hover:bg-amber-600 text-white px-8 py-4 rounded-xl font-black text-xs uppercase tracking-widest disabled:opacity-50">
+                  Cadastrar Anúncio
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+}
