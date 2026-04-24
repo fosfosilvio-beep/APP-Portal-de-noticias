@@ -50,13 +50,10 @@ export default function NotificationBell() {
           setNotifs((prev) => [payload.new as Notificacao, ...prev.slice(0, 9)]);
         }
       )
-      .subscribe(function(status: string) {
+      .subscribe((status: string) => {
         if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
           console.error("[NotificationBell] Erro no realtime:", status);
         }
-      })
-      .catch(function(err: Error) {
-        console.error("[NotificationBell] Erro ao conectar realtime:", err);
       });
 
     return () => { supabase.removeChannel(channel); };
