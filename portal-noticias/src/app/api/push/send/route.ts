@@ -15,7 +15,11 @@ const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
 
 try {
   if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
-    const safePublicKey = VAPID_PUBLIC_KEY.replace(/-/g, '+').replace(/_/g, '/');
+    let safePublicKey = VAPID_PUBLIC_KEY.replace(/-/g, '+').replace(/_/g, '/');
+    while (safePublicKey.length % 4 !== 0) {
+      safePublicKey += '=';
+    }
+    safePublicKey = safePublicKey.replace(/=+$/, '');
     webpush.setVapidDetails(
       'mailto:contato@nossawebtv.com.br',
       safePublicKey,
