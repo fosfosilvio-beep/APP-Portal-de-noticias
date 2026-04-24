@@ -133,7 +133,7 @@ export default function BibliotecaPage() {
       .eq("episodio_id", episodeId);
     
     const reactMap: Record<string, number> = {};
-    reacts?.forEach(r => { reactMap[r.emoji] = r.count; });
+    reacts?.forEach((r: any) => { reactMap[r.emoji] = r.count; });
     setReactions(reactMap);
   };
 

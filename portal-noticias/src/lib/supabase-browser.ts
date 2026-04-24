@@ -1,14 +1,9 @@
-import { createBrowserClient } from '@supabase/ssr'
+import { getSupabaseBrowser } from './supabase';
 
-let client: ReturnType<typeof createBrowserClient> | undefined
-
-export function createClient() {
-  if (client) return client
-
-  client = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
-
-  return client
-}
+/**
+ * Wrapper para manter compatibilidade com componentes que já importam createClient de aqui.
+ * Agora utiliza o Singleton unificado para evitar erro de múltiplas instâncias.
+ */
+export const createClient = () => {
+  return getSupabaseBrowser()!;
+};

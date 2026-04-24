@@ -33,7 +33,7 @@ export default function LiveChat({ liveUrl }: LiveChatProps) {
 
   // Busca sessão atual
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session } }: any) => {
       setSession(session);
     });
 
