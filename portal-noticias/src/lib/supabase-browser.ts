@@ -5,5 +5,9 @@ import { getSupabaseBrowser } from './supabase';
  * Agora utiliza o Singleton unificado para evitar erro de múltiplas instâncias.
  */
 export const createClient = () => {
-  return getSupabaseBrowser()!;
+  const client = getSupabaseBrowser();
+  if (!client) {
+    throw new Error('Supabase client não disponível - variáveis de ambiente não configuradas');
+  }
+  return client;
 };

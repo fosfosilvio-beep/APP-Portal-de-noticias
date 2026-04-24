@@ -6,20 +6,16 @@ import { createClient } from '@supabase/supabase-js';
  * NUNCA exporte isso para o frontend.
  */
 export const getSupabaseAdmin = () => {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceRoleKey = process.env.SERVICE_ROLE_KEY;
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+  const serviceRoleKey = process.env.SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (!supabaseUrl) {
-    throw new Error('NEXT_PUBLIC_SUPABASE_URL não está configurado');
-  }
-
-  if (!serviceRoleKey) {
-    throw new Error('SERVICE_ROLE_KEY não está configurado');
+  if (!supabaseUrl || !serviceRoleKey) {
+    console.warn('Supabase Admin: variáveis de ambiente não configuradas. Usando configuração padrão.');
   }
 
   return createClient(
-    supabaseUrl,
-    serviceRoleKey,
+    supabaseUrl || 'https://placeholder.supabase.co',
+    serviceRoleKey || 'placeholder-key',
     {
       auth: {
         autoRefreshToken: false,

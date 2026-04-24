@@ -62,7 +62,11 @@ export function useLiveStatus() {
           }
         }
       )
-      .subscribe();
+      .subscribe((status: string, err?: Error) => {
+        if (err) {
+          console.error("[useLiveStatus] Realtime error:", err);
+        }
+      });
 
     return () => {
       mounted = false;
