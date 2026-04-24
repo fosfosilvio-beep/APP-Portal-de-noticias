@@ -36,7 +36,31 @@ export async function POST(req: NextRequest) {
     const { newsId, title, subtitle, content, rate = 1.05 } = await req.json();
 
     if (!newsId || !title || !content) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+      return NextResponse.json({ error: "Missing required fields: newsId, title, content" }, { status: 400 });
+    }
+
+    if (typeof newsId !== "string" || typeof title !== "string" || typeof content !== "string") {
+      return NextResponse.json({ error: "newsId, title e content devem ser strings" }, { status: 400 });
+    }
+
+    if (title.length > 300) {
+      return NextResponse.json({ error: "Title muito longo (max 300)" }, { status: 400 });
+    }
+
+    if (subtitle && subtitle.length > 500) {
+      return NextResponse.json({ error: "Subtitle muito longo (max 500)" }, { status: 400 });
+    }
+
+    if (content.length > 50000) {
+      return NextResponse.json({ error: "Content muito longo (max 50000)" }, { status: 400 });
+    }
+
+    if (content.length < 10) {
+      return NextResponse.json({ error: "Content deve ter pelo menos 10 caracteres" }, { status: 400 });
+    }
+
+    if (rate !== undefined && (typeof rate !== "number" || rate < 0.25 || rate > 4.0)) {
+      return NextResponse.json({ error: "Rate deve ser numero entre 0.25 e 4.0" }, { status: 400 });
     }
 
     // 1. Gerar Hash do conteúdo para controle de cache

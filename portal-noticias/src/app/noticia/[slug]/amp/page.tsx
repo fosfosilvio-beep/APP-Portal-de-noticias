@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { getPublicUrl } from "@/components/FallbackImage";
+import DOMPurify from "dompurify";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -65,7 +66,10 @@ export default async function AmpNoticiaPage({ params }: { params: any }) {
 
           <article 
             style={{ fontSize: "16px", color: "#333", wordBreak: "break-word" }}
-            dangerouslySetInnerHTML={{ __html: noticia.conteudo || "" }} 
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(noticia.conteudo || "", {
+              ALLOWED_TAGS: ['p', 'br', 'b', 'i', 'u', 'strong', 'em', 'a', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'img', 'figure', 'figcaption', 'span', 'div'],
+              ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class', 'target', 'rel', 'width', 'height', 'loading']
+            }) }} 
           />
         </main>
 

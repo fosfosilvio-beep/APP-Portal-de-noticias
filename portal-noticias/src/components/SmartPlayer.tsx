@@ -203,7 +203,11 @@ export default function SmartPlayer({
           onLiveChange?.(newConf.is_live, activeUrl || newConf.url_live_facebook);
         }
       )
-      .subscribe();
+      .subscribe(function(status: string) {
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          console.error("[SmartPlayer] Realtime error:", status);
+        }
+      });
 
     return () => { supabase.removeChannel(channel); };
     // eslint-disable-next-line react-hooks/exhaustive-deps

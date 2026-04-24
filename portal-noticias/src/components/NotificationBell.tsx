@@ -19,8 +19,12 @@ export default function NotificationBell() {
 
   // Carregar do localStorage quais notificações já foram lidas
   useEffect(() => {
-    const stored = localStorage.getItem("notifs_lidas");
-    if (stored) setLidas(new Set(JSON.parse(stored)));
+    try {
+      const stored = localStorage.getItem("notifs_lidas");
+      if (stored) setLidas(new Set(JSON.parse(stored)));
+    } catch (e) {
+      console.error("[NotificationBell] Erro ao carregar lidas:", e);
+    }
   }, []);
 
   // Buscar notificações recentes (últimas 10)
@@ -46,7 +50,14 @@ export default function NotificationBell() {
           setNotifs((prev) => [payload.new as Notificacao, ...prev.slice(0, 9)]);
         }
       )
-      .subscribe();
+      .subscribe(function(status: string) {
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          console.error("[NotificationBell] Erro no realtime:", status);
+        }
+      })
+      .catch(function(err: Error) {
+        console.error("[NotificationBell] Erro ao conectar realtime:", err);
+      });
 
     return () => { supabase.removeChannel(channel); };
   }, []);
@@ -54,15 +65,23 @@ export default function NotificationBell() {
   const naoLidas = notifs.filter((n) => !lidas.has(n.id));
 
   const marcarTodasLidas = () => {
-    const novas = new Set([...Array.from(lidas), ...notifs.map((n) => n.id)]);
-    setLidas(novas);
-    localStorage.setItem("notifs_lidas", JSON.stringify(Array.from(novas)));
+    try {
+      const novas = new Set([...Array.from(lidas), ...notifs.map((n) => n.id)]);
+      setLidas(novas);
+      localStorage.setItem("notifs_lidas", JSON.stringify(Array.from(novas)));
+    } catch (e) {
+      console.error("[NotificationBell] Erro ao salvar:", e);
+    }
   };
 
   const marcarLida = (id: string) => {
-    const novas = new Set([...Array.from(lidas), id]);
-    setLidas(novas);
-    localStorage.setItem("notifs_lidas", JSON.stringify(Array.from(novas)));
+    try {
+      const novas = new Set([...Array.from(lidas), id]);
+      setLidas(novas);
+      localStorage.setItem("notifs_lidas", JSON.stringify(Array.from(novas)));
+    } catch (e) {
+      console.error("[NotificationBell] Erro ao salvar lida:", e);
+    }
   };
 
   const formatTime = (dateStr: string) => {

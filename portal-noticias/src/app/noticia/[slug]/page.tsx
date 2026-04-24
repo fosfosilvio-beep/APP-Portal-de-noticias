@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
+import DOMPurify from "dompurify";
 
 import { supabase } from "../../../lib/supabase";
 import { Tag, ChevronLeft, Sun, Play, Clock, BookOpen } from "lucide-react";
@@ -322,7 +323,10 @@ export default function NoticiaDetalhe() {
                   {noticia.conteudo ? (
                     <div 
                       id="article-body"
-                      dangerouslySetInnerHTML={{ __html: noticia.conteudo }} 
+                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(noticia.conteudo, {
+                        ALLOWED_TAGS: ['p', 'br', 'b', 'i', 'u', 'strong', 'em', 'a', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'img', 'figure', 'figcaption', 'video', 'audio', 'source', 'iframe', 'pre', 'code', 'span', 'div', 'table', 'thead', 'tbody', 'tr', 'th', 'td'],
+                        ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class', 'target', 'rel', 'width', 'height', 'controls', 'allow', 'allowfullscreen', 'frameborder', 'loading']
+                      }) }} 
                       className="font-inter"
                     />
                   ) : (

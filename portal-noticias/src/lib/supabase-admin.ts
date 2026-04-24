@@ -6,9 +6,20 @@ import { createClient } from '@supabase/supabase-js';
  * NUNCA exporte isso para o frontend.
  */
 export const getSupabaseAdmin = () => {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl) {
+    throw new Error('NEXT_PUBLIC_SUPABASE_URL não está configurado');
+  }
+
+  if (!serviceRoleKey) {
+    throw new Error('SERVICE_ROLE_KEY não está configurado');
+  }
+
   return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SERVICE_ROLE_KEY!,
+    supabaseUrl,
+    serviceRoleKey,
     {
       auth: {
         autoRefreshToken: false,

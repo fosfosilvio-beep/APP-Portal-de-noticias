@@ -41,28 +41,57 @@ export default function CommentsSection({ noticiaId }: CommentsSectionProps) {
     setLoading(false);
   }
 
+  function validarComentario(nome: string, texto: string): string | null {
+    const nomeTrim = nome.trim();
+    const textoTrim = texto.trim();
+    
+    if (!nomeTrim) return "Preencha seu nome.";
+    if (nomeTrim.length < 2) return "Nome deve ter pelo menos 2 caracteres.";
+    if (nomeTrim.length > 80) return "Nome deve ter no maximo 80 caracteres.";
+    if (!/^[a-zA-Z0-9À-ɏs.-]+$/.test(nomeTrim)) {
+      return "Nome contem caracteres invalidos.";
+    }
+    
+if (!textoTrim) return "Preencha o comentario.";
+    if (textoTrim.length < 3) return "Comentario deve ter pelo menos 3 caracteres.";
+    if (textoTrim.length > 1000) return "Comentario deve ter no maximo 1000 caracteres.";
+    if (/(https?:\/\/|www\.|http:\/\/|\.com|\.br|\.net)/.test(textoTrim)) {
+      return "Links nao sao permitidos.";
+    }
+    
+    return null;
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!nome.trim() || !texto.trim()) {
-      toast.error("Preencha seu nome e o comentário.");
+    
+    const erro = validarComentario(nome, texto);
+    if (erro) {
+      toast.error(erro);
       return;
     }
 
     setSending(true);
-    const { error } = await supabase.from("comentarios").insert([{
-      noticia_id: noticiaId,
-      nome_usuario: nome.trim(),
-      comentario: texto.trim(),
-    }]);
+    try {
+      const { error } = await supabase.from("comentarios").insert([{
+        noticia_id: noticiaId,
+        nome_usuario: nome.trim().slice(0, 80),
+        comentario: texto.trim().slice(0, 1000),
+      }]);
 
-    setSending(false);
-
-    if (error) {
-      toast.error("Erro ao enviar comentário. Tente novamente.");
-    } else {
-      setSubmitted(true);
-      setNome("");
-      setTexto("");
+      if (error) {
+        console.error("[CommentsSection] Erro ao inserir:", error);
+        toast.error("Erro ao enviar comentario. Tente novamente.");
+      } else {
+        setSubmitted(true);
+        setNome("");
+        setTexto("");
+      }
+    } catch (err) {
+      console.error("[CommentsSection] Excecao:", err);
+      toast.error("Erro inesperado. Tente novamente.");
+    } finally {
+      setSending(false);
     }
   }
 

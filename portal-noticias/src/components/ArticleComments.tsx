@@ -61,7 +61,11 @@ export default function ArticleComments({ noticiaId }: { noticiaId: string }) {
       }, (payload: any) => {
         setComentarios((prev) => [payload.new as Comentario, ...prev]);
       })
-      .subscribe();
+      .subscribe(function(status: string) {
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          console.error("[ArticleComments] Realtime error:", status);
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);

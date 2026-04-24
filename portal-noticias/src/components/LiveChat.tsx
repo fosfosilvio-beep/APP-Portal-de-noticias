@@ -93,7 +93,11 @@ export default function LiveChat({ liveUrl }: LiveChatProps) {
            setMessages(prev => [...prev, newMsg]);
         }
       )
-      .subscribe();
+      .subscribe((status: string, err?: Error) => {
+        if (err) {
+          console.error("LiveChat realtime subscription error:", err);
+        }
+      });
 
     return () => { supabase.removeChannel(channel) };
   }, []);

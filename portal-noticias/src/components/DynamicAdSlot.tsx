@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase-browser";
 import { ExternalLink } from "lucide-react";
+import DOMPurify from "dompurify";
 
 interface AdSlotData {
   id: string;
@@ -69,7 +70,10 @@ export default function DynamicAdSlot({ position, className, fallback }: Dynamic
   return (
     <div className={`w-full overflow-hidden rounded-xl border border-slate-200 transition-all duration-300 hover:shadow-md max-h-32 sm:max-h-64 md:max-h-none ${className}`}>
       {isHtml ? (
-        <div dangerouslySetInnerHTML={{ __html: ad.codigo_html_ou_imagem }} />
+        <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(ad.codigo_html_ou_imagem, {
+          ADD_TAGS: ['iframe', 'script'],
+          ADD_ATTR: ['allow', 'allowfullscreen', 'frameborder', 'scrolling', 'loading']
+        }) }} />
       ) : (
         <a href={hrefUrl} target={ad.link_destino ? "_blank" : "_self"} className="relative block group">
           <img 
