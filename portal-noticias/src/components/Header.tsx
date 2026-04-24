@@ -107,9 +107,10 @@ export default function Header({
   return (
     <>
       <div className="w-full flex flex-col font-sans sticky top-0 z-50">
-        {/* HEADER PRINCIPAL */}
-        <header className="bg-black border-b border-zinc-800 shadow-lg w-full">
-          <div className="container mx-auto px-4 lg:px-8 py-3 flex justify-between items-center">
+
+        {/* ── FAIXA 1: LOGO + AÇÕES ─────────────────────────────────── */}
+        <header className="bg-black border-b border-zinc-800/60 shadow-lg w-full">
+          <div className="container mx-auto px-4 lg:px-8 py-2.5 flex justify-between items-center">
 
             {/* LOGO */}
             <div className="flex items-center">
@@ -121,13 +122,13 @@ export default function Header({
                 {!logoUrl ? (
                   <div className="flex items-center gap-2 bg-transparent">
                     <div
-                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-white font-black text-lg sm:text-xl shadow-inner border border-white/10 bg-transparent"
+                      className="w-9 h-9 rounded-full flex items-center justify-center text-white font-black text-base shadow-inner border border-white/10"
                       style={{ background: primaryColor }}
                     >
                       {brandName.charAt(0)}
                     </div>
                     <span
-                      className="hidden sm:inline-block uppercase tracking-wider text-sm sm:text-base bg-transparent"
+                      className="hidden sm:inline-block uppercase tracking-wider text-sm bg-transparent"
                       style={{ fontFamily, fontWeight: "900", color: primaryColor }}
                     >
                       {brandName}
@@ -135,8 +136,7 @@ export default function Header({
                   </div>
                 ) : (
                   <div className="flex items-center gap-3 bg-transparent py-1">
-                    {/* Logo Ícone/Normal */}
-                    <div className="relative h-10 sm:h-12 w-auto bg-transparent flex items-center justify-center">
+                    <div className="relative h-9 sm:h-11 w-auto bg-transparent flex items-center justify-center">
                       <img
                         src={logoUrl}
                         alt={brandName}
@@ -144,10 +144,8 @@ export default function Header({
                         style={{ backgroundColor: 'transparent' }}
                       />
                     </div>
-                    
-                    {/* Logo Texto (Opcional) */}
                     {logoTextoUrl && (
-                      <div className="h-6 sm:h-9 w-auto bg-transparent border-l border-zinc-800 pl-3 flex items-center justify-center">
+                      <div className="h-5 sm:h-8 w-auto bg-transparent border-l border-zinc-700 pl-3 flex items-center justify-center">
                         <img
                           src={logoTextoUrl}
                           alt={`${brandName} Texto`}
@@ -161,107 +159,105 @@ export default function Header({
               </Link>
             </div>
 
-            {/* ÁREA DE NAVEGAÇÃO DESKTOP */}
-            <nav className="flex items-center gap-2 sm:gap-3">
+            {/* AÇÕES DIREITA */}
+            <div className="flex items-center gap-2">
+              {/* Anuncie */}
+              <Link
+                href="/anuncie"
+                className="hidden sm:flex bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 hover:bg-emerald-500 hover:text-white px-3 py-1.5 rounded-full font-black text-[10px] uppercase tracking-widest transition-colors items-center gap-1 shadow-sm"
+              >
+                <span className="relative flex h-1.5 w-1.5 shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+                </span>
+                Anuncie
+              </Link>
 
-              {/* LINKS DESKTOP (hidden no mobile) */}
-              {showNavigation && setCategoriaAtiva && (
-                <div className="hidden lg:flex space-x-1 shrink-0 items-center bg-zinc-900 p-1.5 rounded-full border border-zinc-700">
-                  {CATEGORIAS.map((cat) => (
-                    <button
-                      key={cat}
-                      onClick={() => handleCategoryClick(cat)}
-                      className={`cursor-pointer text-[11px] font-black transition-all uppercase tracking-widest px-4 py-2 rounded-full ${
-                        categoriaAtiva === cat
-                          ? "bg-white text-zinc-900 shadow-sm"
-                          : "text-zinc-400 hover:text-white hover:bg-zinc-800"
-                      }`}
-                    >
-                      {cat}
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {!showNavigation && (
-                <Link
-                  href="/"
-                  className="hidden sm:flex text-zinc-400 hover:text-white font-bold transition-colors text-xs uppercase tracking-widest outline-none items-center gap-2 bg-zinc-900 px-4 py-2 rounded-full border border-zinc-700"
-                >
-                  ← Voltar ao Início
-                </Link>
-              )}
-
-              {/* THEME TOGGLE */}
-              <div className="hidden sm:flex items-center gap-2">
-                <Link 
-                  href="/anuncie" 
-                  className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 hover:bg-emerald-500 hover:text-white px-3 py-1.5 rounded-full font-black text-[10px] uppercase tracking-widest transition-colors flex items-center gap-1 shadow-sm"
-                >
-                  <span className="relative flex h-1.5 w-1.5 shrink-0">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
-                  </span>
-                  Anuncie
-                </Link>
-                <ThemeToggle />
-              </div>
-
-              {/* SINO — apenas desktop */}
+              {/* Sino */}
               <div className="hidden sm:block">
                 <NotificationBell />
               </div>
 
-              {/* PERFIL — apenas desktop */}
+              {/* Perfil */}
               <div className="hidden md:flex items-center">
                 {session ? (
                   <div className="flex items-center gap-2 bg-zinc-900 border border-zinc-700 pl-1.5 pr-3 py-1.5 rounded-full">
                     <img
                       src={session.user.user_metadata.avatar_url || `https://ui-avatars.com/api/?name=${session.user.user_metadata.full_name || "U"}`}
                       alt="Perfil"
-                      className="w-7 h-7 rounded-full object-cover border border-zinc-600"
+                      className="w-6 h-6 rounded-full object-cover border border-zinc-600"
                     />
-                    <span className="text-[10px] font-black text-white uppercase truncate max-w-[70px]">
+                    <span className="text-[10px] font-black text-white uppercase truncate max-w-[60px]">
                       {session.user.user_metadata.full_name?.split(" ")[0] || "Perfil"}
                     </span>
                     <button onClick={handleLogout} className="ml-1 text-zinc-500 hover:text-red-500 transition-colors">
-                      <LogOut size={13} />
+                      <LogOut size={12} />
                     </button>
                   </div>
                 ) : (
-                  <button 
+                  <button
                     onClick={() => setIsLoginModalOpen(true)}
-                    className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-zinc-200 transition-colors"
+                    className="flex items-center gap-1.5 bg-white text-black px-3 py-1.5 rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-zinc-200 transition-colors"
                   >
-                    <User size={13} /> Entrar
+                    <User size={12} /> Entrar
                   </button>
                 )}
               </div>
 
-              {/* INDICADOR AO VIVO (compacto no mobile) */}
-              <div className={`text-[10px] uppercase tracking-widest flex items-center gap-1.5 px-3 py-2 rounded-full border transition-all duration-500 shadow-sm ${
+              {/* Ao Vivo */}
+              <div className={`text-[10px] uppercase tracking-widest flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border transition-all duration-500 ${
                 isLive
                   ? "bg-red-900/40 text-red-400 border-red-800/60 font-black animate-pulse"
                   : "bg-zinc-900 text-zinc-500 border-zinc-700 opacity-70 font-bold"
               }`}>
-                <span className="relative flex h-2 w-2 shrink-0">
+                <span className="relative flex h-1.5 w-1.5 shrink-0">
                   {isLive && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />}
-                  <span className={`relative inline-flex rounded-full h-2 w-2 ${isLive ? "bg-red-500" : "bg-zinc-500"}`} />
+                  <span className={`relative inline-flex rounded-full h-1.5 w-1.5 ${isLive ? "bg-red-500" : "bg-zinc-500"}`} />
                 </span>
                 <span className="hidden sm:inline">{isLive ? "Ao Vivo" : "Offline"}</span>
               </div>
 
-              {/* HAMBURGER (apenas mobile/tablet) */}
+              {/* Hambúrguer mobile */}
               <button
                 onClick={() => setIsMobileMenuOpen(true)}
-                className="lg:hidden flex items-center justify-center w-10 h-10 bg-zinc-900 border border-zinc-700 rounded-full text-zinc-300 hover:text-white hover:bg-zinc-800 transition-colors"
+                className="lg:hidden flex items-center justify-center w-9 h-9 bg-zinc-900 border border-zinc-700 rounded-full text-zinc-300 hover:text-white hover:bg-zinc-800 transition-colors"
                 aria-label="Abrir menu"
               >
-                <Menu size={20} />
+                <Menu size={18} />
               </button>
-            </nav>
+            </div>
           </div>
         </header>
+
+        {/* ── FAIXA 2: NAVEGAÇÃO DE CATEGORIAS (desktop only) ───────── */}
+        {showNavigation && (
+          <nav className="hidden lg:flex bg-zinc-950 border-b border-zinc-800/80 w-full">
+            <div className="container mx-auto px-4 lg:px-8 flex items-center justify-between">
+              {/* Categorias centralizadas */}
+              <div className="flex items-center gap-0.5">
+                {CATEGORIAS.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => handleCategoryClick(cat)}
+                    className={`cursor-pointer text-[10px] font-black transition-all uppercase tracking-widest px-3.5 py-2.5 relative ${
+                      categoriaAtiva === cat
+                        ? "text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-cyan-400"
+                        : "text-zinc-500 hover:text-zinc-200"
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+
+              {/* ThemeToggle no canto direito da nav */}
+              <div className="flex items-center">
+                <ThemeToggle />
+              </div>
+            </div>
+          </nav>
+        )}
+
 
         {/* BREAKING NEWS / RADAR */}
         {config?.ui_settings?.breaking_news_alert?.text ? (
