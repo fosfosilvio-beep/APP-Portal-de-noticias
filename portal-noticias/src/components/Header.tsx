@@ -7,7 +7,7 @@ import LoginModal from "./LoginModal";
 import { getPublicUrl } from "./FallbackImage";
 import { supabase } from "../lib/supabase";
 import { useEffect, useState } from "react";
-import { User, LogOut, Menu, X, ChevronRight } from "lucide-react";
+import { User, LogOut, Menu, X, ChevronRight, Headset } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { normalizeCategory } from "../lib/category-utils";
 import { useRouter } from "next/navigation";
@@ -136,15 +136,16 @@ export default function Header({
 
             {/* AÇÕES DIREITA */}
             <div className="flex items-center gap-2">
-              <div className={`text-[10px] uppercase tracking-widest flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border transition-all duration-500 ${
-                activeIsLive ? "bg-red-900/40 text-red-400 border-red-800/60 font-black animate-pulse" : "bg-zinc-900 text-zinc-500 border-zinc-700"
-              }`}>
-                <span className="relative flex h-1.5 w-1.5">
-                  {activeIsLive && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />}
-                  <span className={`relative inline-flex rounded-full h-1.5 w-1.5 ${activeIsLive ? "bg-red-500" : "bg-zinc-500"}`} />
-                </span>
-                <span>{activeIsLive ? "Ao Vivo" : "Offline"}</span>
-              </div>
+              <Link 
+                href="/biblioteca"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-800/50 border border-slate-700 hover:bg-slate-700 transition-all active:scale-95 group/podcast max-w-[140px]"
+              >
+                <Headset size={18} className="text-yellow-500 shrink-0" />
+                <div className="flex flex-col leading-none">
+                  <span className="text-[8px] uppercase text-slate-400 font-bold tracking-tight">Assista nossos</span>
+                  <span className="text-[10px] font-black text-white tracking-widest">PODCAST</span>
+                </div>
+              </Link>
 
               <button onClick={() => setIsMobileMenuOpen(true)} className="lg:hidden w-9 h-9 flex items-center justify-center bg-zinc-900 border border-zinc-700 rounded-full text-zinc-300">
                 <Menu size={18} />
