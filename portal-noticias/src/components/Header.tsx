@@ -132,10 +132,10 @@ export default function Header({
             </div>
 
             {/* AÇÕES DIREITA */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 sm:gap-4 ml-auto">
               <Link 
                 href="/biblioteca"
-                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-800/50 border border-slate-700 hover:bg-slate-700 transition-all active:scale-95 group/podcast max-w-[140px]"
+                className="flex items-center gap-1.5 sm:gap-2 px-2.5 py-1.5 rounded-full bg-slate-800/50 border border-slate-700 hover:bg-slate-700 transition-all active:scale-95 group/podcast max-w-[120px] sm:max-w-[140px]"
               >
                 <Headset size={18} className="text-yellow-500 shrink-0" />
                 <div className="flex flex-col leading-none">
