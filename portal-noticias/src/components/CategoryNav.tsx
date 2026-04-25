@@ -31,13 +31,8 @@ export default function CategoryNav({ categoriaAtiva, setCategoriaAtiva }: Categ
         .order("ordem", { ascending: true });
 
       if (data) {
-        const filtered = data.filter((cat: any) => {
-          const normalized = cat.nome.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-          return allowedNormalized.includes(normalized);
-        });
-
         // Garantir "Início" no começo
-        const base = [{ id: "inicio", nome: "Início", slug: "inicio" }, ...filtered] as Category[];
+        const base = [{ id: "inicio", nome: "Início", slug: "inicio" }, ...data] as Category[];
         setCategorias(base);
       }
     };
