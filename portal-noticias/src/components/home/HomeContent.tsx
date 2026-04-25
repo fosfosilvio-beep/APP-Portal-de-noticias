@@ -10,6 +10,7 @@ import PlantaoPolicialWidget from "../PlantaoPolicialWidget";
 import DynamicAdSlot from "../DynamicAdSlot";
 import HeroSection from "./HeroSection";
 import CategoryNav from "../CategoryNav";
+import PWAInstallBanner from "../PWAInstallBanner";
 import NewsGrid from "./NewsGrid";
 import BreakingNewsMarquee from "../BreakingNewsMarquee";
 import ColunistasWidget from "./ColunistasWidget";
@@ -113,6 +114,8 @@ export default function HomeContent({ initialConfig, liveStatus, todasNoticias, 
         categoriaAtiva={categoriaAtiva} 
         setCategoriaAtiva={setCategoriaAtiva}
       />
+
+      <PWAInstallBanner />
 
       <CategoryNav 
         categoriaAtiva={categoriaAtiva} 

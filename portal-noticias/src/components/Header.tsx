@@ -105,29 +105,29 @@ export default function Header({
         <header className="bg-black border-b border-zinc-800/60 shadow-lg w-full">
           <div className="container mx-auto px-4 lg:px-8 py-2.5 flex justify-between items-center">
             
-            <div className="flex items-center">
+            <div className="flex items-center min-w-0 flex-1 mr-4">
               <Link 
                 href="/" 
                 onClick={() => setCategoriaAtiva?.("Início")} 
-                className="relative cursor-pointer group flex items-center gap-3"
+                className="relative cursor-pointer group flex items-center gap-3 min-w-0"
               >
                 {logoUrl ? (
-                  <div className="flex items-center gap-2 md:gap-3">
+                  <div className="flex items-center gap-2 md:gap-3 min-w-0">
                     <img 
                       src={logoUrl} 
                       alt={brandName} 
-                      className="h-8 sm:h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105" 
+                      className="h-8 sm:h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105 shrink-0" 
                     />
                     {logoTextoUrl && (
                       <img 
                         src={logoTextoUrl} 
                         alt={`${brandName} Texto`} 
-                        className="h-5 sm:h-8 w-auto object-contain transition-transform duration-300 group-hover:scale-105" 
+                        className="h-5 sm:h-8 w-auto object-contain transition-transform duration-300 group-hover:scale-105 min-w-0" 
                       />
                     )}
                   </div>
                 ) : (
-                  <span className="text-lg md:text-xl font-black text-white tracking-tighter uppercase transition-colors group-hover:text-cyan-400">
+                  <span className="text-lg md:text-xl font-black text-white tracking-tighter uppercase transition-colors group-hover:text-cyan-400 truncate">
                     {brandName}
                   </span>
                 )}
