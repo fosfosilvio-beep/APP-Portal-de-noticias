@@ -31,8 +31,10 @@ export default function LiveChat({ liveUrl }: LiveChatProps) {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // --- Lógica para YouTube Chat ---
+  // --- Lógica de Detecção de Plataforma ---
   const isYouTube = liveUrl?.includes("youtube.com") || liveUrl?.includes("youtu.be");
+  const isFacebook = liveUrl?.includes("facebook.com") || liveUrl?.includes("fb.watch");
+  
   let youtubeChatUrl = "";
 
   if (isYouTube && liveUrl) {
@@ -50,13 +52,16 @@ export default function LiveChat({ liveUrl }: LiveChatProps) {
     }
     
     if (videoId) {
-      // O embed_domain deve ser o domínio onde o site está hospedado
       const domain = typeof window !== "undefined" ? window.location.hostname : "nossawebtv.com.br";
       youtubeChatUrl = `https://www.youtube.com/live_chat?v=${videoId}&embed_domain=${domain}`;
     }
   }
 
-  // Busca sessão atual (apenas se não for YouTube chat ou para persistência)
+  // Se for YouTube e tivermos a URL, usamos o chat do YT. 
+  // Se for Facebook ou qualquer outra coisa, usamos o Chat Nativo (Fallback Inteligente).
+  const useNativeChat = !isYouTube || !youtubeChatUrl;
+
+  // Busca sessão atual
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }: any) => {
       setSession(session);
@@ -69,9 +74,9 @@ export default function LiveChat({ liveUrl }: LiveChatProps) {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Busca msgs históricas e inscreve Realtime (Apenas se NÃO for YouTube chat)
+  // Busca msgs históricas e inscreve Realtime (Apenas se FOR chat nativo)
   useEffect(() => {
-    if (isYouTube && youtubeChatUrl) return;
+    if (!useNativeChat) return;
 
     const fetchMessages = async () => {
       const { data } = await supabase
@@ -125,7 +130,7 @@ export default function LiveChat({ liveUrl }: LiveChatProps) {
       });
 
     return () => { supabase.removeChannel(channel) };
-  }, [isYouTube, youtubeChatUrl]);
+  }, [useNativeChat]);
 
   // Rolagem Auto
   useEffect(() => {
@@ -153,7 +158,7 @@ export default function LiveChat({ liveUrl }: LiveChatProps) {
   };
 
   // --- RENDER YOUTUBE CHAT ---
-  if (isYouTube && youtubeChatUrl) {
+  if (!useNativeChat && youtubeChatUrl) {
     return (
       <div className="w-full h-full min-h-[400px] lg:h-full flex flex-col bg-black rounded-2xl overflow-hidden border border-white/10 shadow-xl">
         <div className="bg-zinc-900 py-3 px-4 border-b border-white/5 flex items-center justify-between">
@@ -171,7 +176,7 @@ export default function LiveChat({ liveUrl }: LiveChatProps) {
     );
   }
 
-  // --- RENDER NATIVE CHAT ---
+  // --- RENDER NATIVE CHAT (Fallback para Facebook e outros) ---
   return (
     <div className="w-full h-full min-h-[400px] lg:h-full flex flex-col bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-xl font-sans">
       {/* HEADER */}
@@ -181,17 +186,24 @@ export default function LiveChat({ liveUrl }: LiveChatProps) {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
             <span className="relative inline-flex rounded-full h-2 w-2 bg-red-600" />
           </span>
-          Chat ao Vivo
+          Chat {isFacebook ? "Nativo" : "ao Vivo"}
         </h3>
-        {session ? (
-           <button onClick={handleLogout} className="flex items-center gap-1 text-[9px] text-slate-400 hover:text-red-500 font-black uppercase transition-colors">
-              <LogOut size={10} /> Sair
-           </button>
-        ) : (
-           <span className="text-slate-400 text-[9px] font-black uppercase tracking-widest cursor-pointer hover:text-blue-600" onClick={() => setIsAuthModalOpen(true)}>
-             Entrar
-           </span>
-        )}
+        <div className="flex items-center gap-3">
+          {isFacebook && (
+            <span className="text-[8px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded font-black uppercase tracking-tighter">
+              FB Fallback
+            </span>
+          )}
+          {session ? (
+             <button onClick={handleLogout} className="flex items-center gap-1 text-[9px] text-slate-400 hover:text-red-500 font-black uppercase transition-colors">
+                <LogOut size={10} /> Sair
+             </button>
+          ) : (
+             <span className="text-slate-400 text-[9px] font-black uppercase tracking-widest cursor-pointer hover:text-blue-600" onClick={() => setIsAuthModalOpen(true)}>
+               Entrar
+             </span>
+          )}
+        </div>
       </div>
 
       {/* ÁREA DE MENSAGENS */}
