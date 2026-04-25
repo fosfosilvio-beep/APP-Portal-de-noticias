@@ -22,18 +22,22 @@ export default function CategoryNav({ categoriaAtiva, setCategoriaAtiva }: Categ
     setMounted(true);
     const fetchCategorias = async () => {
       const supabase = createClient();
-      const allowedNames = ['Geral', 'Arapongas', 'Esportes', 'Polícia', 'Política', 'Economia', 'Entretenimento'];
+      const allowedNormalized = ['geral', 'arapongas', 'esportes', 'policia', 'politica', 'economia', 'entretenimento'];
       
       const { data } = await supabase
         .from("categorias")
         .select("id, nome, slug")
         .eq("ativa", true)
-        .in("nome", allowedNames)
         .order("ordem", { ascending: true });
 
       if (data) {
+        const filtered = data.filter((cat: any) => {
+          const normalized = cat.nome.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+          return allowedNormalized.includes(normalized);
+        });
+
         // Garantir "Início" no começo
-        const base = [{ id: "inicio", nome: "Início", slug: "inicio" }, ...data] as Category[];
+        const base = [{ id: "inicio", nome: "Início", slug: "inicio" }, ...filtered] as Category[];
         setCategorias(base);
       }
     };

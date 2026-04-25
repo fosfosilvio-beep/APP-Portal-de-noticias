@@ -44,11 +44,15 @@ export default function Header({
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e: any, s: any) => setSession(s));
 
     // Fetch Categorias
-    const allowedNames = ['Geral', 'Arapongas', 'Esportes', 'Polícia', 'Política', 'Economia', 'Entretenimento'];
-    supabase.from("categorias").select("id, nome, slug").eq("ativa", true).in("nome", allowedNames).order("ordem")
+    const allowedNormalized = ['geral', 'arapongas', 'esportes', 'policia', 'politica', 'economia', 'entretenimento'];
+    supabase.from("categorias").select("id, nome, slug").eq("ativa", true).order("ordem")
       .then(({ data }: { data: any[] | null }) => {
         if (data) {
-          const base = [{ id: "inicio", nome: "Início", slug: "inicio" }, ...data];
+          const filtered = data.filter((cat: any) => {
+            const normalized = cat.nome.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            return allowedNormalized.includes(normalized);
+          });
+          const base = [{ id: "inicio", nome: "Início", slug: "inicio" }, ...filtered];
           setCategorias(base);
         }
       });
