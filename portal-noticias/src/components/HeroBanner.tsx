@@ -11,6 +11,7 @@ interface HeroItem {
   title?: string;
   subtitle?: string;
   category?: string;
+  link?: string;
 }
 
 export default function HeroBanner({ items, duration, transition }: { items: HeroItem[], duration?: number, transition?: number }) {
@@ -40,12 +41,22 @@ export default function HeroBanner({ items, duration, transition }: { items: Her
             idx === current ? "opacity-100 scale-100 z-10" : "opacity-0 scale-105 z-0"
           }`}
         >
-          <img
-            src={item.image}
-            alt={`Banner ${idx + 1}`}
-            className={`w-full h-full ${item.scale === 'object-contain' ? 'object-contain' : 'object-cover'}`}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+          {item.link ? (
+            <a href={item.link} target="_blank" rel="noopener noreferrer" className="block w-full h-full">
+              <img
+                src={item.image}
+                alt={`Banner ${idx + 1}`}
+                className={`w-full h-full ${item.scale === 'object-contain' ? 'object-contain' : 'object-cover'}`}
+              />
+            </a>
+          ) : (
+            <img
+              src={item.image}
+              alt={`Banner ${idx + 1}`}
+              className={`w-full h-full ${item.scale === 'object-contain' ? 'object-contain' : 'object-cover'}`}
+            />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
 
           {/* Texto responsive — esconde subtitle no mobile */}
           <div className="absolute inset-x-4 sm:inset-x-8 md:inset-x-16 bottom-6 sm:bottom-10 md:bottom-12 z-20 flex flex-col items-start pointer-events-none">

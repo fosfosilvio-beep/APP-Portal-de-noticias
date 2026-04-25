@@ -22,7 +22,7 @@ import NewsNarrator from "../../../components/NewsNarrator";
 import CommentsSection from "../../../components/noticias/CommentsSection";
 import Footer from "../../../components/Footer";
 import SmartPlayer from "../../../components/SmartPlayer";
-import AdSlot from "../../../components/home/AdSlot";
+import DynamicAdSlot from "../../../components/DynamicAdSlot";
 
 export default function NoticiaDetalhe() {
   const params = useParams();
@@ -383,19 +383,7 @@ export default function NoticiaDetalhe() {
             </div>
 
             <div className="sticky top-24">
-               {noticia?.ad_id ? (
-                 <AdSlot bannerId={noticia.ad_id} className="h-[500px]" />
-               ) : (
-                 <div className="bg-zinc-900 rounded-xl h-[500px] flex items-center justify-center p-6 border border-zinc-800 shadow-xl overflow-hidden group relative">
-                   <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800')] bg-cover bg-center opacity-20 group-hover:scale-105 transition-transform duration-[20s]" />
-                   <div className="relative z-10 text-center">
-                      <span className="bg-blue-600 text-white text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-tighter mb-4 inline-block">Publicidade</span>
-                      <h4 className="text-white font-bold text-xl uppercase tracking-tighter leading-tight drop-shadow-md">Seu Negócio Aqui</h4>
-                      <p className="text-zinc-400 text-sm mt-2 font-medium">Anuncie no maior portal de Arapongas</p>
-                      <button className="mt-6 w-full bg-white text-black font-black py-3 rounded-lg hover:bg-blue-600 hover:text-white transition-all uppercase text-xs tracking-widest shadow-lg">Saiba Mais</button>
-                   </div>
-                 </div>
-               )}
+               <DynamicAdSlot position="sidebar_right_1" noticiaId={noticia?.id} className="min-h-[500px]" />
             </div>
           </aside>
         </div>

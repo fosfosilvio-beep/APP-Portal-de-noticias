@@ -6,100 +6,76 @@ import { SupabaseClient } from "@supabase/supabase-js";
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  let supabase: SupabaseClient<any> | null = null;
-  let configData = null;
-  let noticias: any[] = [];
-  let bData: any[] = [];
-
-  try {
-    supabase = await createClient();
-
-    if (supabase) {
-      // 1. Fetch config - Blindagem Total
-      try {
-        const { data: configResult, error: configError } = await supabase
-          .from("configuracao_portal")
-          .select("*")
-          .eq("id", 1)
-          .maybeSingle();
-
-        if (!configError && configResult) {
-          configData = configResult;
-        } else if (configError) {
-          console.warn('[Home] Tabela configuracao_portal ausente ou erro:', configError.message);
-        }
-      } catch (e) {
-        console.warn('[Home] Erro crítico no fetch de config:', e);
-      }
-    }
-  } catch (err) {
-    console.error('[Home] Falha ao inicializar Supabase:', err);
+  const supabase = await createClient();
+  
+  if (!supabase) {
+    throw new Error("Falha ao inicializar o cliente Supabase");
   }
 
-  // Se configData ainda for nulo (tabela não existe), criamos um objeto padrão para não exibir tela de manutenção
-  if (!configData) {
-    configData = {
-      id: 1,
-      nome_plataforma: "Nossa Web TV",
-      ui_settings: { primary_color: "#00AEE0", use_puck_home: false }
-    };
+  // 1. Fetch Config, Live Status e Anúncios em paralelo para performance
+  const [configResponse, liveResponse, adsResponse] = await Promise.all([
+    supabase.from("configuracao_portal").select("*").eq("id", 1).maybeSingle(),
+    supabase.from("portal_live_status").select("*").eq("id", 1).maybeSingle(),
+    supabase.from("ad_slots").select("*").eq("status_ativo", true)
+  ]);
+
+  if (configResponse.error) {
+    console.error('[Home] Erro ao buscar configuracao_portal:', configResponse.error.message);
   }
 
-  // 2. Fetch Puck published layout
+  if (liveResponse.error) {
+    console.error('[Home] Erro ao buscar portal_live_status:', liveResponse.error.message);
+  }
+
+  const configData = configResponse.data || {
+    id: 1,
+    nome_plataforma: "Nossa Web TV",
+    ui_settings: { primary_color: "#00AEE0", use_puck_home: false }
+  };
+
+  const liveData = liveResponse.data || {
+    is_live: false,
+    url_youtube: null,
+    url_facebook: null,
+    titulo: null
+  };
+
+  // 2. Fetch Puck published layout se ativado
   const usePuck = configData?.ui_settings?.use_puck_home === true;
   
-  if (usePuck && supabase) {
-    try {
-      const { data: layoutData, error: layoutError } = await supabase
-        .from("page_layout")
-        .select("published_data")
-        .eq("slug", "home")
-        .maybeSingle();
+  if (usePuck) {
+    const { data: layoutData } = await supabase
+      .from("page_layout")
+      .select("published_data")
+      .eq("slug", "home")
+      .maybeSingle();
 
-      if (!layoutError && layoutData?.published_data) {
-        return <PuckRenderer data={layoutData.published_data} config={configData} />;
-      }
-    } catch (err) {
-      console.warn('[Home] Erro no bypass do Puck:', err);
+    if (layoutData?.published_data) {
+      return <PuckRenderer data={layoutData.published_data} config={configData} />;
     }
   }
 
-  // 3. Fallback: layout legado (HomeContent estático)
-  if (supabase) {
-    try {
-      const { data: prioritizedNews, error: prioError } = await supabase
-        .from("noticias")
-        .select("*, categorias(id, nome, slug)")
-        .order("ordem_prioridade", { ascending: false })
-        .order("created_at", { ascending: false })
-        .limit(80);
-
-      if (!prioError && prioritizedNews) {
-        noticias = prioritizedNews;
-      }
-    } catch (err) {
-      console.warn('[Home] Erro no bypass de noticias:', err);
-    }
-
-    try {
-      const { data: livesData, error: liveErr } = await supabase
-        .from("biblioteca_lives")
-        .select("*")
-        .order("created_at", { ascending: false });
-      
-      if (!liveErr && livesData) {
-        bData = livesData;
-      }
-    } catch (err) {
-      console.warn('[Home] Erro no bypass de lives:', err);
-    }
-  }
+  // 3. Layout legado (HomeContent)
+  const [noticiasRes, livesRes] = await Promise.all([
+    supabase
+      .from("noticias")
+      .select("*, categorias(id, nome, slug)")
+      .order("ordem_prioridade", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(80),
+    supabase
+      .from("biblioteca_lives")
+      .select("*")
+      .order("created_at", { ascending: false })
+  ]);
 
   return (
     <HomeContent 
-      initialConfig={configData || {}} 
-      todasNoticias={noticias} 
-      bibliotecaLives={bData} 
+      initialConfig={configData} 
+      liveStatus={liveData}
+      todasNoticias={noticiasRes.data || []} 
+      bibliotecaLives={livesRes.data || []} 
+      initialAds={adsResponse.data || []}
     />
   );
 }

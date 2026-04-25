@@ -22,7 +22,7 @@ Gerencia o estado global do portal, incluindo status de transmissão e espaços 
 | `mostrar_live_facebook` | BOOLEAN | Chave secundária para forçar a prioridade do Módulo Live para o FB em vez do YT. |
 | `ad_slot_1` | JSONB | Estrutura: `{ image_url, link, visible }` |
 | `ad_slot_2` | JSONB | Estrutura: `{ image_url, link, visible }` |
-| `hero_banner_items` | JSONB | Array de objetos: `[{ image, duration, scale, animation }]` |
+| `hero_banner_items` | JSONB | Array de objetos: `[{ image, link, duration, scale, animation }]` |
 | `titulo_live` | TEXT | Título overlay para a transmissão ativa. |
 | `descricao_live` | TEXT | Descrição overlay para a transmissão ativa. |
 | `organic_views_enabled` | BOOLEAN | Ativa a flutuação orgânica visual de espectadores. |

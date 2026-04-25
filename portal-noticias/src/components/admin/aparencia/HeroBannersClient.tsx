@@ -23,11 +23,14 @@ import { GripVertical, Trash2, Plus, Upload, Loader2, Save, Link as LinkIcon } f
 
 interface HeroBanner {
   id: string;
-  imagem_url: string;
-  link_url?: string;
+  image: string;
+  link?: string;
+  duration: number;
+  scale: "object-cover" | "object-contain";
+  animation: "fade" | "slide" | "zoom";
 }
 
-function SortableBannerItem({ banner, onUpdate, onDelete }: { banner: HeroBanner, onUpdate: (id: string, field: string, value: string) => void, onDelete: (id: string) => void }) {
+function SortableBannerItem({ banner, onUpdate, onDelete }: { banner: HeroBanner, onUpdate: (id: string, field: string, value: any) => void, onDelete: (id: string) => void }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: banner.id });
 
   const style = {
@@ -37,13 +40,13 @@ function SortableBannerItem({ banner, onUpdate, onDelete }: { banner: HeroBanner
   };
 
   return (
-    <div ref={setNodeRef} style={style} className={`flex items-start gap-4 p-4 bg-slate-900 border border-slate-800 rounded-xl ${isDragging ? 'shadow-2xl border-violet-500/50' : ''}`}>
+    <div ref={setNodeRef} style={style} className={`flex items-start gap-4 p-4 bg-slate-900 border border-slate-800 rounded-xl ${isDragging ? 'shadow-2xl border-pink-500/50' : ''}`}>
       <div {...attributes} {...listeners} className="cursor-grab pt-2 text-slate-500 hover:text-white transition-colors">
         <GripVertical size={20} />
       </div>
       
       <div className="w-48 h-24 bg-slate-950 rounded-lg overflow-hidden border border-slate-800 shrink-0 relative group">
-        <img src={banner.imagem_url} alt="Banner" className="w-full h-full object-cover" />
+        <img src={banner.image} alt="Banner" className="w-full h-full object-cover" />
         <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
           <Upload size={20} className="text-white" />
           <input type="file" accept="image/*" className="hidden" onChange={(e) => {
@@ -57,7 +60,7 @@ function SortableBannerItem({ banner, onUpdate, onDelete }: { banner: HeroBanner
                    const { error } = await supabase.storage.from("media").upload(path, file);
                    if (error) throw error;
                    const { data } = supabase.storage.from("media").getPublicUrl(path);
-                   onUpdate(banner.id, "imagem_url", data.publicUrl);
+                   onUpdate(banner.id, "image", data.publicUrl);
                  })(),
                  { loading: "Enviando...", success: "Banner atualizado", error: "Erro no upload" }
                );
@@ -66,18 +69,40 @@ function SortableBannerItem({ banner, onUpdate, onDelete }: { banner: HeroBanner
         </label>
       </div>
 
-      <div className="flex-1 space-y-3">
-        <div>
+      <div className="flex-1 grid grid-cols-2 gap-3">
+        <div className="col-span-2">
           <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5 mb-1.5">
             <LinkIcon size={12} /> Link de Destino (Opcional)
           </label>
           <input 
             type="text" 
-            value={banner.link_url || ""} 
-            onChange={(e) => onUpdate(banner.id, "link_url", e.target.value)}
+            value={banner.link || ""} 
+            onChange={(e) => onUpdate(banner.id, "link", e.target.value)}
             placeholder="https://..."
-            className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white focus:ring-2 focus:ring-violet-500 outline-none"
+            className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white focus:ring-2 focus:ring-pink-500 outline-none"
           />
+        </div>
+
+        <div>
+          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 block">Duração (ms)</label>
+          <input 
+            type="number" 
+            value={banner.duration} 
+            onChange={(e) => onUpdate(banner.id, "duration", parseInt(e.target.value))}
+            className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white focus:ring-2 focus:ring-pink-500 outline-none"
+          />
+        </div>
+
+        <div>
+          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 block">Escala</label>
+          <select 
+            value={banner.scale} 
+            onChange={(e) => onUpdate(banner.id, "scale", e.target.value)}
+            className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white focus:ring-2 focus:ring-pink-500 outline-none"
+          >
+            <option value="object-cover">Preencher (Cover)</option>
+            <option value="object-contain">Conter (Contain)</option>
+          </select>
         </div>
       </div>
 
@@ -121,10 +146,18 @@ export default function HeroBannersClient() {
   };
 
   const addBanner = () => {
-    setBanners([...banners, { id: Math.random().toString(36).slice(2), imagem_url: "https://placehold.co/1200x400/1e293b/475569?text=Novo+Banner" }]);
+    const newBanner: HeroBanner = { 
+      id: Math.random().toString(36).slice(2), 
+      image: "https://placehold.co/1200x400/1e293b/475569?text=Novo+Banner",
+      link: "",
+      duration: 5000,
+      scale: "object-cover",
+      animation: "fade"
+    };
+    setBanners([...banners, newBanner]);
   };
 
-  const updateBanner = (id: string, field: string, value: string) => {
+  const updateBanner = (id: string, field: string, value: any) => {
     setBanners(banners.map(b => b.id === id ? { ...b, [field]: value } : b));
   };
 
@@ -137,7 +170,7 @@ export default function HeroBannersClient() {
     try {
       const { error } = await supabase.from("configuracao_portal").update({
         hero_banner_items: banners
-      }).eq("id", 1); // Assuming row id 1
+      }).eq("id", 1);
       if (error) throw error;
       toast.success("Banners salvos com sucesso!");
     } catch (err: any) {

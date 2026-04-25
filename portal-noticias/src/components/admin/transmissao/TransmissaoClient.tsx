@@ -80,18 +80,7 @@ export default function TransmissaoClient({ initialConfig }: { initialConfig: an
           updated_at: new Date().toISOString()
         });
 
-      if (newTableError) {
-         // Se a tabela nova ainda não existe, tentamos salvar na antiga como fallback
-         console.warn("New table not found, falling back to legacy table...");
-         const { error } = await supabase
-           .from("configuracao_portal")
-           .update(data)
-           .eq("id", 1);
-         if (error) throw error;
-      } else {
-        // Se a nova tabela funcionou, também atualizamos a antiga para manter compatibilidade
-        await supabase.from("configuracao_portal").update(data).eq("id", 1).maybeSingle();
-      }
+      if (newTableError) throw newTableError;
         
       toast.success("Transmissão atualizada com sucesso!");
     } catch (err: any) {

@@ -49,12 +49,7 @@ export default function Footer({ config }: FooterProps) {
               {logoUrl ? (
                 <img src={logoUrl} alt={brandName} className="h-12 w-auto object-contain brightness-0 invert opacity-90" />
               ) : (
-                <div className="flex items-center gap-2">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-lg" style={{ background: primaryColor }}>
-                    {brandName.charAt(0)}
-                  </div>
-                  <span className="uppercase tracking-widest text-lg font-black text-white">{brandName}</span>
-                </div>
+                <span className="uppercase tracking-widest text-lg font-black text-white">{brandName}</span>
               )}
             </Link>
             <p className="text-sm text-slate-400 leading-relaxed font-medium">

@@ -21,7 +21,6 @@ interface HeaderProps {
   showNavigation?: boolean;
 }
 
-const CATEGORIAS = ["Início", "Geral", "Arapongas", "Esportes", "Polícia", "Política", "Entretenimento", "Educação", "Saúde", "Biblioteca"];
 
 export default function Header({
   config,
@@ -37,11 +36,26 @@ export default function Header({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [categorias, setCategorias] = useState<any[]>([]);
 
   useEffect(() => {
     setMounted(true);
     supabase.auth.getSession().then(({ data: { session } }: any) => setSession(session));
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e: any, s: any) => setSession(s));
+
+    // Fetch Categorias
+    supabase.from("categorias").select("id, nome, slug").eq("ativa", true).order("ordem")
+      .then(({ data }) => {
+        if (data) {
+          const hasInicio = data.some(c => c.nome.toLowerCase() === "início");
+          const hasBiblioteca = data.some(c => c.nome.toLowerCase() === "biblioteca");
+          let base = [...data];
+          if (!hasInicio) base = [{ id: "inicio", nome: "Início", slug: "inicio" }, ...base];
+          if (!hasBiblioteca) base = [...base, { id: "biblioteca", nome: "Biblioteca", slug: "biblioteca" }];
+          setCategorias(base);
+        }
+      });
+
     return () => subscription.unsubscribe();
   }, []);
 
@@ -73,10 +87,10 @@ export default function Header({
     setIsMobileMenuOpen(false);
   };
 
-  const brandName = config?.ui_settings?.brand_name || ui.siteName || "NOSSA WEB TV";
-  const rawLogoUrl = config?.ui_settings?.logo_url || config?.logo_url || ui.logoUrl;
+  const brandName = config?.nome_plataforma || config?.ui_settings?.brand_name || ui.siteName || "NOSSA WEB TV";
+  const rawLogoUrl = config?.logo_url || config?.ui_settings?.logo_url || ui.logoUrl;
   const logoUrl = getPublicUrl(rawLogoUrl);
-  const logoTextoUrl = getPublicUrl(ui.logoTextoUrl);
+  const logoTextoUrl = getPublicUrl(config?.logo_texto_url || ui.logoTextoUrl);
   const primaryColor = config?.ui_settings?.primary_color || ui.primaryColor || "#00AEE0";
   const fontFamily = config?.ui_settings?.font_family || ui.fontFamily || "Inter, sans-serif";
 
@@ -91,24 +105,31 @@ export default function Header({
         <header className="bg-black border-b border-zinc-800/60 shadow-lg w-full">
           <div className="container mx-auto px-4 lg:px-8 py-2.5 flex justify-between items-center">
             
-            {/* LOGO */}
             <div className="flex items-center">
-              <Link href="/" onClick={() => setCategoriaAtiva?.("Início")} className="relative cursor-pointer group flex items-center gap-3">
-                {!logoUrl ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-9 h-9 rounded-full flex items-center justify-center text-white font-black text-base" style={{ background: primaryColor }}>
-                      {brandName.charAt(0)}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-3 py-1">
-                    <img src={logoUrl} alt={brandName} className="h-9 sm:h-11 w-auto object-contain" />
+              <Link 
+                href="/" 
+                onClick={() => setCategoriaAtiva?.("Início")} 
+                className="relative cursor-pointer group flex items-center gap-3"
+              >
+                {logoUrl ? (
+                  <div className="flex items-center gap-2 md:gap-3">
+                    <img 
+                      src={logoUrl} 
+                      alt={brandName} 
+                      className="h-8 sm:h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105" 
+                    />
                     {logoTextoUrl && (
-                      <div className="h-5 sm:h-8 w-auto border-l border-zinc-700 pl-3">
-                        <img src={logoTextoUrl} alt={brandName} className="h-full w-auto object-contain" />
-                      </div>
+                      <img 
+                        src={logoTextoUrl} 
+                        alt={`${brandName} Texto`} 
+                        className="h-5 sm:h-8 w-auto object-contain transition-transform duration-300 group-hover:scale-105" 
+                      />
                     )}
                   </div>
+                ) : (
+                  <span className="text-lg md:text-xl font-black text-white tracking-tighter uppercase transition-colors group-hover:text-cyan-400">
+                    {brandName}
+                  </span>
                 )}
               </Link>
             </div>
@@ -145,15 +166,15 @@ export default function Header({
         {showNavigation && (
           <nav className="hidden lg:flex bg-zinc-950 border-b border-zinc-800/80 w-full overflow-x-auto">
             <div className="container mx-auto px-4 lg:px-8 flex items-center">
-              {CATEGORIAS.map((cat) => (
+              {categorias.map((cat) => (
                 <button
-                  key={cat}
-                  onClick={() => handleCategoryClick(cat)}
+                  key={cat.id || cat.nome}
+                  onClick={() => handleCategoryClick(cat.nome)}
                   className={`text-[10px] font-black uppercase tracking-widest px-4 py-3 whitespace-nowrap ${
-                    categoriaAtiva === cat ? "text-white border-b-2 border-cyan-400" : "text-zinc-500 hover:text-zinc-200"
+                    categoriaAtiva === cat.nome ? "text-white border-b-2 border-cyan-400" : "text-zinc-500 hover:text-zinc-200"
                   }`}
                 >
-                  {cat}
+                  {cat.nome}
                 </button>
               ))}
             </div>
@@ -167,10 +188,19 @@ export default function Header({
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-[100] bg-black/95 flex flex-col p-8 animate-in fade-in duration-300">
           <button onClick={() => setIsMobileMenuOpen(false)} className="absolute top-6 right-6 text-white"><X size={32} /></button>
-          <div className="flex flex-col gap-6 mt-12">
-            {CATEGORIAS.map((cat) => (
-              <button key={cat} onClick={() => handleCategoryClick(cat)} className="text-2xl font-black text-white uppercase tracking-tighter text-left border-b border-white/10 pb-4">
-                {cat}
+          <div className="flex flex-col gap-6 mt-12 overflow-y-auto max-h-[70vh] pr-4">
+            {categorias.map((cat) => (
+              <button 
+                key={cat.id || cat.nome} 
+                onClick={() => {
+                  handleCategoryClick(cat.nome);
+                  setIsMobileMenuOpen(false);
+                }} 
+                className={`text-2xl font-black uppercase tracking-tighter text-left border-b border-white/10 pb-4 ${
+                  categoriaAtiva === cat.nome ? "text-cyan-400" : "text-white"
+                }`}
+              >
+                {cat.nome}
               </button>
             ))}
           </div>

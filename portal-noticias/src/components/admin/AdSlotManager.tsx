@@ -12,6 +12,7 @@ import { CSS } from "@dnd-kit/utilities";
 import {
   Plus, Save, Loader2, GripVertical, Eye, EyeOff, Trash2, Upload, ExternalLink, Monitor
 } from "lucide-react";
+import { toast } from "@/lib/toast";
 
 interface AdSlot {
   id: string;
@@ -82,7 +83,7 @@ function SortableAdItem({ slot, onToggle, onDelete, onUpdate, onUploadImage }: {
           <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Arte / Imagem</label>
           <div className="relative group bg-slate-100 rounded-xl overflow-hidden border border-slate-200" style={{ height: "100px" }}>
             {slot.codigo_html_ou_imagem && !slot.codigo_html_ou_imagem.includes("<") ? (
-              <img src={slot.codigo_html_ou_imagem} alt={slot.nome_slot} className="w-full h-full object-cover" />
+              <img key={slot.codigo_html_ou_imagem} src={slot.codigo_html_ou_imagem} alt={slot.nome_slot} className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center text-slate-300 gap-1">
                 <Monitor size={24} />
@@ -180,11 +181,17 @@ function SortableAdItem({ slot, onToggle, onDelete, onUpdate, onUploadImage }: {
 }
 
 // ========== SKELETON MAP ==========
-function PortalSkeletonMap({ slots }: { slots: AdSlot[] }) {
+function PortalSkeletonMap({ slots, onZoneClick, selectedZone }: { slots: AdSlot[], onZoneClick: (pos: string) => void, selectedZone: string | null }) {
   const activeByPos = slots.reduce<Record<string, AdSlot>>((acc, s) => {
     if (s.status_ativo) acc[s.posicao_html] = s;
     return acc;
   }, {});
+
+  const getZoneClass = (pos: string, base: string, active: string, inactive: string) => {
+    const isSelected = selectedZone === pos;
+    const hasActive = activeByPos[pos];
+    return `${base} cursor-pointer transition-all hover:scale-[1.02] active:scale-95 ${isSelected ? 'ring-4 ring-blue-500 ring-offset-4 ring-offset-slate-900 border-solid' : 'border-dashed'} ${hasActive ? active : inactive}`;
+  };
 
   return (
     <div className="bg-slate-900 rounded-2xl p-5 space-y-3">
@@ -192,14 +199,17 @@ function PortalSkeletonMap({ slots }: { slots: AdSlot[] }) {
         🗺️ Mapa Visual do Portal — Zonas Publicitárias
       </p>
       {/* Header Zone */}
-      <div className={`w-full h-8 rounded-lg border-2 border-dashed flex items-center justify-center text-[9px] font-black uppercase tracking-wider transition-all ${activeByPos["header_top"] ? "bg-blue-500/20 border-blue-400 text-blue-300" : "border-slate-700 text-slate-600"}`}>
+      <div 
+        onClick={() => onZoneClick("header_top")}
+        className={getZoneClass("header_top", "w-full h-16 rounded-lg border-2 flex items-center justify-center text-[9px] font-black uppercase tracking-wider", "bg-blue-500/20 border-blue-400 text-blue-300", "border-slate-700 text-slate-600 hover:bg-slate-800/50")}
+      >
         {activeByPos["header_top"] ? `✓ ${activeByPos["header_top"].nome_slot}` : "HEADER 728×90 — Vazio"}
       </div>
 
       {/* Body zone */}
       <div className="flex gap-3">
         {/* Main content area */}
-        <div className="flex-1 bg-slate-800/50 rounded-lg h-24 flex items-center justify-center">
+        <div className="flex-1 bg-slate-800/50 rounded-lg h-52 flex items-center justify-center">
           <div className="space-y-1.5 w-4/5">
             <div className="h-2 bg-slate-700 rounded-full w-full" />
             <div className="h-2 bg-slate-700 rounded-full w-3/4" />
@@ -210,7 +220,11 @@ function PortalSkeletonMap({ slots }: { slots: AdSlot[] }) {
         {/* Sidebar */}
         <div className="w-1/4 space-y-2">
           {["sidebar_right_1", "sidebar_right_2"].map((pos) => (
-            <div key={pos} className={`rounded-lg border-2 border-dashed flex items-center justify-center text-[8px] font-black uppercase tracking-wider p-2 transition-all ${activeByPos[pos] ? "bg-purple-500/20 border-purple-400 text-purple-300" : "border-slate-700 text-slate-600"} ${pos === "sidebar_right_1" ? "h-10" : "h-14"}`}>
+            <div 
+              key={pos} 
+              onClick={() => onZoneClick(pos)}
+              className={getZoneClass(pos, "rounded-lg border-2 flex items-center justify-center text-[8px] font-black uppercase tracking-wider p-2", "bg-purple-500/20 border-purple-400 text-purple-300", "border-slate-700 text-slate-600 hover:bg-slate-800/50") + (pos === "sidebar_right_1" ? " h-24" : " h-40")}
+            >
               {activeByPos[pos] ? `✓ Slot Ativo` : pos === "sidebar_right_1" ? "300×250 Vazio" : "300×400 Vazio"}
             </div>
           ))}
@@ -218,14 +232,18 @@ function PortalSkeletonMap({ slots }: { slots: AdSlot[] }) {
       </div>
 
       {/* In-Article */}
-      {activeByPos["in_article"] && (
-        <div className="w-full h-6 rounded-lg border-2 border-dashed border-yellow-500/50 bg-yellow-500/10 flex items-center justify-center text-[9px] font-black uppercase tracking-wider text-yellow-400">
-          ✓ In-Article — {activeByPos["in_article"].nome_slot}
-        </div>
-      )}
+      <div 
+        onClick={() => onZoneClick("in_article")}
+        className={getZoneClass("in_article", "w-full h-12 rounded-lg border-2 flex items-center justify-center text-[9px] font-black uppercase tracking-wider", "bg-yellow-500/20 border-yellow-400 text-yellow-300", "border-slate-700 text-slate-600 hover:bg-slate-800/50")}
+      >
+        {activeByPos["in_article"] ? `✓ In-Article — ${activeByPos["in_article"].nome_slot}` : "IN-ARTICLE — Vazio"}
+      </div>
 
       {/* Footer Zone */}
-      <div className={`w-full h-8 rounded-lg border-2 border-dashed flex items-center justify-center text-[9px] font-black uppercase tracking-wider transition-all ${activeByPos["footer_top"] ? "bg-emerald-500/20 border-emerald-400 text-emerald-300" : "border-slate-700 text-slate-600"}`}>
+      <div 
+        onClick={() => onZoneClick("footer_top")}
+        className={getZoneClass("footer_top", "w-full h-16 rounded-lg border-2 flex items-center justify-center text-[9px] font-black uppercase tracking-wider", "bg-emerald-500/20 border-emerald-400 text-emerald-300", "border-slate-700 text-slate-600 hover:bg-slate-800/50")}
+      >
         {activeByPos["footer_top"] ? `✓ ${activeByPos["footer_top"].nome_slot}` : "FOOTER 728×90 — Vazio"}
       </div>
     </div>
@@ -237,6 +255,7 @@ export default function AdSlotManager() {
   const [slots, setSlots] = useState<AdSlot[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [filterZone, setFilterZone] = useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -250,7 +269,15 @@ export default function AdSlotManager() {
   const fetchSlots = async () => {
     setLoading(true);
     const { data } = await supabase.from("ad_slots").select("*").order("created_at");
-    if (data) setSlots(data as AdSlot[]);
+    if (data) {
+      const mapped = data.map((s: any) => ({
+        ...s,
+        cliente_nome: s.advertiser_name || s.cliente_nome,
+        link_destino: s.click_url || s.link_destino,
+        validade_ate: s.end_date || s.validade_ate
+      }));
+      setSlots(mapped);
+    }
     setLoading(false);
   };
 
@@ -300,21 +327,38 @@ export default function AdSlotManager() {
     if (!error && data) setSlots([...slots, data as AdSlot]);
   };
 
+
   const handleSaveAll = async () => {
+    console.log("Iniciando salvamento de todos os slots (Sync with DB columns)...", slots);
     setSaving(true);
     try {
-      for (const slot of slots) {
-        await supabase.from("ad_slots").update({
+      const updates = slots.map(slot => 
+        supabase.from("ad_slots").update({
           nome_slot: slot.nome_slot,
           posicao_html: slot.posicao_html,
           dimensoes: slot.dimensoes,
           codigo_html_ou_imagem: slot.codigo_html_ou_imagem,
           status_ativo: slot.status_ativo,
-        }).eq("id", slot.id);
+          advertiser_name: slot.cliente_nome,
+          click_url: slot.link_destino,
+          end_date: slot.validade_ate,
+        }).eq("id", slot.id)
+      );
+
+      const results = await Promise.all(updates);
+      const errors = results.filter(r => r.error);
+      
+      if (errors.length > 0) {
+        console.error("Erros ao salvar slots:", errors);
+        toast.error("Erro", "Ocorreram erros ao salvar alguns slots.");
+      } else {
+        setSaving(false);
+        toast.success("Sucesso", "Todos os slots foram salvos com sucesso!");
+        await fetchSlots(); 
       }
-      alert("✅ Todos os slots foram salvos!");
     } catch (err: any) {
-      alert("Erro: " + err.message);
+      console.error("Erro crítico no salvamento:", err);
+      toast.error("Erro Crítico", err.message);
     } finally {
       setSaving(false);
     }
@@ -323,13 +367,27 @@ export default function AdSlotManager() {
   return (
     <div className="space-y-6">
       {/* Mapa Esqueleto */}
-      <PortalSkeletonMap slots={slots} />
+      <PortalSkeletonMap 
+        slots={slots} 
+        onZoneClick={(zone) => setFilterZone(zone === filterZone ? null : zone)}
+        selectedZone={filterZone}
+      />
 
       {/* Header de Ação */}
       <div className="flex items-center justify-between">
         <div>
           <h3 className="font-black text-slate-900 text-lg">Gerenciador de Publicidade</h3>
-          <p className="text-sm text-slate-500 font-medium">{slots.filter(s => s.status_ativo).length} de {slots.length} slots ativos</p>
+          <div className="flex items-center gap-2">
+            <p className="text-sm text-slate-500 font-medium">{slots.filter(s => s.status_ativo).length} de {slots.length} slots ativos</p>
+            {filterZone && (
+              <button 
+                onClick={() => setFilterZone(null)}
+                className="bg-blue-100 text-blue-700 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full hover:bg-blue-200 transition-colors"
+              >
+                Filtrando: {filterZone} (Limpar ✕)
+              </button>
+            )}
+          </div>
         </div>
         <div className="flex gap-3">
           <button
@@ -359,7 +417,9 @@ export default function AdSlotManager() {
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={slots.map((s) => s.id)} strategy={verticalListSortingStrategy}>
             <div className="space-y-4">
-              {slots.map((slot) => (
+              {slots
+                .filter(s => !filterZone || s.posicao_html === filterZone)
+                .map((slot) => (
                 <SortableAdItem
                   key={slot.id}
                   slot={slot}

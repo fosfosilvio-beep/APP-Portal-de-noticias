@@ -26,7 +26,8 @@ export function useLiveStatus() {
         const { data } = await supabase
           .from("portal_live_status")
           .select("*")
-          .eq("id", 1)
+          .order("id", { ascending: true })
+          .limit(1)
           .maybeSingle();
 
         if (mounted) {

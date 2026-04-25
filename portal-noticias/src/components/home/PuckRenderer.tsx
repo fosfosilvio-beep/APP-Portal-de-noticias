@@ -5,6 +5,7 @@ import { Render } from "@measured/puck";
 import { puckConfig } from "@/lib/puck-config";
 import "@measured/puck/puck.css";
 import Header from "@/components/Header";
+import HeroSection from "@/components/home/HeroSection";
 
 interface PuckRendererProps {
   data: any;
@@ -35,7 +36,11 @@ export default function PuckRenderer({ data, config }: PuckRendererProps) {
 
       <Header isLive={isLive} config={config} categoriaAtiva="Início" setCategoriaAtiva={() => {}} />
 
-      <main className="container mx-auto px-4 lg:px-8 py-8 flex-grow">
+      <main className="container mx-auto px-4 lg:px-8 py-8 flex-grow space-y-8">
+        
+        {/* Adicionar Player de Live se estiver ativo */}
+        {isLive && <HeroSection />}
+
         {data && typeof data === 'object' && Object.keys(data).length > 0 ? (
           <Render config={puckConfig} data={data} />
         ) : (

@@ -7,8 +7,9 @@ import Header from "../Header";
 import HeroBanner from "../HeroBanner";
 import AutomatedNewsFeed from "../AutomatedNewsFeed";
 import PlantaoPolicialWidget from "../PlantaoPolicialWidget";
-import AdSlot from "./AdSlot";
+import DynamicAdSlot from "../DynamicAdSlot";
 import HeroSection from "./HeroSection";
+import CategoryNav from "../CategoryNav";
 import NewsGrid from "./NewsGrid";
 import BreakingNewsMarquee from "../BreakingNewsMarquee";
 import ColunistasWidget from "./ColunistasWidget";
@@ -19,33 +20,49 @@ import { getVisualCategory } from "@/lib/category-utils";
 
 interface HomeContentProps {
   initialConfig: any;
+  liveStatus: any;
   todasNoticias: any[];
   bibliotecaLives: any[];
+  initialAds: any[];
 }
 
-export default function HomeContent({ initialConfig, todasNoticias, bibliotecaLives }: HomeContentProps) {
+export default function HomeContent({ initialConfig, liveStatus, todasNoticias, bibliotecaLives, initialAds }: HomeContentProps) {
   const [isMounted, setIsMounted] = useState(false);
   const [categoriaAtiva, setCategoriaAtiva] = useState("Início");
   const [searchBiblioteca, setSearchBiblioteca] = useState("");
   const [categorias, setCategorias] = useState<any[]>([]);
   const [noticiasCategoria, setNoticiasCategoria] = useState<any[]>([]);
   const [isLoadingCat, setIsLoadingCat] = useState(false);
+  const [config, setConfig] = useState(initialConfig);
 
-  const config = initialConfig;
-  const isLive = config?.is_live || false;
+  const isLive = liveStatus?.is_live || false;
   const breakingNews = config?.ui_settings?.breaking_news_alert;
 
   useEffect(() => {
     setIsMounted(true);
     const supabase = createClient();
+    
+    // Categorias
     supabase.from("categorias").select("slug, nome, ordem").eq("ativa", true).order("ordem")
       .then(({ data }: any) => { if (data?.length) setCategorias(data); });
+
+    // Realtime Config
+    const channel = supabase
+      .channel("config_realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "configuracao_portal" }, (payload: any) => {
+        setConfig(payload.new);
+      })
+      .subscribe();
 
     const params = new URLSearchParams(window.location.search);
     const catParam = params.get("cat");
     if (catParam) {
       setCategoriaAtiva(catParam);
     }
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   useEffect(() => {
@@ -97,6 +114,11 @@ export default function HomeContent({ initialConfig, todasNoticias, bibliotecaLi
         setCategoriaAtiva={setCategoriaAtiva}
       />
 
+      <CategoryNav 
+        categoriaAtiva={categoriaAtiva} 
+        setCategoriaAtiva={setCategoriaAtiva} 
+      />
+
 
       {/* Breaking News Marquee */}
       {breakingNews?.active && (
@@ -128,7 +150,11 @@ export default function HomeContent({ initialConfig, todasNoticias, bibliotecaLi
         {/* Ad de Topo */}
         {categoriaAtiva === "Início" && (
           <div className="mb-8 max-w-5xl mx-auto">
-            <AdSlot posicao="home_topo" className="h-24 sm:h-32" />
+            <DynamicAdSlot 
+              position="header_top" 
+              className="h-24 sm:h-32" 
+              initialData={initialAds.find(a => a.posicao_html === "header_top")}
+            />
           </div>
         )}
 
@@ -255,7 +281,11 @@ export default function HomeContent({ initialConfig, todasNoticias, bibliotecaLi
 
 
             {/* Ad Lateral */}
-            <AdSlot posicao="noticia_lateral" className="min-h-[300px]" />
+            <DynamicAdSlot 
+              position="sidebar_right_1" 
+              className="min-h-[300px]" 
+              initialData={initialAds.find(a => a.posicao_html === "sidebar_right_1")}
+            />
 
             {/* Clima se ativado */}
             {(config?.ui_settings?.widgets_visibility?.weather !== false) && (
@@ -273,7 +303,11 @@ export default function HomeContent({ initialConfig, todasNoticias, bibliotecaLi
         
         {/* Ad Inferior */}
         <div className="mt-12 max-w-5xl mx-auto">
-          <AdSlot posicao="home_meio" className="h-24 sm:h-32" />
+          <DynamicAdSlot 
+            position="footer_top" 
+            className="h-24 sm:h-32" 
+            initialData={initialAds.find(a => a.posicao_html === "footer_top")}
+          />
         </div>
       </main>
 

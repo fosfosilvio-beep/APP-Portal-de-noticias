@@ -19,13 +19,23 @@ interface AdSlotData {
 interface DynamicAdSlotProps {
   position: string;
   className?: string;
+  noticiaId?: string;
   fallback?: React.ReactNode;
+  initialData?: AdSlotData;
 }
 
-export default function DynamicAdSlot({ position, className, fallback }: DynamicAdSlotProps) {
-  const [ad, setAd] = useState<AdSlotData | null>(null);
-  const [loading, setLoading] = useState(true);
+export default function DynamicAdSlot({ position, className, noticiaId, fallback, initialData }: DynamicAdSlotProps) {
+  const [ad, setAd] = useState<AdSlotData | null>(initialData || null);
+  const [loading, setLoading] = useState(!initialData);
+  const [tracked, setTracked] = useState(false);
+
   useEffect(() => {
+    // Se já temos dados iniciais e eles correspondem à posição, não buscamos novamente
+    if (initialData && initialData.posicao_html === position) {
+       setLoading(false);
+       return;
+    }
+    
     async function loadAd() {
       const supabase = createClient();
       if (!supabase) return;
@@ -36,13 +46,43 @@ export default function DynamicAdSlot({ position, className, fallback }: Dynamic
         .eq("posicao_html", position)
         .eq("status_ativo", true)
         .limit(1)
-        .single();
+        .maybeSingle();
       
-      if (data) setAd(data);
+      if (data) setAd(data as AdSlotData);
       setLoading(false);
     }
     loadAd();
   }, [position]);
+
+  // Tracking de Impressão
+  useEffect(() => {
+    if (ad && !tracked) {
+      const trackImpression = async () => {
+        try {
+          await fetch("/api/ads/track", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              impressions: [{
+                slot_id: ad.id,
+                noticia_id: noticiaId || null,
+                viewport_w: window.innerWidth,
+                viewport_h: window.innerHeight,
+                viewed_at: new Date().toISOString()
+              }]
+            })
+          });
+          setTracked(true);
+        } catch (err) {
+          console.error("[Ad Tracking] Failed to track impression:", err);
+        }
+      };
+
+      // Pequeno delay para garantir que o banner foi renderizado
+      const timer = setTimeout(trackImpression, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [ad, tracked, noticiaId]);
 
   if (loading) return <div className={`animate-pulse bg-slate-100 rounded-xl h-32 ${className}`} />;
 
@@ -61,12 +101,21 @@ export default function DynamicAdSlot({ position, className, fallback }: Dynamic
   }
 
   // Check expiration
-  if (ad.validade_ate && new Date(ad.validade_ate) < new Date()) {
+  const expirationDate = ad.validade_ate || (ad as any).end_date;
+  if (expirationDate && new Date(expirationDate) < new Date()) {
     return fallback || defaultFallback;
   }
 
+  const formatExternalLink = (url: string) => {
+    if (!url) return '#';
+    return url.startsWith('http') ? url : `https://${url}`;
+  };
+
   const isHtml = ad.codigo_html_ou_imagem.includes("<") && ad.codigo_html_ou_imagem.includes(">");
-  const hrefUrl = ad.link_destino ? `/api/ads/click?id=${ad.id}` : "#";
+  const clickUrl = ad.link_destino || (ad as any).click_url;
+  const hrefUrl = (clickUrl && clickUrl !== "#") 
+    ? `/api/ads/click?id=${ad.id}${noticiaId ? `&noticia_id=${noticiaId}` : ""}` 
+    : "#";
 
   return (
     <div className={`w-full overflow-hidden rounded-xl border border-slate-200 transition-all duration-300 hover:shadow-md max-h-32 sm:max-h-64 md:max-h-none ${className}`}>
@@ -76,7 +125,11 @@ export default function DynamicAdSlot({ position, className, fallback }: Dynamic
           ADD_ATTR: ['allow', 'allowfullscreen', 'frameborder', 'scrolling', 'loading']
         }) }} />
       ) : (
-        <a href={hrefUrl} target={ad.link_destino ? "_blank" : "_self"} className="relative block group">
+        <a 
+          href={hrefUrl} 
+          target={clickUrl ? "_blank" : "_self"} 
+          className="relative block group"
+        >
           <img 
             src={ad.codigo_html_ou_imagem} 
             alt={ad.nome_slot} 

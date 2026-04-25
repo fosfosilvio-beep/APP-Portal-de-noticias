@@ -21,7 +21,7 @@ export async function GET(req: Request) {
     // 1. Fetch current ad details
     const { data: ad, error } = await supabase
       .from("ad_slots")
-      .select("link_destino, validade_ate")
+      .select("link_destino, click_url, validade_ate")
       .eq("id", id)
       .single();
 
@@ -29,20 +29,18 @@ export async function GET(req: Request) {
       return NextResponse.redirect(new URL("/", req.url));
     }
 
-    // 2. Increment click count (using rpc if available, but doing it manually here since it's low traffic or using a safe approach)
-    // For high concurrency, a Supabase RPC function is better: `increment_click(ad_id)`
-    // But we can just use a simple update here for MVP. Or better, tracking it via an edge function.
-    // To avoid race conditions, we can just do a simple increment. Wait, Supabase update doesn't support x = x + 1 directly in the API.
-    // We will call a generic RPC if we had one. If not, just fetching and adding 1 is okay for this traffic level.
+    // 2. Increment click count
     const { data: adClicks } = await supabase.from("ad_slots").select("cliques").eq("id", id).single();
     if (adClicks) {
       await supabase.from("ad_slots").update({ cliques: (adClicks.cliques || 0) + 1 }).eq("id", id);
     }
 
     // 3. Redirect to the destination
-    if (ad.link_destino) {
+    const finalLink = ad.click_url || ad.link_destino;
+    
+    if (finalLink) {
       // Ensure the link is absolute
-      const targetUrl = ad.link_destino.startsWith("http") ? ad.link_destino : `https://${ad.link_destino}`;
+      const targetUrl = finalLink.startsWith("http") ? finalLink : `https://${finalLink}`;
       return NextResponse.redirect(targetUrl);
     }
 

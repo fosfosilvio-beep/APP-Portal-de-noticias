@@ -1,9 +1,13 @@
-import PublicidadeManager from "@/components/admin/publicidade/PublicidadeManager";
+import AdSlotManager from "@/components/admin/AdSlotManager";
 
 export const metadata = {
   title: "Publicidade | Admin Portal",
 };
 
 export default function PublicidadePage() {
-  return <PublicidadeManager />;
+  return (
+    <div className="p-4 sm:p-6 lg:p-8">
+      <AdSlotManager />
+    </div>
+  );
 }
