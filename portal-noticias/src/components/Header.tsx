@@ -45,10 +45,10 @@ export default function Header({
 
     // Fetch Categorias
     supabase.from("categorias").select("id, nome, slug").eq("ativa", true).order("ordem")
-      .then(({ data }) => {
+      .then(({ data }: { data: any[] | null }) => {
         if (data) {
-          const hasInicio = data.some(c => c.nome.toLowerCase() === "início");
-          const hasBiblioteca = data.some(c => c.nome.toLowerCase() === "biblioteca");
+          const hasInicio = data.some((c: any) => c.nome.toLowerCase() === "início");
+          const hasBiblioteca = data.some((c: any) => c.nome.toLowerCase() === "biblioteca");
           let base = [...data];
           if (!hasInicio) base = [{ id: "inicio", nome: "Início", slug: "inicio" }, ...base];
           if (!hasBiblioteca) base = [...base, { id: "biblioteca", nome: "Biblioteca", slug: "biblioteca" }];

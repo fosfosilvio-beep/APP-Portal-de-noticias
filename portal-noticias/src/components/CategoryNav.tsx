@@ -30,8 +30,8 @@ export default function CategoryNav({ categoriaAtiva, setCategoriaAtiva }: Categ
 
       if (data) {
         // Garantir "Início" no começo se não estiver no banco
-        const hasInicio = data.some(c => c.nome.toLowerCase() === "início");
-        const base = hasInicio ? data : [{ id: "inicio", nome: "Início", slug: "inicio" }, ...data];
+        const hasInicio = data.some((c: any) => c.nome.toLowerCase() === "início");
+        const base = (hasInicio ? data : [{ id: "inicio", nome: "Início", slug: "inicio" }, ...data]) as Category[];
         setCategorias(base);
       }
     };
