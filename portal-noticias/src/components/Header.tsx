@@ -44,14 +44,11 @@ export default function Header({
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e: any, s: any) => setSession(s));
 
     // Fetch Categorias
-    supabase.from("categorias").select("id, nome, slug").eq("ativa", true).order("ordem")
+    const allowedNames = ['Geral', 'Arapongas', 'Esportes', 'Polícia', 'Política', 'Economia', 'Entretenimento'];
+    supabase.from("categorias").select("id, nome, slug").eq("ativa", true).in("nome", allowedNames).order("ordem")
       .then(({ data }: { data: any[] | null }) => {
         if (data) {
-          const hasInicio = data.some((c: any) => c.nome.toLowerCase() === "início");
-          const hasBiblioteca = data.some((c: any) => c.nome.toLowerCase() === "biblioteca");
-          let base = [...data];
-          if (!hasInicio) base = [{ id: "inicio", nome: "Início", slug: "inicio" }, ...base];
-          if (!hasBiblioteca) base = [...base, { id: "biblioteca", nome: "Biblioteca", slug: "biblioteca" }];
+          const base = [{ id: "inicio", nome: "Início", slug: "inicio" }, ...data];
           setCategorias(base);
         }
       });
@@ -62,10 +59,6 @@ export default function Header({
   const activeIsLive = liveStatus?.is_live ?? false;
 
   const handleCategoryClick = (cat: string) => {
-    if (cat === "Biblioteca") {
-      router.push("/biblioteca");
-      return;
-    }
     if (cat === "Início") {
       if (setCategoriaAtiva) {
         setCategoriaAtiva("Início");
