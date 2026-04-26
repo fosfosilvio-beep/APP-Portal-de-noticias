@@ -32,7 +32,7 @@ REGRAS CRÍTICAS DE ESTRUTURA (IA NEWS v2):
 1. TÍTULO: Direto, impactante e com palavras-chave de SEO.
 2. SUBTÍTULO: Uma linha fina que complementa o título com dados ou contexto.
 3. CONTEÚDO (HTML):
-   - Mínimo de 600 palavras.
+   - LIMITE: Nunca ultrapasse 4500 caracteres totais. Seja objetivo e conciso.
    - Use <h2> para subtópicos internos.
    - Insira um box de resumo no início: <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100 mb-8 shadow-sm"><h3 class="font-black text-slate-900 mb-3">Principais Pontos</h3><ul class="list-disc pl-5 space-y-2 text-slate-700"><li>...</li></ul></div>
    - Use <mark> para destacar as 3 informações mais cruciais da matéria.

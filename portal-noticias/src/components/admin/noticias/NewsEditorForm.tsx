@@ -302,6 +302,13 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
   };
 
   const onSubmit = async (data: NewsFormData) => {
+    // Validação Estrita de Caracteres (Hard Limit)
+    const cleanLen = (data.conteudo || "").replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim().length;
+    if (cleanLen > 4800) {
+      toast.error(`Não é possível salvar: A matéria possui ${cleanLen} caracteres (limite: 4800).`);
+      return;
+    }
+
     setIsSaving(true);
     try {
       // Busca o objeto da categoria para pegar o nome correto
@@ -462,11 +469,36 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
             {/* CONTEUDO */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Corpo da Matéria</label>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Corpo da Matéria</label>
+                  {(() => {
+                    const cleanLen = (conteudo || "").replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim().length;
+                    const colorClass = cleanLen > 4800 ? "text-red-500" : cleanLen > 4500 ? "text-amber-500" : "text-slate-500";
+                    return (
+                      <span className={`text-[10px] font-black font-mono border border-slate-800 px-2 py-0.5 rounded-full ${colorClass}`}>
+                        {cleanLen} / 4800
+                      </span>
+                    );
+                  })()}
+                </div>
                 <button type="button" onClick={() => setValue("conteudo", "")} className="text-[10px] font-bold text-red-500 uppercase hover:underline">Limpar</button>
               </div>
-              <RichTextEditor content={conteudo} onChange={(c) => setValue("conteudo", c, { shouldValidate: true })} />
+              <RichTextEditor content={conteudo} onChange={(c) => {
+                const cleanLen = c.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim().length;
+                if (cleanLen <= 4800) {
+                  setValue("conteudo", c, { shouldValidate: true });
+                } else if (c.length < (conteudo?.length || 0)) {
+                  // Permite deletar mesmo se estiver acima (caso tenha colado algo grande)
+                  setValue("conteudo", c, { shouldValidate: true });
+                } else {
+                  // Bloqueia adição se passar de 4800
+                  toast.error("Limite de 4800 caracteres atingido!");
+                }
+              }} />
               {errors.conteudo && <p className="text-red-500 text-xs mt-1">{errors.conteudo.message}</p>}
+              {((conteudo || "").replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim().length) > 4800 && (
+                <p className="text-red-500 text-[10px] font-bold mt-2 animate-pulse">⚠️ Matéria muito longa! Resuma o conteúdo para poder salvar.</p>
+              )}
             </div>
 
             {/* GALERIA */}
@@ -756,15 +788,21 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
           </div>
 
           <div className="p-5 border-t border-slate-800 bg-slate-900">
-            <button
-              type="submit"
-              form="news-form"
-              disabled={isSaving}
-              className={`w-full ${editId ? "bg-blue-600 hover:bg-blue-700" : "bg-emerald-600 hover:bg-emerald-500"} disabled:opacity-50 text-white font-black text-xs uppercase tracking-[0.2em] py-4 rounded-xl shadow-xl transition-all flex items-center justify-center gap-3`}
-            >
-              {isSaving ? <Loader2 className="animate-spin" size={16} /> : (editId ? <Save size={16} /> : <Send size={16} />)}
-              {isSaving ? "Processando..." : (editId ? "Gravar Alterações" : "Publicar Matéria")}
-            </button>
+            {(() => {
+              const cleanLen = (conteudo || "").replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim().length;
+              const overLimit = cleanLen > 4800;
+              return (
+                <button
+                  type="submit"
+                  form="news-form"
+                  disabled={isSaving || overLimit}
+                  className={`w-full ${editId ? "bg-blue-600 hover:bg-blue-700" : "bg-emerald-600 hover:bg-emerald-500"} disabled:opacity-50 text-white font-black text-xs uppercase tracking-[0.2em] py-4 rounded-xl shadow-xl transition-all flex items-center justify-center gap-3 ${overLimit ? 'cursor-not-allowed grayscale' : ''}`}
+                >
+                  {isSaving ? <Loader2 className="animate-spin" size={16} /> : (editId ? <Save size={16} /> : <Send size={16} />)}
+                  {isSaving ? "Processando..." : overLimit ? "Matéria muito longa" : (editId ? "Gravar Alterações" : "Publicar Matéria")}
+                </button>
+              );
+            })()}
           </div>
         </div>
       </aside>
