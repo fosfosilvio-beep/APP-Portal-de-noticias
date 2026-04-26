@@ -52,16 +52,16 @@ export default function PWAInstallBanner() {
   if (!isVisible) return null;
 
   return (
-    <div className="w-full px-4 lg:px-8 py-2 animate-in fade-in slide-in-from-top duration-700">
+    <div className="w-full animate-in fade-in slide-in-from-top duration-700">
       <button 
         onClick={handleInstallClick}
-        className="w-full group relative overflow-hidden rounded-2xl bg-white shadow-md hover:shadow-xl transition-all duration-500 border border-slate-100 p-0"
+        className="w-full group relative overflow-hidden bg-white shadow-md hover:shadow-xl transition-all duration-500 p-0 m-0 border-0 block"
       >
-        <div className="w-full h-auto flex items-center justify-center">
+        <div className="w-full h-auto flex items-center justify-center m-0 p-0">
           <img 
             src="/images/pwa-banner.png" 
             alt="Baixar Aplicativo" 
-            className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-[1.01]"
+            className="w-full h-auto block object-cover transition-transform duration-700 group-hover:scale-[1.01] m-0 p-0"
           />
         </div>
         {/* Overlay sutil de brilho */}

@@ -23,6 +23,7 @@ Este documento mapeia todas as rotas e componentes visuais do Portal Nossa Web T
 - **AutomatedNewsFeed.tsx**: Feed de notícias externas (G1/Rss) para conteúdo complementar.
 - **NotificationBell.tsx**: Sino in-app com contador Realtime — [[0211]](0211_NotificationBell.md).
 - **FooterAdBanner.tsx**: Banner publicitário full-width antes do footer — [[0212]](0212_FooterAdBanner.md).
+- **PWAInstallBanner.tsx**: Banner de instalação do App PWA com layout contínuo (Mobile Optimization) — [[0214]](0214_PWAInstallBanner.md).
 
 ## Padrões de Design
 - **Cores**: Predomínio de Azul (`#00AEE0`, `#005a78`) e tons de Slate/Slate-50.
