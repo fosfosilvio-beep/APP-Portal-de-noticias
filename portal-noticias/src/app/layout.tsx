@@ -82,6 +82,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 import { Providers } from "../components/Providers";
+import PushPrompt from "../components/PushPrompt";
 
 export default function RootLayout({
   children,
@@ -128,7 +129,10 @@ export default function RootLayout({
         }} />
       </head>
       <body className="min-h-full flex flex-col font-sans overflow-x-hidden" suppressHydrationWarning>
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+          <PushPrompt />
+        </Providers>
       </body>
     </html>
   );
