@@ -11,10 +11,10 @@ import Link from "next/link";
 export default function AdminBiblioteca() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState("");
-  const [activeTab, setActiveTab] = useState<"episodios" | "programas">("episodios");
+  const [activeTab, setActiveTab] = useState<"episodios" | "podcasts">("episodios");
 
-  // Programas State
-  const [programas, setProgramas] = useState<any[]>([]);
+  // Podcasts State
+  const [podcasts, setPodcasts] = useState<any[]>([]);
   const [progNome, setProgNome] = useState("");
   const [progApresentador, setProgApresentador] = useState("");
   const [progHorario, setProgHorario] = useState("");
@@ -23,7 +23,7 @@ export default function AdminBiblioteca() {
   
   // Episodios State
   const [episodios, setEpisodios] = useState<any[]>([]);
-  const [epProgramaId, setEpProgramaId] = useState("");
+  const [epPodcastId, setEpPodcastId] = useState("");
   const [epTitulo, setEpTitulo] = useState("");
   const [epConvidados, setEpConvidados] = useState("");
   const [epThumbFile, setEpThumbFile] = useState<File | null>(null);
@@ -43,13 +43,13 @@ export default function AdminBiblioteca() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const { data: pData } = await supabase.from("programas").select("*").order("nome");
-      setProgramas(pData || []);
-      if (pData && pData.length > 0 && !epProgramaId) {
-        setEpProgramaId(pData[0].id);
+      const { data: pData } = await supabase.from("podcasts").select("*").order("nome");
+      setPodcasts(pData || []);
+      if (pData && pData.length > 0 && !epPodcastId) {
+        setEpPodcastId(pData[0].id);
       }
       
-      const { data: eData } = await supabase.from("episodios").select("*, programas(nome)").order("data_publicacao", { ascending: false });
+      const { data: eData } = await supabase.from("episodios").select("*, podcasts(nome)").order("data_publicacao", { ascending: false });
       setEpisodios(eData || []);
     } catch (err) {
       console.error(err);
@@ -88,16 +88,16 @@ export default function AdminBiblioteca() {
     return data.publicUrl;
   };
 
-  const handleSavePrograma = async (e: React.FormEvent) => {
+  const handleSavePodcast = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!progNome || !progApresentador) return alert("Preencha o nome do programa e do apresentador.");
+    if (!progNome || !progApresentador) return alert("Preencha o nome do podcast e do apresentador.");
     setUploading(true);
     try {
       let fotoUrl = "";
       if (progFotoFile) {
          fotoUrl = await uploadFile(progFotoFile, "videos_biblioteca", "fotos");
       }
-      const { error } = await supabase.from("programas").insert({
+      const { error } = await supabase.from("podcasts").insert({
         nome: progNome,
         apresentador_nome: progApresentador,
         apresentador_foto_url: fotoUrl,
@@ -105,7 +105,7 @@ export default function AdminBiblioteca() {
         descricao: progDesc
       });
       if (error) throw error;
-      alert("Programa salvo com sucesso!");
+      alert("Podcast salvo com sucesso!");
       setProgNome(""); setProgApresentador(""); setProgHorario(""); setProgDesc(""); setProgFotoFile(null);
       fetchData();
     } catch (err: any) {
@@ -117,7 +117,7 @@ export default function AdminBiblioteca() {
 
   const handleSaveEpisodio = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!epProgramaId || !epTitulo) return alert("Selecione um programa e preencha o título.");
+    if (!epPodcastId || !epTitulo) return alert("Selecione um podcast e preencha o título.");
     if (epVideoSource === "upload" && !epVideoFile) return alert("Selecione o arquivo de vídeo.");
     if (epVideoSource === "youtube" && !epVideoUrl) return alert("Insira o link do YouTube.");
 
@@ -139,7 +139,7 @@ export default function AdminBiblioteca() {
       }
 
       const { error } = await supabase.from("episodios").insert({
-        programa_id: epProgramaId,
+        podcast_id: epPodcastId,
         titulo: epTitulo,
         convidados: epConvidados,
         video_url: finalVideoUrl,
@@ -161,9 +161,9 @@ export default function AdminBiblioteca() {
     }
   };
 
-  const deletePrograma = async (id: string) => {
-    if (!confirm("Excluir este programa e TODOS os seus episódios?")) return;
-    await supabase.from("programas").delete().eq("id", id);
+  const deletePodcast = async (id: string) => {
+    if (!confirm("Excluir este podcast e TODOS os seus episódios?")) return;
+    await supabase.from("podcasts").delete().eq("id", id);
     fetchData();
   };
 
@@ -182,7 +182,7 @@ export default function AdminBiblioteca() {
               <Mic2 className="text-white" size={24} />
             </div>
             <h1 className="text-2xl font-bold text-white">Biblioteca Web TV</h1>
-            <p className="text-neutral-400 text-sm">Painel de Programas</p>
+            <p className="text-neutral-400 text-sm">Painel de Podcasts</p>
           </div>
           <form onSubmit={handleLogin} className="space-y-4">
             <input
@@ -232,7 +232,7 @@ export default function AdminBiblioteca() {
       <div className="flex-1 flex flex-col overflow-hidden relative">
         <header className="h-16 bg-white border-b border-slate-200 shadow-sm flex items-center justify-between px-8 flex-shrink-0 z-10">
            <div className="flex items-center gap-4">
-              <h2 className="font-bold text-slate-800 text-xl tracking-tight">Gerenciar Programas & Episódios</h2>
+              <h2 className="font-bold text-slate-800 text-xl tracking-tight">Gerenciar Podcasts & Episódios</h2>
            </div>
            <div className="flex items-center gap-4 ml-auto">
               <button onClick={() => setIsAuthenticated(false)} className="flex items-center gap-2 text-sm text-red-600 font-bold bg-red-50 py-1.5 px-4 rounded-full hover:bg-red-100 transition">
@@ -253,25 +253,25 @@ export default function AdminBiblioteca() {
                   <Video size={18} /> Cadastrar Episódio
                </button>
                <button 
-                  onClick={() => setActiveTab("programas")}
-                  className={`px-6 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 transition-all ${activeTab === 'programas' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                  onClick={() => setActiveTab("podcasts")}
+                  className={`px-6 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 transition-all ${activeTab === 'podcasts' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                >
-                  <Mic2 size={18} /> Gerenciar Programas
+                  <Mic2 size={18} /> Gerenciar Podcasts
                </button>
             </div>
 
             {/* TAB: PROGRAMAS */}
-            {activeTab === "programas" && (
+            {activeTab === "podcasts" && (
                <div className="space-y-8 animate-in fade-in">
                   <section className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                      <div className="bg-slate-50 px-6 py-4 border-b border-slate-200 flex items-center gap-3">
                         <Plus className="text-blue-600" size={20} />
-                        <h3 className="font-bold text-slate-800">Novo Programa (Programa)</h3>
+                        <h3 className="font-bold text-slate-800">Novo Podcast (Podcast)</h3>
                      </div>
-                     <form onSubmit={handleSavePrograma} className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                     <form onSubmit={handleSavePodcast} className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-4">
                            <div>
-                              <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">Nome do Programa</label>
+                              <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">Nome do Podcast</label>
                               <input type="text" value={progNome} onChange={e => setProgNome(e.target.value)} placeholder="Ex: Espaço Retrô" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-blue-500" required />
                            </div>
                            <div>
@@ -293,10 +293,10 @@ export default function AdminBiblioteca() {
                            </div>
                            <div>
                               <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">Descrição (Opcional)</label>
-                              <textarea value={progDesc} onChange={e => setProgDesc(e.target.value)} placeholder="Sobre o que é este programa?" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-blue-500 h-24 resize-none" />
+                              <textarea value={progDesc} onChange={e => setProgDesc(e.target.value)} placeholder="Sobre o que é este podcast?" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-blue-500 h-24 resize-none" />
                            </div>
                            <button type="submit" disabled={uploading} className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold py-3.5 rounded-xl transition-all flex items-center justify-center gap-2">
-                              {uploading ? <Loader2 className="animate-spin" size={20} /> : <Plus size={20} />} {uploading ? "Salvando..." : "Salvar Programa"}
+                              {uploading ? <Loader2 className="animate-spin" size={20} /> : <Plus size={20} />} {uploading ? "Salvando..." : "Salvar Podcast"}
                            </button>
                         </div>
                      </form>
@@ -304,24 +304,24 @@ export default function AdminBiblioteca() {
 
                   <section className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                      <div className="bg-slate-50 px-6 py-4 border-b border-slate-200">
-                        <h3 className="font-bold text-slate-800 flex items-center gap-2"><Mic2 className="text-blue-600" size={20}/> Programas Cadastrados</h3>
+                        <h3 className="font-bold text-slate-800 flex items-center gap-2"><Mic2 className="text-blue-600" size={20}/> Podcasts Cadastrados</h3>
                      </div>
                      <div className="overflow-x-auto p-2">
                         <table className="w-full text-left">
                            <thead>
                               <tr className="text-[10px] uppercase tracking-widest text-slate-400 border-b border-slate-100">
-                                 <th className="px-6 py-4">Programa</th>
+                                 <th className="px-6 py-4">Podcast</th>
                                  <th className="px-6 py-4">Apresentador</th>
                                  <th className="px-6 py-4 text-right">Ações</th>
                               </tr>
                            </thead>
                            <tbody className="divide-y divide-slate-100">
-                              {programas.map(pod => (
+                              {podcasts.map(pod => (
                                  <tr key={pod.id} className="hover:bg-slate-50">
                                     <td className="px-6 py-4 font-bold text-slate-800">{pod.nome}</td>
                                     <td className="px-6 py-4 text-slate-600">{pod.apresentador_nome}</td>
                                     <td className="px-6 py-4 text-right">
-                                       <button onClick={() => deletePrograma(pod.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 size={18}/></button>
+                                       <button onClick={() => deletePodcast(pod.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 size={18}/></button>
                                     </td>
                                  </tr>
                               ))}
@@ -344,10 +344,10 @@ export default function AdminBiblioteca() {
                         
                         <div className="space-y-5">
                            <div>
-                              <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">Programa / Programa</label>
-                              <select value={epProgramaId} onChange={e => setEpProgramaId(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-bold text-slate-800 outline-none focus:border-blue-500">
-                                 {programas.length === 0 && <option value="">Cadastre um programa primeiro...</option>}
-                                 {programas.map(p => <option key={p.id} value={p.id}>{p.nome}</option>)}
+                              <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">Podcast / Podcast</label>
+                              <select value={epPodcastId} onChange={e => setEpPodcastId(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-bold text-slate-800 outline-none focus:border-blue-500">
+                                 {podcasts.length === 0 && <option value="">Cadastre um podcast primeiro...</option>}
+                                 {podcasts.map(p => <option key={p.id} value={p.id}>{p.nome}</option>)}
                               </select>
                            </div>
                            <div>
@@ -402,7 +402,7 @@ export default function AdminBiblioteca() {
                            </div>
 
                            <div className="pt-4 mt-auto">
-                              <button type="submit" disabled={uploading || programas.length === 0} className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20">
+                              <button type="submit" disabled={uploading || podcasts.length === 0} className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20">
                                  {uploading ? <Loader2 className="animate-spin" size={20} /> : <Plus size={20} />} {uploading ? "Publicando Episódio..." : "Publicar Episódio"}
                               </button>
                            </div>
@@ -424,7 +424,7 @@ export default function AdminBiblioteca() {
                            <thead>
                               <tr className="bg-slate-50 text-[10px] uppercase tracking-widest text-slate-400 border-b border-slate-100">
                                  <th className="px-6 py-4">Episódio</th>
-                                 <th className="px-6 py-4">Programa</th>
+                                 <th className="px-6 py-4">Podcast</th>
                                  <th className="px-6 py-4">Trecho</th>
                                  <th className="px-6 py-4 text-right">Ações</th>
                               </tr>
@@ -447,7 +447,7 @@ export default function AdminBiblioteca() {
                                     </td>
                                     <td className="px-6 py-4">
                                        <span className="bg-indigo-50 text-indigo-700 text-[10px] font-black px-2.5 py-1 rounded-full border border-indigo-100 uppercase">
-                                          {ep.programas?.nome || "Desconhecido"}
+                                          {ep.podcasts?.nome || "Desconhecido"}
                                        </span>
                                     </td>
                                     <td className="px-6 py-4">
