@@ -146,7 +146,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ audioUrl: publicUrl });
 
   } catch (error: any) {
+    const apiKey = process.env.ELEVENLABS_API_KEY;
+    if (apiKey) {
+      // Futura implementação ElevenLabs aqui
+      console.log("[TTS] ElevenLabs key detected, but using Google as primary for now. Fix requested by user.");
+    }
+
     console.error("[TTS Error]:", error);
-    return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
+    return NextResponse.json({ 
+      error: error.message || "Internal Server Error",
+      details: "Verifique se as credenciais do Google Cloud estão configuradas corretamente no .env.local"
+    }, { status: 500 });
   }
 }

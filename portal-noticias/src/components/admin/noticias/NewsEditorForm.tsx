@@ -589,7 +589,32 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
 
             {/* VIDEO */}
             <div>
-              <label className="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">Vídeo Destacado</label>
+              <label className="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center justify-between">
+                Vídeo Destacado
+                <label className="text-[9px] bg-slate-800 hover:bg-slate-700 text-white px-2 py-0.5 rounded cursor-pointer transition-colors flex items-center gap-1">
+                  <Upload size={10} /> Fazer Upload do PC
+                  <input type="file" accept="video/*" className="hidden" onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      toast.promise(
+                        (async () => {
+                          const ext = file.name.split(".").pop();
+                          const path = `videos/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+                          const { error } = await supabase.storage.from("media").upload(path, file);
+                          if (error) throw error;
+                          const { data } = supabase.storage.from("media").getPublicUrl(path);
+                          setValue("video_url", data.publicUrl, { shouldValidate: true });
+                        })(),
+                        {
+                          loading: "Fazendo upload do vídeo...",
+                          success: "Vídeo enviado com sucesso!",
+                          error: "Erro no upload do vídeo"
+                        }
+                      );
+                    }
+                  }} />
+                </label>
+              </label>
               <input
                 type="url"
                 {...register("video_url")}
@@ -655,7 +680,7 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
                 {...register("colunista_id")}
                 className="w-full text-sm font-bold px-3 py-2.5 border border-slate-800 rounded-lg outline-none focus:border-blue-400 bg-slate-950 text-white"
               >
-                <option value="">Redação (Padrão)</option>
+                <option value="">Redação Principal</option>
                 {colunistas.map(col => (
                   <option key={col.id} value={col.id}>{col.nome}</option>
                 ))}

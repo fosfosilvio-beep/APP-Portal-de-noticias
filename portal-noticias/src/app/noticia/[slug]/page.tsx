@@ -186,15 +186,15 @@ export default function NoticiaDetalhe() {
         setCategoriaAtiva={() => {}} // Dummy as it's a detail page
       />
 
-      <main className="container mx-auto px-4 py-8 max-w-7xl">
-        <div className="mb-6">
+      <main className="container mx-auto px-4 py-4 max-w-7xl">
+        <div className="mb-4">
           <Link href="/" className="text-zinc-500 hover:text-blue-600 flex items-center gap-1 text-sm font-medium transition-colors">
             <ChevronLeft size={16} />
             Voltar para o Início
           </Link>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-12">
+        <div className="flex flex-col lg:flex-row gap-8">
           <div className="w-full lg:w-[70%]">
             {loading ? (
               <div className="flex flex-col items-center justify-center py-20 animate-pulse">
@@ -207,7 +207,7 @@ export default function NoticiaDetalhe() {
                 <p className="text-sm mt-1">{error}</p>
               </div>
             ) : noticia && (
-              <article className="bg-white p-6 md:p-10 rounded-xl shadow-sm border border-zinc-200/60 relative">
+              <article className="bg-white p-4 md:p-10 rounded-xl shadow-sm border border-zinc-200/60 relative">
                 <script
                   type="application/ld+json"
                   dangerouslySetInnerHTML={{
@@ -272,7 +272,7 @@ export default function NoticiaDetalhe() {
                     fontWeight: noticia.titulo_config?.weight || "900",
                     color: noticia.titulo_config?.color === 'destaque' ? '#2563eb' : (noticia.titulo_config?.color === 'urgente' ? '#dc2626' : '#0f172a')
                   }}
-                  className="text-3xl md:text-4xl lg:text-5xl leading-tight mb-4 tracking-tight"
+                  className="text-2xl md:text-4xl lg:text-5xl leading-tight mb-4 tracking-tight"
                 >
                   {noticia.titulo}
                 </h1>
@@ -284,13 +284,13 @@ export default function NoticiaDetalhe() {
                       fontWeight: noticia.subtitulo_config?.weight || "400",
                       color: noticia.subtitulo_config?.color === 'destaque' ? '#2563eb' : (noticia.subtitulo_config?.color === 'urgente' ? '#dc2626' : '#475569')
                     }}
-                    className="text-lg md:text-xl leading-relaxed mb-8"
+                    className="text-lg md:text-xl leading-relaxed mb-6"
                   >
                     {noticia.subtitulo}
                   </h2>
                 )}
 
-                <div className="flex flex-col gap-2 mb-8 border-y border-slate-50 py-4">
+                <div className="flex flex-col gap-2 mb-6 border-y border-slate-50 py-4">
                   <NewsNarrator 
                     newsId={noticia.id}
                     title={noticia.titulo} 
@@ -302,12 +302,12 @@ export default function NoticiaDetalhe() {
 
                 {/* Player de Vídeo (se houver) */}
                 {noticia.video_url && (
-                  <div className="mb-10 w-full rounded-2xl overflow-hidden shadow-2xl bg-black border border-zinc-800">
-                    <SmartPlayer customVideoUrl={noticia.video_url} />
+                  <div className="mb-6 w-full rounded-2xl overflow-hidden shadow-2xl bg-black border border-zinc-800">
+                    <SmartPlayer customVideoUrl={noticia.video_url} disableFallback={true} />
                   </div>
                 )}
 
-                <div className="relative w-full h-[300px] sm:h-[400px] lg:h-[450px] mb-10 rounded-lg overflow-hidden bg-zinc-100 border border-zinc-200 shadow-sm group">
+                <div className="relative w-full h-[250px] sm:h-[400px] lg:h-[450px] mb-6 rounded-lg overflow-hidden bg-zinc-100 border border-zinc-200 shadow-sm group">
                   <img
                     id="cover-image"
                     src={noticia.imagem_capa || "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=1200&q=80"}
@@ -334,7 +334,7 @@ export default function NoticiaDetalhe() {
                   )}
                 </div>
 
-                <div className="mt-12">
+                <div className="mt-8">
                    <ShareBar url={`/noticia/${slug}`} title={noticia.titulo} />
                    <CommentsSection noticiaId={noticia.id} />
                 </div>

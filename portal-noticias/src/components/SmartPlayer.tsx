@@ -84,6 +84,7 @@ interface SmartPlayerProps {
   customVideoUrl?: string; // Legacy
   startTime?: number;
   endTime?: number;
+  disableFallback?: boolean;
   onLiveChange?: (isLive: boolean, liveUrl: string | null) => void;
 }
 
@@ -97,6 +98,7 @@ export default function SmartPlayer({
   customVideoUrl, 
   startTime, 
   endTime, 
+  disableFallback = false,
   onLiveChange 
 }: SmartPlayerProps) {
   const [configInterno, setConfigInterno] = useState<ConfiguracaoPortal | null>(null);
@@ -163,7 +165,7 @@ export default function SmartPlayer({
         console.error("[SmartPlayer] Fetch error:", error.message);
       } else if (data) {
         setConfigInterno(data);
-        if (!data?.is_live) await resolverFallback();
+        if (!data?.is_live && !disableFallback) await resolverFallback();
         onLiveChange?.(!!data?.is_live, data?.url_live_facebook || null);
       }
     } catch (err) {
@@ -203,7 +205,7 @@ export default function SmartPlayer({
           const newConf = payload.new as ConfiguracaoPortal;
           setConfigInterno(newConf);
           setVideoAutomatico(null);
-          if (!newConf.is_live) await resolverFallback();
+          if (!newConf.is_live && !disableFallback) await resolverFallback();
           const activeUrl = newConf.mostrar_live_facebook ? newConf.url_live_facebook : newConf.url_live_youtube;
           onLiveChange?.(newConf.is_live, activeUrl || newConf.url_live_facebook);
         }
