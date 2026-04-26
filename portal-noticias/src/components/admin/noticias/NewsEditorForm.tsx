@@ -13,7 +13,7 @@ import {
   Send, Loader2, Save, FileText, Palette,
   Type as TypeIcon, Hash, MousePointer2, Images, X, Upload, Megaphone, CalendarClock, MessageCircle
 } from "lucide-react";
-import AiCopilot from "./AiCopilot";
+import IANewsGenerator from "./IANewsGenerator";
 import { ScheduleDialog } from "../ScheduleDialog";
 
 const RichTextEditor = dynamic(() => import("../../RichTextEditor"), { 
@@ -517,13 +517,19 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
       {/* LATERAL DIREITA: IA & CONFIGS */}
       <aside className="space-y-6">
         
-        {/* IA Copilot */}
-        <AiCopilot onGenerated={(data) => {
-          setValue("titulo", data.titulo, { shouldValidate: true, shouldDirty: true });
-          if (!editId) generateSlug(data.titulo, undefined);
-          if (data.subtitulo) setValue("subtitulo", data.subtitulo, { shouldValidate: true, shouldDirty: true });
-          if (data.conteudo) setValue("conteudo", data.conteudo, { shouldValidate: true, shouldDirty: true });
-        }} />
+        {/* IA NEWS - Gerador de Conteúdo v2 */}
+        <IANewsGenerator 
+          currentContent={conteudo}
+          onGenerated={(data) => {
+            setValue("titulo", data.titulo, { shouldValidate: true, shouldDirty: true });
+            if (!editId) generateSlug(data.titulo, undefined);
+            if (data.subtitulo) setValue("subtitulo", data.subtitulo, { shouldValidate: true, shouldDirty: true });
+            if (data.conteudo) setValue("conteudo", data.conteudo, { shouldValidate: true, shouldDirty: true });
+          }} 
+          onImageGenerated={(url) => {
+            setValue("imagem_capa", url, { shouldValidate: true, shouldDirty: true });
+          }}
+        />
 
         <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-sm overflow-hidden">
           {/* Seletor de Ad */}

@@ -16,23 +16,27 @@ export async function POST(req: NextRequest) {
     const isRewrite = !!content;
 
     const systemContext = isRewrite
-      ? `Você é um Editor de Jornalismo Sênior. Sua tarefa é REESCREVER o texto fornecido pelo usuário.
-Mantenha a essência jornalística, melhore o vocabulário e siga RIGOROSAMENTE as diretrizes extras fornecidas.`
-      : `Você é um Editor de Jornalismo Profissional. Sua tarefa é gerar notícias completas e profissionais a partir de um tópico fornecido.`;
+      ? `Você é o Editor Auditor da IA NEWS. Sua tarefa é REESCREVER e APRIMORAR o texto fornecido.
+Foque em: SEO Avançado, Correção Gramatical Impecável, Tom Jornalístico Profissional (Imparcial e Informativo) e prontidão para o Google News.`
+      : `Você é o Agente IA NEWS, um Especialista em Jornalismo Profissional e SEO. Sua tarefa é gerar notícias completas, éticas e atraentes, otimizadas para ranqueamento no Google News.`;
 
     const userRequest = isRewrite
-      ? `REESCREVA este texto jornalístico: "${content}"\n\nDIRETRIZES EXTRAS: ${guidelines || "Torne o texto mais profissional e atraente, evitando plágio."}`
-      : `Escreva uma matéria jornalística completa sobre o seguinte tópico: ${prompt}`;
+      ? `REESCREVA e OTIMIZE este texto jornalístico, mantendo a estrutura HTML se houver: "${content}"\n\nDIRETRIZES EXTRAS: ${guidelines || "Torne o texto mais profissional, melhore o fluxo e aplique técnicas de SEO sem perder a essência."}`
+      : `Escreva uma matéria jornalística profunda e profissional sobre: ${prompt}`;
 
     const fullPrompt = `${systemContext}
 
 Responda OBRIGATORIAMENTE com um JSON válido contendo EXATAMENTE estas 3 chaves: "titulo", "subtitulo" e "conteudo".
 
-REGRAS PARA O CAMPO "conteudo":
-1. Formato HTML limpo, usando <p>, <h2>, <h3>.
-2. No início do conteúdo, insira um box de resumo: <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100 mb-6 shadow-sm"><h3 class="font-black text-slate-900 mb-3">Resumo da Matéria</h3><ul class="list-disc pl-5 space-y-2 text-slate-700"><li>Ponto 1</li><li>Ponto 2</li><li>Ponto 3</li></ul></div>
-3. Use a tag <mark> pelo menos 3 vezes para destacar trechos importantes.
-4. Mínimo de 4 parágrafos de conteúdo jornalístico.
+REGRAS CRÍTICAS DE ESTRUTURA (IA NEWS v2):
+1. TÍTULO: Direto, impactante e com palavras-chave de SEO.
+2. SUBTÍTULO: Uma linha fina que complementa o título com dados ou contexto.
+3. CONTEÚDO (HTML):
+   - Mínimo de 600 palavras.
+   - Use <h2> para subtópicos internos.
+   - Insira um box de resumo no início: <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100 mb-8 shadow-sm"><h3 class="font-black text-slate-900 mb-3">Principais Pontos</h3><ul class="list-disc pl-5 space-y-2 text-slate-700"><li>...</li></ul></div>
+   - Use <mark> para destacar as 3 informações mais cruciais da matéria.
+   - O tom deve ser imparcial, citando fontes (reais ou fictícias verossímeis se o tema for genérico).
 
 SOLICITAÇÃO DO USUÁRIO:
 ${userRequest}`;
