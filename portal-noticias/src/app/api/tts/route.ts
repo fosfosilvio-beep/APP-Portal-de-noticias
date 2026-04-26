@@ -63,8 +63,34 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Rate deve ser numero entre 0.25 e 4.0" }, { status: 400 });
     }
 
+    // --- Limpeza e Corte Inteligente (Hard Limit para estabilidade) ---
+    let cleanContent = content
+      .replace(/<[^>]*>/g, '') // Remove HTML
+      .replace(/&nbsp;/g, ' ')
+      .replace(/\s+/g, ' ')    // Remove espaços extras
+      .trim();
+
+    const HARD_LIMIT = 4800;
+    if (cleanContent.length > HARD_LIMIT) {
+      const truncated = cleanContent.substring(0, HARD_LIMIT);
+      const lastSentenceEnd = Math.max(
+        truncated.lastIndexOf('.'),
+        truncated.lastIndexOf('!'),
+        truncated.lastIndexOf('?')
+      );
+      
+      // Encontra o último delimitador de frase para um corte natural
+      if (lastSentenceEnd > HARD_LIMIT * 0.5) { 
+        cleanContent = truncated.substring(0, lastSentenceEnd + 1);
+      } else {
+        cleanContent = truncated; 
+      }
+      console.log(`[TTS] Content truncated for stability: ${content.length} -> ${cleanContent.length} chars.`);
+    }
+    // ------------------------------------------------------------------
+
     // 1. Gerar Hash do conteúdo para controle de cache
-    const contentToHash = `${title}|${subtitle || ""}|${content}`;
+    const contentToHash = `${title}|${subtitle || ""}|${cleanContent}`;
     const contentHash = crypto.createHash("md5").update(contentToHash).digest("hex");
 
     // 2. Verificar no banco se o áudio já existe e se o hash é o mesmo
@@ -91,7 +117,7 @@ export async function POST(req: NextRequest) {
         </p>
         <p>
           <prosody rate="${rate}" pitch="-1st">
-            ${content}
+            ${cleanContent}
           </prosody>
         </p>
         <break time="1s"/>
