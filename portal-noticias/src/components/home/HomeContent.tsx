@@ -151,7 +151,7 @@ export default function HomeContent({ initialConfig, liveStatus, todasNoticias, 
           <div className="mb-8 max-w-5xl mx-auto">
             <DynamicAdSlot 
               position="header_top" 
-              className="h-24 sm:h-32" 
+              className="h-auto" 
               initialData={initialAds.find(a => a.posicao_html === "header_top")}
             />
           </div>

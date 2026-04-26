@@ -84,10 +84,10 @@ export default function DynamicAdSlot({ position, className, noticiaId, fallback
     }
   }, [ad, tracked, noticiaId]);
 
-  if (loading) return <div className={`animate-pulse bg-slate-100 rounded-xl h-32 ${className}`} />;
+  if (loading) return <div className={`animate-pulse bg-transparent h-32 ${className}`} />;
 
   const defaultFallback = (
-    <div className={`w-full overflow-hidden rounded-xl border-2 border-slate-200 border-dashed bg-slate-50 hover:bg-slate-100 hover:border-slate-300 transition-all duration-300 group ${className}`} style={{ minHeight: '90px' }}>
+    <div className={`w-full overflow-hidden rounded-xl border-2 border-slate-200 border-dashed bg-transparent hover:border-slate-300 transition-all duration-300 group ${className}`} style={{ minHeight: '90px' }}>
       <a href="/anuncie" className="w-full h-full flex flex-col items-center justify-center py-4 px-2 text-slate-400 group-hover:text-cyan-600 transition-colors">
          <span className="font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs mb-1">Anuncie Aqui</span>
          <span className="text-[9px] sm:text-[10px] font-bold">Ver planos disponíveis</span>
@@ -118,7 +118,7 @@ export default function DynamicAdSlot({ position, className, noticiaId, fallback
     : "#";
 
   return (
-    <div className={`w-full overflow-hidden rounded-xl border border-slate-200 transition-all duration-300 hover:shadow-md max-h-32 sm:max-h-64 md:max-h-none ${className}`}>
+    <div className={`w-full overflow-hidden transition-all duration-300 hover:shadow-md ${className}`}>
       {isHtml ? (
         <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(ad.codigo_html_ou_imagem, {
           ADD_TAGS: ['iframe', 'script'],
@@ -128,12 +128,12 @@ export default function DynamicAdSlot({ position, className, noticiaId, fallback
         <a 
           href={hrefUrl} 
           target={clickUrl ? "_blank" : "_self"} 
-          className="relative block group"
+          className="relative block group w-full"
         >
           <img 
             src={ad.codigo_html_ou_imagem} 
             alt={ad.nome_slot} 
-            className="w-full h-full object-contain max-h-32 sm:max-h-64 md:max-h-none group-hover:scale-[1.02] transition-transform duration-500" 
+            className="w-full h-auto object-cover group-hover:scale-[1.01] transition-transform duration-500" 
           />
           <div className="absolute top-1.5 right-1.5 bg-black/40 backdrop-blur-md px-1.5 py-0.5 rounded text-white text-[7px] font-bold uppercase tracking-widest flex items-center gap-0.5">
              Publicidade <ExternalLink size={8} />

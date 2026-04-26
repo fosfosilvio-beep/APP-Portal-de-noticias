@@ -23,7 +23,7 @@ export default function PuckRenderer({ data, config }: PuckRendererProps) {
   if (!isMounted) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white text-slate-900 flex flex-col font-sans overflow-x-hidden">
+    <div className="min-h-screen bg-white text-slate-900 flex flex-col font-sans overflow-x-hidden">
       {/* Inject primary color CSS var */}
       <style dangerouslySetInnerHTML={{ __html: `
         :root {
