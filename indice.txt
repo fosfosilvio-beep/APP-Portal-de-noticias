@@ -33,6 +33,7 @@ Toda a documentação técnica vive na pasta /docs.
 - /docs/0403_Table_Biblioteca_Lives.md (Acervo de Lives)
 - /docs/0405_Table_Biblioteca_WebTV.md (Acervo de Vídeos Locais)
 - /docs/0405_Table_Notificacoes.md (Tabela de Notificações In-App + Trigger)
+- /docs/0408_Bunny_Stream_Integration.md (Integração de Upload e Streaming Bunny.net)
 
 ---
 Última Auditoria: 2026-04-21

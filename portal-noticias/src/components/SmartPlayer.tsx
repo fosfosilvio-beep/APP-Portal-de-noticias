@@ -64,13 +64,24 @@ export const convertEmbedUrl = (rawUrl: string | null, startTime?: number, endTi
     return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(rawUrl)}&show_text=false&width=auto`;
   }
   
+  // Tratamento nativo para Bunny.net
+  if (rawUrl.includes("iframe.mediadelivery.net") || rawUrl.includes("bunnycdn.com")) {
+    if (rawUrl.includes("/embed/")) return rawUrl;
+    if (rawUrl.startsWith("bunny://")) {
+      const videoId = rawUrl.replace("bunny://", "");
+      const libraryId = process.env.NEXT_PUBLIC_BUNNY_LIBRARY_ID || "646471";
+      return `https://iframe.mediadelivery.net/embed/${libraryId}/${videoId}`;
+    }
+  }
+
   return rawUrl;
 };
 
-export const detectLivePlatform = (url: string | null): "youtube" | "facebook" | "unknown" => {
+export const detectLivePlatform = (url: string | null): "youtube" | "facebook" | "bunny" | "unknown" => {
   if (!url) return "unknown";
   if (url.includes("youtube.com") || url.includes("youtu.be")) return "youtube";
   if (url.includes("facebook.com")) return "facebook";
+  if (url.includes("iframe.mediadelivery.net") || url.includes("bunnycdn.com") || url.startsWith("bunny://")) return "bunny";
   return "unknown";
 };
 

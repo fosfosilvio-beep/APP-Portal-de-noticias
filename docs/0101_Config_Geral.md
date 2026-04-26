@@ -10,6 +10,8 @@ Documentação do ecossistema de infraestrutura do Portal Nossa Web TV.
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Sim | Chave pública anônima para interações client-side. |
 | `OPENROUTER_API_KEY` | Sim | Provedor **primário** de IA. Utilizado em `/api/generate-news` e `/api/gerar-noticia`. |
 | `GEMINI_API_KEY` | Sim | Provedor **fallback** de IA (Google Gemini 2.0 Flash). Ativado automaticamente se o OpenRouter falhar. |
+| `BUNNY_API_KEY` | Sim | Chave de API da conta Bunny.net para upload de vídeos. |
+| `NEXT_PUBLIC_BUNNY_LIBRARY_ID` | Sim | ID da Video Library no Bunny Stream. |
 
 ## Arquitetura de IA (Motor com Fallback)
 
