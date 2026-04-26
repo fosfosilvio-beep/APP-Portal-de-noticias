@@ -128,7 +128,7 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
     ]);
     if (adsRes.data) {
       // Map ad_slots to match what NewsEditorForm expects (titulo, posicao)
-      const mappedAds = adsRes.data.map(ad => ({
+      const mappedAds = adsRes.data.map((ad: any) => ({
         id: ad.id,
         titulo: ad.nome_slot,
         posicao: ad.posicao_html
