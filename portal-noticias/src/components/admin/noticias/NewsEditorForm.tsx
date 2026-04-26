@@ -122,11 +122,19 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
 
   const fetchMetadata = async () => {
     const [adsRes, catRes, colRes] = await Promise.all([
-      supabase.from("publicidade_banners").select("id, titulo, posicao").eq("status", true),
+      supabase.from("ad_slots").select("id, nome_slot, posicao_html").eq("status_ativo", true),
       supabase.from("categorias").select("id, nome").eq("ativa", true).order("ordem"),
       supabase.from("colunistas").select("id, nome").order("nome")
     ]);
-    if (adsRes.data) setAdSlots(adsRes.data);
+    if (adsRes.data) {
+      // Map ad_slots to match what NewsEditorForm expects (titulo, posicao)
+      const mappedAds = adsRes.data.map(ad => ({
+        id: ad.id,
+        titulo: ad.nome_slot,
+        posicao: ad.posicao_html
+      }));
+      setAdSlots(mappedAds);
+    }
     if (colRes.data) setColunistas(colRes.data);
     if (catRes.data) {
       const defaultCats = [
@@ -688,19 +696,35 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
 
                             const response = await fetch("/api/video/upload", {
                               method: "POST",
-                              body: formData,
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ title: titulo || file.name }),
                             });
 
                             const result = await response.json();
-                            if (!response.ok) throw new Error(result.error || "Erro no upload para o Bunny");
+                            if (!response.ok) throw new Error(result.error || "Erro ao criar vídeo no Bunny");
 
-                            setValue("video_url", result.embedUrl, { shouldValidate: true, shouldDirty: true });
-                            return result.embedUrl;
+                            const { videoId, libraryId, accessKey } = result;
+
+                            // Upload direto para o Bunny (ignorando Vercel Payload Limit)
+                            const uploadRes = await fetch(`https://video.bunnycdn.com/library/${libraryId}/videos/${videoId}`, {
+                              method: "PUT",
+                              headers: {
+                                "AccessKey": accessKey,
+                                "Content-Type": "application/octet-stream"
+                              },
+                              body: file
+                            });
+
+                            if (!uploadRes.ok) throw new Error("Erro no upload direto para o Bunny");
+
+                            const embedUrl = `https://iframe.mediadelivery.net/embed/${libraryId}/${videoId}`;
+                            setValue("video_url", embedUrl, { shouldValidate: true, shouldDirty: true });
+                            return embedUrl;
                           })(),
                           {
-                            loading: "Enviando para Bunny Stream (Otimizando para Streaming)...",
-                            success: "Vídeo processado no Bunny Stream!",
-                            error: "Erro no upload para o Bunny"
+                            loading: "Enviando diretamente para Bunny Stream (Bypassing Vercel Limit)...",
+                            success: "Vídeo enviado e otimizado no Bunny!",
+                            error: "Falha no upload direto. Verifique o tamanho ou conexão."
                           }
                         );
                       }

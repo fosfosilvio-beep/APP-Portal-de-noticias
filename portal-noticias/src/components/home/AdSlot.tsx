@@ -22,12 +22,12 @@ export default function AdSlot({ posicao, className = "", bannerId }: AdSlotProp
     const supabase = createClient();
     if (!supabase) return;
     
-    let query = supabase.from("publicidade_banners").select("*").eq("status", true);
+    let query = supabase.from("ad_slots").select("*").eq("status_ativo", true);
     
     if (bannerId) {
       query = query.eq("id", bannerId);
     } else if (posicao) {
-      query = query.eq("posicao", posicao);
+      query = query.eq("posicao_html", posicao);
     } else {
       setLoading(false);
       return;
@@ -74,10 +74,10 @@ export default function AdSlot({ posicao, className = "", bannerId }: AdSlotProp
     <div className={`w-full relative overflow-hidden rounded-2xl group ${className}`}>
       {banner.link_destino ? (
         <a href={banner.link_destino} target="_blank" rel="noopener noreferrer" onClick={handleClick} className="block w-full h-full">
-          <img src={banner.imagem_url} alt={banner.titulo} className="w-full h-full object-cover" />
+          <img src={banner.codigo_html_ou_imagem} alt={banner.nome_slot} className="w-full h-full object-cover" />
         </a>
       ) : (
-        <img src={banner.imagem_url} alt={banner.titulo} className="w-full h-full object-cover" />
+        <img src={banner.codigo_html_ou_imagem} alt={banner.nome_slot} className="w-full h-full object-cover" />
       )}
       <div className="absolute top-2 left-2 bg-black/50 backdrop-blur px-2 py-1 rounded text-[8px] font-black text-white uppercase tracking-widest pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
         Patrocinado

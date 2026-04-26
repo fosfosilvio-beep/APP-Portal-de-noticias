@@ -1,3 +1,5 @@
 [2026-04-26 19:48:42] INFO: Iniciando integração do Bunny Stream.
 [2026-04-26 19:48:42] INFO: Credenciais recebidas: Library ID 646471.
 [2026-04-26 19:50:40] INFO: Integração Bunny Stream concluída com sucesso.
+[2026-04-26 20:00:05] INFO: Deploy realizado com sucesso em produção: https://www.nossawebtv.com.br
+[2026-04-26 20:04:15] INFO: Correção de bugs críticos realizada. Implementado Direct Upload Bunny Stream e corrigidas tabelas Supabase.

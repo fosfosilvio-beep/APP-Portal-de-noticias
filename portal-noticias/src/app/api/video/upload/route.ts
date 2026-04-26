@@ -3,18 +3,21 @@ import { NextRequest, NextResponse } from "next/server";
 const BUNNY_API_KEY = process.env.BUNNY_API_KEY;
 const LIBRARY_ID = process.env.NEXT_PUBLIC_BUNNY_LIBRARY_ID;
 
+/**
+ * Este endpoint agora APENAS cria a entrada do vídeo no Bunny Stream.
+ * O upload real (binário) deve ser feito DIRETAMENTE pelo frontend
+ * para evitar limites de payload da Vercel (Error 413).
+ */
 export async function POST(req: NextRequest) {
   try {
     if (!BUNNY_API_KEY || !LIBRARY_ID) {
       return NextResponse.json({ error: "Configuração do Bunny Stream ausente no servidor." }, { status: 500 });
     }
 
-    const formData = await req.formData();
-    const file = formData.get("file") as File;
-    const title = formData.get("title") as string || file.name;
+    const { title } = await req.json();
 
-    if (!file) {
-      return NextResponse.json({ error: "Nenhum arquivo enviado." }, { status: 400 });
+    if (!title) {
+      return NextResponse.json({ error: "Título do vídeo é obrigatório." }, { status: 400 });
     }
 
     // 1. Criar entrada de vídeo no Bunny Stream
@@ -36,34 +39,15 @@ export async function POST(req: NextRequest) {
 
     const { guid: videoId } = await createResponse.json();
 
-    // 2. Upload do arquivo binário
-    const arrayBuffer = await file.arrayBuffer();
-    const uploadResponse = await fetch(`https://video.bunnycdn.com/library/${LIBRARY_ID}/videos/${videoId}`, {
-      method: "PUT",
-      headers: {
-        "AccessKey": BUNNY_API_KEY,
-        "Content-Type": "application/octet-stream"
-      },
-      body: Buffer.from(arrayBuffer)
-    });
-
-    if (!uploadResponse.ok) {
-      const errorData = await uploadResponse.json();
-      console.error("[Bunny] Error uploading video:", errorData);
-      return NextResponse.json({ error: "Erro ao enviar arquivo para o Bunny Stream." }, { status: uploadResponse.status });
-    }
-
-    // Retorna a URL de embed padrão
-    const embedUrl = `https://iframe.mediadelivery.net/embed/${LIBRARY_ID}/${videoId}`;
-
     return NextResponse.json({ 
       success: true, 
       videoId, 
-      embedUrl 
+      libraryId: LIBRARY_ID,
+      accessKey: BUNNY_API_KEY // Enviando a chave para o frontend realizar o PUT direto.
     });
 
   } catch (error: any) {
-    console.error("[Upload API Error]:", error);
+    console.error("[Create Video API Error]:", error);
     return NextResponse.json({ error: error.message || "Erro interno no servidor." }, { status: 500 });
   }
 }
