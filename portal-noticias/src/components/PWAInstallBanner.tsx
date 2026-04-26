@@ -52,22 +52,18 @@ export default function PWAInstallBanner() {
   if (!isVisible) return null;
 
   return (
-    <div className="w-full block leading-none p-0 m-0 border-0 overflow-hidden" style={{ margin: 0, padding: 0 }}>
+    <div className="w-full block leading-none p-0 m-0 border-0 bg-transparent" style={{ margin: 0, padding: 0 }}>
       <button 
         onClick={handleInstallClick}
-        className="w-full group relative overflow-hidden p-0 m-0 border-0 block leading-none"
+        className="w-full p-0 m-0 border-0 block leading-none bg-transparent hover:opacity-95 transition-opacity"
         style={{ margin: 0, padding: 0, border: 0, outline: 'none' }}
       >
-        <div className="w-full h-auto flex items-center justify-center m-0 p-0 leading-none">
-          <img 
-            src="/images/pwa-banner.png" 
-            alt="Baixar Aplicativo" 
-            className="w-full h-auto block object-cover m-0 p-0 border-0"
-            style={{ display: 'block', margin: 0, padding: 0 }}
-          />
-        </div>
-        {/* Overlay sutil de brilho */}
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:animate-shimmer" />
+        <img 
+          src="/images/pwa-banner.png" 
+          alt="Baixar Aplicativo" 
+          className="w-full h-auto block m-0 p-0"
+          style={{ display: 'block', margin: 0, padding: 0 }}
+        />
       </button>
     </div>
   );

@@ -107,7 +107,7 @@ export default function HomeContent({ initialConfig, liveStatus, todasNoticias, 
   if (!isMounted) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white text-slate-900 flex flex-col font-sans overflow-x-hidden">
+    <div className="min-h-screen bg-white text-slate-900 flex flex-col font-sans overflow-x-hidden">
       <Header 
         isLive={isLive} 
         config={config}
@@ -144,7 +144,7 @@ export default function HomeContent({ initialConfig, liveStatus, todasNoticias, 
         </section>
       )}
 
-      <main className="container mx-auto px-4 lg:px-8 py-8 flex-grow">
+      <main className="container mx-auto px-4 lg:px-8 py-4 flex-grow">
         
         {/* Ad de Topo */}
         {categoriaAtiva === "Início" && (
