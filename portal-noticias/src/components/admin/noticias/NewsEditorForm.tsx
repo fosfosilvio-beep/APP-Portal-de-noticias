@@ -596,19 +596,46 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
                   <input type="file" accept="video/*" className="hidden" onChange={async (e) => {
                     const file = e.target.files?.[0];
                     if (file) {
+                      // Validação de Tamanho (Limite de 50MB para evitar timeout/payload large no Supabase Free)
+                      const MAX_SIZE = 50 * 1024 * 1024; // 50MB
+                      if (file.size > MAX_SIZE) {
+                        toast.error(`Arquivo muito grande! O limite para vídeos é de 50MB. (Seu arquivo tem ${(file.size / (1024 * 1024)).toFixed(1)}MB)`);
+                        return;
+                      }
+
                       toast.promise(
                         (async () => {
                           const ext = file.name.split(".").pop();
                           const path = `videos/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-                          const { error } = await supabase.storage.from("media").upload(path, file);
-                          if (error) throw error;
-                          const { data } = supabase.storage.from("media").getPublicUrl(path);
-                          setValue("video_url", data.publicUrl, { shouldValidate: true });
+                          
+                          // Tentativa de upload no bucket 'videos' (fallback para 'media' se 'videos' não existir)
+                          let { error, data: uploadData } = await supabase.storage.from("videos").upload(path, file, {
+                            cacheControl: '3600',
+                            upsert: false
+                          });
+
+                          // Fallback para o bucket 'media' caso o usuário não tenha criado o bucket 'videos'
+                          if (error && (error as any).status === 404) {
+                            const resMedia = await supabase.storage.from("media").upload(path, file);
+                            error = resMedia.error;
+                          }
+
+                          if (error) {
+                            console.error("[Upload Error Detail]:", error);
+                            const status = (error as any).status;
+                            if (status === 413) throw new Error("Arquivo muito pesado para o servidor (Payload Too Large). Tente um vídeo menor.");
+                            if (status === 403) throw new Error("Acesso negado ao Storage. Verifique as permissões RLS.");
+                            throw new Error(error.message || "Erro desconhecido no upload");
+                          }
+
+                          const { data } = supabase.storage.from(uploadData?.path.startsWith("videos") ? "videos" : "media").getPublicUrl(path);
+                          setValue("video_url", data.publicUrl, { shouldValidate: true, shouldDirty: true });
+                          return data.publicUrl;
                         })(),
                         {
-                          loading: "Fazendo upload do vídeo...",
-                          success: "Vídeo enviado com sucesso!",
-                          error: "Erro no upload do vídeo"
+                          loading: "Fazendo upload do vídeo (Processando Chunks)...",
+                          success: "Vídeo enviado e URL vinculada!",
+                          error: "Falha ao subir vídeo. Verifique o tamanho ou conexão."
                         }
                       );
                     }
