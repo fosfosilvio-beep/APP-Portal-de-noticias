@@ -52,17 +52,24 @@ export default function PWAInstallBanner() {
   if (!isVisible) return null;
 
   return (
-    <div className="w-full bg-slate-50 border-b border-slate-100 p-0 m-0 leading-[0]">
-      <div className="max-w-screen-xl mx-auto p-0 m-0 leading-[0]">
+    <div 
+      className="w-full bg-slate-50 border-b border-slate-100 p-0 m-0" 
+      style={{ display: 'block', height: 'auto', minHeight: 0, lineHeight: 0 }}
+    >
+      <div 
+        className="max-w-screen-xl mx-auto p-0 m-0"
+        style={{ display: 'block', height: 'auto', minHeight: 0, lineHeight: 0 }}
+      >
         <button 
           onClick={handleInstallClick}
-          className="w-full p-0 m-0 border-0 block leading-[0] bg-transparent hover:opacity-95 transition-opacity focus:outline-none"
+          className="w-full p-0 m-0 border-0 block bg-transparent hover:opacity-95 transition-opacity focus:outline-none"
+          style={{ display: 'block', height: 'auto', minHeight: 0, maxHeight: '180px', width: '100%', padding: 0, margin: 0, lineHeight: 0 }}
         >
           <img 
             src="/images/pwa-banner.png" 
             alt="Baixar Aplicativo" 
             className="w-full h-auto block m-0 p-0"
-            style={{ display: 'block' }}
+            style={{ display: 'block', width: '100%', height: 'auto', maxHeight: '180px', objectFit: 'contain' }}
           />
         </button>
       </div>
