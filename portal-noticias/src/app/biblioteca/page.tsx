@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import Footer from "../../components/Footer";
 
-interface Podcast {
+interface Programa {
   id: string;
   nome: string;
   apresentador_nome: string;
@@ -33,8 +33,8 @@ interface Episodio {
 }
 
 export default function BibliotecaPage() {
-  const [podcasts, setPodcasts] = useState<Podcast[]>([]);
-  const [selectedPodcast, setSelectedPodcast] = useState<Podcast | null>(null);
+  const [programas, setProgramas] = useState<Programa[]>([]);
+  const [selectedPrograma, setSelectedPrograma] = useState<Programa | null>(null);
   const [episodios, setEpisodios] = useState<Episodio[]>([]);
   const [selectedEpisodio, setSelectedEpisodio] = useState<Episodio | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -52,10 +52,10 @@ export default function BibliotecaPage() {
   }, []);
 
   useEffect(() => {
-    if (selectedPodcast) {
-      fetchEpisodios(selectedPodcast.id);
+    if (selectedPrograma) {
+      fetchEpisodios(selectedPrograma.id);
     }
-  }, [selectedPodcast]);
+  }, [selectedPrograma]);
 
   useEffect(() => {
     if (selectedEpisodio) {
@@ -70,32 +70,33 @@ export default function BibliotecaPage() {
       const { data: configData } = await supabase.from("configuracao_portal").select("*").single();
       if (configData) setConfig(configData);
 
-      // Podcasts
-      const { data: podcastData } = await supabase
-        .from("podcasts")
+      // Programas
+      const { data: programaData } = await supabase
+        .from("programas")
         .select("*")
         .order("nome");
       
-      if (podcastData && podcastData.length > 0) {
-        setPodcasts(podcastData);
-        setSelectedPodcast(podcastData[0]); // Seleciona o primeiro por padrão
+      if (programaData && programaData.length > 0) {
+        setProgramas(programaData);
+        setSelectedPrograma(programaData[0]); // Seleciona o primeiro por padrão
       }
     } catch (err) {
-      console.error("Erro ao carregar podcasts:", err);
+      console.error("Erro ao carregar programas:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchEpisodios = async (podcastId: string) => {
+  const fetchEpisodios = async (programaId: string) => {
+    setSelectedEpisodio(null); // Limpa o episódio anterior imediatamente
+    setEpisodios([]); // Limpa a lista anterior imediatamente
     try {
       const { data } = await supabase
         .from("episodios")
-        .select("*")
-        .eq("podcast_id", podcastId)
+        .select("*, programas(*)")
+        .eq("programa_id", programaId)
         .order("data_publicacao", { ascending: false });
       
-      setEpisodios(data || []);
       setEpisodios(data || []);
       if (data && data.length > 0) {
         setSelectedEpisodio(data[0]);
@@ -120,7 +121,7 @@ export default function BibliotecaPage() {
   const fetchEngagement = async (episodeId: string) => {
     // Busca Comentários
     const { data: comms } = await supabase
-      .from("comentarios_podcast")
+      .from("comentarios_progcast")
       .select("*")
       .eq("episodio_id", episodeId)
       .order("created_at", { ascending: false });
@@ -140,7 +141,7 @@ export default function BibliotecaPage() {
   const handleSendComment = async () => {
     if (!selectedEpisodio || !newComment.trim()) return;
     setSubmitting(true);
-    const { error } = await supabase.from("comentarios_podcast").insert({
+    const { error } = await supabase.from("comentarios_progcast").insert({
       episodio_id: selectedEpisodio.id,
       mensagem: newComment
     });
@@ -200,33 +201,33 @@ export default function BibliotecaPage() {
                   <span className="text-zinc-600">On-Demand</span>
                 </h1>
                 <p className="text-zinc-500 font-bold mt-2 uppercase text-[10px] tracking-widest leading-relaxed">
-                  Assista a todos os programas e podcasts do portal
+                  Assista a todos os programas e programas do portal
                 </p>
               </div>
               
-              {/* Menu Horizontal de Podcasts */}
+              {/* Menu Horizontal de Programas */}
               <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide no-scrollbar">
-                {podcasts.map((pod) => (
+                {programas.map((prog) => (
                   <button
-                    key={pod.id}
-                    onClick={() => setSelectedPodcast(pod)}
+                    key={prog.id}
+                    onClick={() => setSelectedPrograma(prog)}
                     className={`flex flex-col items-center gap-3 shrink-0 group transition-all ${
-                      selectedPodcast?.id === pod.id ? "opacity-100" : "opacity-60 hover:opacity-100"
+                      selectedPrograma?.id === prog.id ? "opacity-100" : "opacity-60 hover:opacity-100"
                     }`}
                   >
                     <div className={`relative w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden border-4 transition-all ${
-                       selectedPodcast?.id === pod.id ? "border-blue-600 shadow-[0_0_15px_#2563eb66]" : "border-zinc-800"
+                       selectedPrograma?.id === prog.id ? "border-blue-600 shadow-[0_0_15px_#2563eb66]" : "border-zinc-800"
                     }`}>
                        <img 
-                         src={pod.apresentador_foto_url || "https://ui-avatars.com/api/?name=" + pod.nome} 
+                         src={prog.apresentador_foto_url || "https://ui-avatars.com/api/?name=" + prog.nome} 
                          className="w-full h-full object-cover transition-transform group-hover:scale-110"
-                         alt={pod.nome}
+                         alt={prog.nome}
                        />
                     </div>
                     <span className={`text-[10px] font-black uppercase tracking-widest text-center max-w-[100px] truncate ${
-                      selectedPodcast?.id === pod.id ? "text-blue-500" : "text-zinc-500"
+                      selectedPrograma?.id === prog.id ? "text-blue-500" : "text-zinc-500"
                     }`}>
-                      {pod.nome}
+                      {prog.nome}
                     </span>
                   </button>
                 ))}
@@ -238,7 +239,7 @@ export default function BibliotecaPage() {
            <div className="h-[400px] flex items-center justify-center">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-blue-500"></div>
            </div>
-        ) : !selectedPodcast ? (
+        ) : !selectedPrograma ? (
           <div className="py-20 text-center bg-zinc-900/50 rounded-3xl border border-dashed border-zinc-800">
              <Info size={48} className="mx-auto text-zinc-700 mb-4" />
              <p className="text-zinc-500 font-bold uppercase tracking-widest">Nenhum programa cadastrado ainda.</p>
@@ -266,11 +267,19 @@ export default function BibliotecaPage() {
                 {/* Lado Esquerdo: Player Principal */}
                 <div className="flex-1 min-w-0">
                    <div className="aspect-video w-full bg-black rounded-3xl overflow-hidden shadow-2xl border border-zinc-800">
-                      <SmartPlayer 
-                        customVideoUrl={selectedEpisodio?.video_url || undefined} 
-                        startTime={selectedEpisodio?.start_time} 
-                        endTime={selectedEpisodio?.end_time || undefined} 
-                      />
+                      {selectedEpisodio ? (
+                        <SmartPlayer 
+                          key={selectedEpisodio.id}
+                          customVideoUrl={selectedEpisodio.video_url} 
+                          startTime={selectedEpisodio.start_time} 
+                          endTime={selectedEpisodio.end_time || undefined} 
+                        />
+                      ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900 text-zinc-600 p-6 text-center">
+                           <Video size={48} className="mb-4 opacity-20" />
+                           <p className="font-bold uppercase tracking-widest text-[10px]">Nenhum episódio disponível para este programa</p>
+                        </div>
+                      )}
                    </div>
                 </div>
 
@@ -280,13 +289,13 @@ export default function BibliotecaPage() {
                       <div className="relative group">
                         <div className="absolute -inset-1 bg-gradient-to-tr from-blue-600 to-purple-600 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
                         <img 
-                          src={selectedPodcast.apresentador_foto_url || "https://ui-avatars.com/api/?name=" + selectedPodcast.apresentador_nome + "&background=1e293b&color=fff&size=200"} 
-                          alt={selectedPodcast.apresentador_nome}
+                          src={selectedPrograma.apresentador_foto_url || "https://ui-avatars.com/api/?name=" + selectedPrograma.apresentador_nome + "&background=1e293b&color=fff&size=200"} 
+                          alt={selectedPrograma.apresentador_nome}
                           className="relative w-32 h-32 md:w-40 md:h-40 rounded-full object-cover border-4 border-zinc-900 shadow-2xl"
                         />
                       </div>
                       <div>
-                        <h2 className="text-2xl font-black text-white">{selectedPodcast.apresentador_nome}</h2>
+                        <h2 className="text-2xl font-black text-white">{selectedPrograma.apresentador_nome}</h2>
                         <p className="text-blue-500 font-black text-[10px] uppercase tracking-[0.2em] mt-1">Apresentador(a)</p>
                       </div>
                       {selectedEpisodio?.convidados && (
@@ -302,7 +311,7 @@ export default function BibliotecaPage() {
                          </div>
                          <div className="bg-zinc-800/50 p-2 sm:p-3 rounded-2xl flex flex-col justify-center items-center">
                             <span className="text-[7px] font-black text-zinc-500 uppercase block">Horário</span>
-                            <span className="text-[9px] sm:text-[10px] font-black truncate max-w-full">{selectedPodcast.horario_exibicao || "A definir"}</span>
+                            <span className="text-[9px] sm:text-[10px] font-black truncate max-w-full">{selectedPrograma.horario_exibicao || "A definir"}</span>
                          </div>
                          <div className="bg-zinc-800/50 p-2 sm:p-3 rounded-2xl border border-blue-500/20 shadow-[0_0_10px_rgba(37,99,235,0.1)] flex flex-col justify-center items-center col-span-2 sm:col-span-1">
                             <span className="text-[7px] font-black text-blue-500 uppercase block">Views</span>
@@ -310,7 +319,7 @@ export default function BibliotecaPage() {
                          </div>
                       </div>
                       <p className="text-zinc-400 text-sm mt-4 italic line-clamp-2">
-                        "{selectedPodcast.descricao || "Acompanhe as principais pautas e entrevistas exclusivas em nosso podcast oficial."}"
+                        "{selectedPrograma.descricao || "Acompanhe as principais pautas e entrevistas exclusivas em nosso progcast oficial."}"
                       </p>
                    </div>
                 </div>
