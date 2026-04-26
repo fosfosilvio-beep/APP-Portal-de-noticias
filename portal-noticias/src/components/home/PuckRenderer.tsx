@@ -6,6 +6,7 @@ import { puckConfig } from "@/lib/puck-config";
 import "@measured/puck/puck.css";
 import Header from "@/components/Header";
 import HeroSection from "@/components/home/HeroSection";
+import PWAInstallBanner from "@/components/PWAInstallBanner";
 
 interface PuckRendererProps {
   data: any;
@@ -35,8 +36,9 @@ export default function PuckRenderer({ data, config }: PuckRendererProps) {
       `}} />
 
       <Header isLive={isLive} config={config} categoriaAtiva="Início" setCategoriaAtiva={() => {}} />
+      <PWAInstallBanner />
 
-      <main className="container mx-auto px-4 lg:px-8 py-8 flex-grow space-y-8">
+      <main className="container mx-auto px-4 lg:px-8 flex-grow">
         
         {/* Adicionar Player de Live se estiver ativo */}
         {isLive && <HeroSection />}
