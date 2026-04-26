@@ -189,17 +189,18 @@ export default function BibliotecaPage() {
 
   const handleShare = (platform: string) => {
     if (!selectedEpisodio) return;
-    const url = `${window.location.origin}/biblioteca?ep=${selectedEpisodio.id}`;
-    const text = encodeURIComponent(`Confira este episódio: ${selectedEpisodio.titulo}`);
+    // URL dedicada com meta OG dinâmicas (foto do apresentador, título e descrição do episódio)
+    const shareUrl = `${window.location.origin}/biblioteca/episodio/${selectedEpisodio.id}`;
+    const text = encodeURIComponent(`🎙️ ${selectedEpisodio.titulo}`);
     
     if (platform === 'whatsapp') {
-      window.open(`https://api.whatsapp.com/send?text=${text} ${url}`, '_blank');
+      window.open(`https://api.whatsapp.com/send?text=${text}%20${encodeURIComponent(shareUrl)}`, '_blank');
     } else if (platform === 'facebook') {
-      window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+      window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank');
     } else if (platform === 'twitter') {
-      window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank');
+      window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${text}`, '_blank');
     } else if (platform === 'copy') {
-      navigator.clipboard.writeText(url);
+      navigator.clipboard.writeText(shareUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
