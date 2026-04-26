@@ -67,10 +67,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: error.message || "Erro interno no servidor." }, { status: 500 });
   }
 }
-
-// Aumentar o limite do corpo da requisição (Vercel/Next.js)
-export const config = {
-  api: {
-    bodyParser: false, // Desabilitar o bodyParser padrão para lidar com FormData/Stream
-  },
-};

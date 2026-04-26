@@ -700,7 +700,7 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
                           {
                             loading: "Enviando para Bunny Stream (Otimizando para Streaming)...",
                             success: "Vídeo processado no Bunny Stream!",
-                            error: (err) => `Erro: ${err.message}`
+                            error: "Erro no upload para o Bunny"
                           }
                         );
                       }
