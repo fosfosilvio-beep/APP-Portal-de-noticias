@@ -51,7 +51,7 @@ export const convertEmbedUrl = (rawUrl: string | null, startTime?: number, endTi
     }
     
     if (videoId) {
-      let embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0`;
+      let embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=0&mute=0&modestbranding=1&rel=0&showinfo=0`;
       if (startTime) embedUrl += `&start=${startTime}`;
       if (endTime) embedUrl += `&end=${endTime}`;
       return embedUrl;
@@ -326,7 +326,7 @@ export default function SmartPlayer({
             src={activeVideoUrl}
             className="w-full h-full object-contain bg-black"
             controls
-            autoPlay={!!customVideoUrl}
+            autoPlay={false}
             muted={!customVideoUrl}
             loop={!customVideoUrl}
             playsInline
