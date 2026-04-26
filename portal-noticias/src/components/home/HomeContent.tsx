@@ -113,10 +113,12 @@ export default function HomeContent({ initialConfig, liveStatus, todasNoticias, 
         config={config}
         categoriaAtiva={categoriaAtiva} 
         setCategoriaAtiva={setCategoriaAtiva}
-      /><PWAInstallBanner /><CategoryNav 
+      />
+      <CategoryNav 
         categoriaAtiva={categoriaAtiva} 
         setCategoriaAtiva={setCategoriaAtiva} 
       />
+      <PWAInstallBanner />
 
 
       {/* Breaking News Marquee */}
