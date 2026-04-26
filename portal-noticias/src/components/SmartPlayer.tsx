@@ -66,11 +66,18 @@ export const convertEmbedUrl = (rawUrl: string | null, startTime?: number, endTi
   
   // Tratamento nativo para Bunny.net
   if (rawUrl.includes("iframe.mediadelivery.net") || rawUrl.includes("bunnycdn.com")) {
-    if (rawUrl.includes("/embed/")) return rawUrl;
+    if (rawUrl.includes("/embed/")) {
+      // Se for embed, garante que tenha os parâmetros de responsividade se não houver outros params
+      if (!rawUrl.includes("?")) {
+        return `${rawUrl}?autoplay=false&responsive=true`;
+      }
+      return rawUrl;
+    }
+    
     if (rawUrl.startsWith("bunny://")) {
       const videoId = rawUrl.replace("bunny://", "");
       const libraryId = process.env.NEXT_PUBLIC_BUNNY_LIBRARY_ID || "646471";
-      return `https://iframe.mediadelivery.net/embed/${libraryId}/${videoId}`;
+      return `https://iframe.mediadelivery.net/embed/${libraryId}/${videoId}?autoplay=false&responsive=true`;
     }
   }
 
@@ -233,8 +240,12 @@ export default function SmartPlayer({
 
   // ─── Bifurcação de Sinal ───────────────────────────────────────────────────
   const isAcervo = !activeIsLive && (customVideoUrl || videoAutomatico);
+  const platform = detectLivePlatform(activeVideoUrl || null);
+  const isYouTube = platform === 'youtube';
+  const isBunny = platform === 'bunny';
+  const isFacebook = platform === 'facebook';
+  const isIframeProvedor = isYouTube || isBunny || isFacebook;
 
-  const isYouTube = detectLivePlatform(activeVideoUrl || null) === 'youtube';
   const embedUrl = activeVideoUrl ? convertEmbedUrl(activeVideoUrl, startTime, endTime) : null;
 
   // ── KEY FORCING: atualiza a key APENAS quando a URL muda de fato ───────────
@@ -320,20 +331,36 @@ export default function SmartPlayer({
           </div>
         )}
 
-        {/* IFRAME PLAYER (YouTube ou Facebook) */}
-        {((config.is_live && embedUrl) || (isAcervo && isYouTube && embedUrl)) && (
-          <iframe
-            key={playerKey}
-            src={embedUrl}
-            className="w-full h-full border-0"
-            allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
-            allowFullScreen
-            title={config.is_live ? "Transmissão ao vivo – Nossa Web TV" : "Episódio de Podcast"}
-          />
+        {/* IFRAME PLAYER (YouTube, Facebook, Bunny) */}
+        {((config.is_live && embedUrl) || (isAcervo && isIframeProvedor && embedUrl)) && (
+          <div className="w-full h-full">
+            {isBunny ? (
+              <div className="relative w-full h-full" style={{ position: 'relative', paddingTop: '56.25%' }}>
+                <iframe 
+                  key={playerKey}
+                  src={`${embedUrl}${embedUrl.includes('?') ? '&' : '?'}autoplay=false&loop=false&muted=false&preload=true&responsive=true`} 
+                  loading="lazy" 
+                  style={{ border: 0, position: 'absolute', top: 0, height: '100%', width: '100%' }} 
+                  allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;" 
+                  allowFullScreen
+                  title={activeTitle || "Vídeo Bunny Stream"}
+                />
+              </div>
+            ) : (
+              <iframe
+                key={playerKey}
+                src={embedUrl}
+                className="w-full h-full border-0"
+                allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+                allowFullScreen
+                title={config.is_live ? "Transmissão ao vivo – Nossa Web TV" : "Episódio de Podcast"}
+              />
+            )}
+          </div>
         )}
 
-        {/* NATIVE VIDEO PLAYER (Direto do Storage ou URL Raw) */}
-        {isAcervo && !isYouTube && activeVideoUrl && (
+        {/* NATIVE VIDEO PLAYER (Apenas para arquivos MP4 diretos que não são dos provedores acima) */}
+        {isAcervo && !isIframeProvedor && activeVideoUrl && (
           <video
             key={playerKey}
             src={activeVideoUrl}
