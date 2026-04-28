@@ -66,13 +66,10 @@ export default function AIAgent() {
     const module = isAds ? "Publicidade" : "Geral";
     const tables = isAds ? AI_KNOWLEDGE.modules.publicidade.tables.join(", ") : "Diversas";
 
-    const prompt = "```markdown\n" +
-                   `[ANTIGRAVITY COMMAND]\n` +
-                   `CONTEXTO: ${module} (Rota: ${pathname})\n` +
-                   `SOLICITAÇÃO: ${msgContent}\n` +
-                   `ESTRUTURA: Next.js + Supabase (${tables})\n` +
-                   `AÇÃO: Implementar/Corrigir seguindo as diretrizes de modularidade.\n` +
-                   "```";
+    const prompt = "### AGENTIC PROMPT PARA ANTIGRAVITY ###\n" +
+                   `[OBJETIVO]: ${msgContent.slice(0, 100)}...\n` +
+                   `[CONTEXTO TÉCNICO]: Módulo ${module} (Rota: ${pathname}), Tabelas: ${tables}\n` +
+                   `[AÇÃO]: Analisar solicitação e aplicar mudanças no repositório.`;
     
     navigator.clipboard.writeText(prompt);
     toast.success("Prompt técnico copiado!");
