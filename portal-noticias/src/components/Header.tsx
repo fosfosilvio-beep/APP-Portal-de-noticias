@@ -12,6 +12,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { normalizeCategory } from "../lib/category-utils";
 import { useRouter } from "next/navigation";
 import { useLiveStatus } from "../hooks/useLiveStatus";
+import BreakingNewsMarquee from "./BreakingNewsMarquee";
 
 interface HeaderProps {
   isLive?: boolean; // Mantido para compatibilidade, mas useLiveStatus tem precedência
@@ -96,9 +97,25 @@ export default function Header({
      return null;
   }
 
+  const breakingNews = {
+    active: config?.alerta_urgente_ativo,
+    text: config?.alerta_urgente_texto,
+    speed: config?.ticker_speed || "normal",
+    fontSize: config?.ticker_font_size || 14,
+    textColor: config?.ticker_font_color || "#ffffff"
+  };
+
   return (
     <>
       <div className="w-full flex flex-col font-sans sticky top-0 z-50">
+        {breakingNews.active && (
+          <BreakingNewsMarquee 
+            text={breakingNews.text || ""} 
+            speed={breakingNews.speed} 
+            fontSize={breakingNews.fontSize}
+            textColor={breakingNews.textColor}
+          />
+        )}
         <header className="bg-black border-b border-zinc-800/60 shadow-lg w-full">
           <div className="container mx-auto px-4 lg:px-8 py-2.5 flex justify-between items-center">
             

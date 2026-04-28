@@ -7,6 +7,7 @@ import "@measured/puck/puck.css";
 import Header from "@/components/Header";
 import HeroSection from "@/components/home/HeroSection";
 import PWAInstallBanner from "@/components/PWAInstallBanner";
+import Footer from "@/components/Footer";
 
 interface PuckRendererProps {
   data: any;
@@ -52,19 +53,7 @@ export default function PuckRenderer({ data, config }: PuckRendererProps) {
         )}
       </main>
 
-      <footer className="bg-[#0f172a] text-slate-400 py-12 mt-auto border-t-[5px] border-[#00AEE0] rounded-t-3xl">
-        <div className="container mx-auto px-4 lg:px-8 flex flex-col md:flex-row justify-between items-center text-sm gap-6">
-          <div className="flex flex-col items-center md:items-start">
-            <span className="font-black text-2xl text-white tracking-tighter leading-none mb-2">
-              NOSSA<span className="text-[#00AEE0]">WEB</span><span className="text-slate-500 font-light">TV</span>
-            </span>
-            <p className="font-medium text-slate-500 text-xs text-center md:text-left max-w-xs">A maior fonte regional de notícias.</p>
-          </div>
-          <div className="flex flex-col items-center md:items-end">
-            <p className="font-bold text-slate-300">© {new Date().getFullYear()} Portal Nossa Web TV.</p>
-          </div>
-        </div>
-      </footer>
+      <Footer config={config} />
     </div>
   );
 }

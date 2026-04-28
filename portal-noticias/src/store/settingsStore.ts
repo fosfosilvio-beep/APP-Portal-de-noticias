@@ -7,6 +7,11 @@ interface UISettings {
   logoUrl: string | null;
   logoTextoUrl: string | null;
   siteName: string;
+  // Institucional
+  enderecoRodape?: string;
+  emailContato?: string;
+  telefoneContato?: string;
+  copyrightTexto?: string;
 }
 
 interface SettingsState {
@@ -30,7 +35,15 @@ export const useSettingsStore = create<SettingsState>((set) => ({
     try {
       const { data, error } = await supabase
         .from('configuracao_portal')
-        .select('ui_settings, nome_plataforma, logo_url')
+        .select(`
+          ui_settings, 
+          nome_plataforma, 
+          logo_url, 
+          endereco_rodape, 
+          email_contato, 
+          telefone_contato, 
+          copyright_texto
+        `)
         .limit(1)
         .maybeSingle();
         
@@ -45,6 +58,10 @@ export const useSettingsStore = create<SettingsState>((set) => ({
               logoUrl: data.logo_url || rawUI.logo_url || rawUI.logoUrl || state.ui.logoUrl,
               logoTextoUrl: rawUI.logo_texto_url || rawUI.logoTextoUrl || null,
               siteName: data.nome_plataforma || rawUI.brand_name || rawUI.siteName || state.ui.siteName,
+              enderecoRodape: data.endereco_rodape,
+              emailContato: data.email_contato,
+              telefoneContato: data.telefone_contato,
+              copyrightTexto: data.copyright_texto,
             },
             isLoading: false
           }));

@@ -10,6 +10,7 @@ import { Mic2, Plus, Trash2, ExternalLink, Upload, Loader2, GripVertical, PlaySq
 import { DndContext, closestCenter, type DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { formatExternalUrl } from "@/lib/utils";
 
 const podcastSchema = z.object({
   titulo: z.string().min(3, "Título obrigatório (mín. 3 chars)"),
@@ -40,7 +41,7 @@ function SortableRow({ item, onDelete }: { item: any; onDelete: (id: string) => 
       )}
       <div className="flex-1 min-w-0">
         <p className="font-bold text-white text-sm truncate">{item.titulo}</p>
-        <a href={item.url_youtube} target="_blank" rel="noopener noreferrer" className="text-xs text-cyan-400 hover:underline flex items-center gap-1 mt-0.5">
+        <a href={formatExternalUrl(item.url_youtube)} target="_blank" rel="noopener noreferrer" className="text-xs text-cyan-400 hover:underline flex items-center gap-1 mt-0.5">
           <ExternalLink size={10} /> YouTube
         </a>
       </div>

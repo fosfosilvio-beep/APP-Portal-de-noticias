@@ -24,6 +24,7 @@ import {
   BarChart3,
   Plus,
   ExternalLink,
+  Building2,
 } from "lucide-react";
 
 const PAGES: { label: string; href: string; icon: any; group: string; external?: boolean }[] = [
@@ -33,6 +34,7 @@ const PAGES: { label: string; href: string; icon: any; group: string; external?:
   { label: "Publicidade", href: "/admin/publicidade", icon: Megaphone, group: "Módulos" },
   { label: "Aparência", href: "/admin/aparencia", icon: Palette, group: "Módulos" },
   { label: "Branding & UI", href: "/admin/branding", icon: Brush, group: "Módulos" },
+  { label: "Institucional", href: "/admin/institucional", icon: Building2, group: "Módulos" },
   { label: "Podcasts", href: "/admin/podcasts", icon: Mic2, group: "Módulos" },
   { label: "Mídia", href: "/admin/midia", icon: Image, group: "Módulos" },
   { label: "Auditoria", href: "/admin/auditoria", icon: ClipboardList, group: "Módulos" },

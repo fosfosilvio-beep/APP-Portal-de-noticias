@@ -37,7 +37,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // Proxy nativo para imagens bloqueadas por CORS (glbimg, etc.)
+  // Proxy nativo para imagens bloqueadas por CORS
   async rewrites() {
     return [
       {

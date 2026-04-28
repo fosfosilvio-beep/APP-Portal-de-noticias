@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase-browser";
 import { ExternalLink } from "lucide-react";
 import DOMPurify from "dompurify";
+import { formatExternalUrl } from "@/lib/utils";
 
 interface AdSlotData {
   id: string;
@@ -106,10 +107,6 @@ export default function DynamicAdSlot({ position, className, noticiaId, fallback
     return fallback || defaultFallback;
   }
 
-  const formatExternalLink = (url: string) => {
-    if (!url) return '#';
-    return url.startsWith('http') ? url : `https://${url}`;
-  };
 
   const isHtml = ad.codigo_html_ou_imagem.includes("<") && ad.codigo_html_ou_imagem.includes(">");
   const clickUrl = ad.link_destino || (ad as any).click_url;

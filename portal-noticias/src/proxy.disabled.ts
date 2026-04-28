@@ -2,8 +2,14 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const userAgent = request.headers.get("user-agent") || "";
+
+  // PRIORIDADE 0: WHITELIST DE CRAWLERS SOCIAIS (ERRO 403 FIX)
+  if (/facebookexternalhit|WhatsApp|Twitterbot|LinkedInBot|TelegramBot/i.test(userAgent)) {
+    return NextResponse.next();
+  }
 
   // Only gate /admin routes
   if (!pathname.startsWith("/admin")) {
@@ -55,13 +61,16 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(loginUrl);
     }
   } catch (err) {
-    console.error('Middleware auth error:', err);
-    // Allow access if Supabase is not configured
+    console.error('Proxy auth error:', err);
   }
 
   return response;
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: [
+    "/admin/:path*",
+    "/noticia/:path*",
+    "/((?!api|_next/static|_next/image|favicon.ico).*)",
+  ],
 };

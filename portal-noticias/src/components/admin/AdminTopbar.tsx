@@ -19,6 +19,7 @@ import {
   Tv2,
   ExternalLink,
   LogOut,
+  Building2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import CommandPalette from "./CommandPalette";
@@ -30,6 +31,7 @@ const MOBILE_NAV = [
   { label: "Colunistas", href: "/admin/colunistas", icon: ClipboardList },
   { label: "Publicidade", href: "/admin/publicidade", icon: Megaphone },
   { label: "Branding & UI", href: "/admin/branding", icon: Brush },
+  { label: "Institucional", href: "/admin/institucional", icon: Building2 },
   { label: "Relatórios", href: "/admin/relatorios", icon: BarChart3 },
 ];
 
@@ -42,6 +44,7 @@ const BREADCRUMBS: Record<string, string> = {
   "/admin/auditoria": "Comunicação / Auditoria",
   "/admin/publicidade": "Monetização / Publicidade",
   "/admin/branding": "Configurações / Branding & UI",
+  "/admin/institucional": "Configurações / Institucional",
   "/admin/relatorios": "Configurações / Relatórios",
 };
 

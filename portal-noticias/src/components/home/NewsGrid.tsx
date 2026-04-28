@@ -26,7 +26,7 @@ export default function NewsGrid({ title, icon, news, limit = 18 }: NewsGridProp
         </div>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 md:gap-5">
+      <div className="flex flex-col divide-y divide-slate-200">
         {displayNews.map((noticia, index) => (
           <NewsCard key={noticia.id} noticia={noticia} index={index} />
         ))}

@@ -22,6 +22,7 @@ Toda a documentação técnica vive na pasta /docs.
 - /docs/0211_NotificationBell.md (Sino de Notificações In-App no Header)
 - /docs/0212_FooterAdBanner.md (Banner Publicitário Full-Width Rodapé)
 - /docs/0213_Admin_Relatorios.md (Painel de Relatórios de Views /admin/relatorios)
+  - /docs/0216_Admin_Publicidade_Canvas.md (Editor Visual de Publicidade — Canvas D&D /admin/publicidade)
 
 [03XX] - LÓGICA DE ESTADO E HOOKS
 - /docs/0301_Supabase_Client.md (Padrões de Fetching e Cliente Supabase)
@@ -38,3 +39,4 @@ Toda a documentação técnica vive na pasta /docs.
 ---
 Última Auditoria: 2026-04-21
 Status: GOVERNANÇA ATIVA (ENTERPRISE V2 — Reengenharia Completa)
+- /docs/0215_Exclusao_de_Dados.md (Instruções Exclusão de Dados /exclusao-de-dados)

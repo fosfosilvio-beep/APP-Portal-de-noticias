@@ -37,7 +37,11 @@ export default function HomeContent({ initialConfig, liveStatus, todasNoticias, 
   const [config, setConfig] = useState(initialConfig);
 
   const isLive = liveStatus?.is_live || false;
-  const breakingNews = config?.ui_settings?.breaking_news_alert;
+  const breakingNews = {
+    active: config?.alerta_urgente_ativo,
+    text: config?.alerta_urgente_texto,
+    speed: config?.ui_settings?.breaking_news_alert?.speed || "normal"
+  };
 
   useEffect(() => {
     setIsMounted(true);
@@ -121,14 +125,7 @@ export default function HomeContent({ initialConfig, liveStatus, todasNoticias, 
       <PWAInstallBanner />
 
 
-      {/* Breaking News Marquee */}
-      {breakingNews?.active && (
-        <BreakingNewsMarquee
-          text={breakingNews.text || ""}
-          speed={breakingNews.speed || "normal"}
-          visible={breakingNews.active}
-        />
-      )}
+      <HeroSection />
 
       <style dangerouslySetInnerHTML={{ __html: `
         :root {
@@ -312,7 +309,7 @@ export default function HomeContent({ initialConfig, liveStatus, todasNoticias, 
         </div>
       </main>
 
-      <Footer />
+      <Footer config={config} />
     </div>
   );
 }

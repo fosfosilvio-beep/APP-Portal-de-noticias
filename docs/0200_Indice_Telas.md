@@ -14,6 +14,7 @@ Este documento mapeia todas as rotas e componentes visuais do Portal Nossa Web T
 | `/privacidade` | Política de Privacidade | `src/app/privacidade/page.tsx` | [[0206] Privacidade](0206_Privacidade.md) |
 | `/termos` | Termos de Serviço | `src/app/termos/page.tsx` | [[0207] Termos de Serviço](0207_Termos_Servico.md) |
 | `/admin/biblioteca` | Gerenciamento de Lives | `src/app/admin/biblioteca/page.tsx` | - |
+| `/admin/publicidade` | Editor Visual de Publicidade (Canvas Split-View) | `src/app/admin/publicidade/page.tsx` | [[0216] Ad Canvas Editor](0216_Admin_Publicidade_Canvas.md) |
 
 ## Componentes Compartilhados (`src/components/`)
 
@@ -33,3 +34,4 @@ Este documento mapeia todas as rotas e componentes visuais do Portal Nossa Web T
 ---
 Status: Auditoria Concluída
 Próxima Ação: Documentar cada tela individualmente.
+- [0215_Exclusao_de_Dados.md] Tela estática com instruções de exclusão de dados do usuário (exigência do Facebook). Rota: /exclusao-de-dados

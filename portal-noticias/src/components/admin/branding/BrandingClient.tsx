@@ -6,9 +6,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { brandingSchema, type BrandingFormData } from "@/lib/schemas/branding";
 import { createClient } from "@/lib/supabase-browser";
 import { toast } from "@/lib/toast";
-import { Save, Loader2, Image as ImageIcon, Upload, AlertTriangle, Globe, MonitorPlay, Key } from "lucide-react";
+import { Save, Loader2, Image as ImageIcon, Upload, AlertTriangle, Globe, MonitorPlay, Key, Phone, Type, MousePointer2, Palette } from "lucide-react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { formatExternalUrl } from "@/lib/utils";
 import HeroBannersClient from "../aparencia/HeroBannersClient";
 
 /**
@@ -29,6 +30,11 @@ export default function BrandingClient() {
       logo_texto_url: "",
       facebook_page_url: "",
       youtube_channel_url: "",
+      instagram_url: "",
+      whatsapp_number: "",
+      ticker_speed: 20,
+      ticker_font_size: 14,
+      ticker_font_color: "#ffffff",
       openrouter_api_key: "",
       alerta_urgente_ativo: false,
       alerta_urgente_texto: "",
@@ -58,10 +64,19 @@ export default function BrandingClient() {
         logo_texto_url: data.logo_texto_url || "",
         facebook_page_url: data.facebook_page_url || "",
         youtube_channel_url: data.youtube_channel_url || "",
+        instagram_url: data.instagram_url || "",
+        whatsapp_number: data.whatsapp_number || "",
+        ticker_speed: data.ticker_speed || 20,
+        ticker_font_size: data.ticker_font_size || 14,
+        ticker_font_color: data.ticker_font_color || "#ffffff",
         openrouter_api_key: data.openrouter_api_key || "",
         alerta_urgente_ativo: data.alerta_urgente_ativo || false,
         alerta_urgente_texto: data.alerta_urgente_texto || "",
-        ui_settings: data.ui_settings as any || { theme_color: "#2563eb", header_style: "modern", font_family: "var(--font-inter)" },
+        ui_settings: data.ui_settings as any || { 
+          theme_color: "#2563eb", 
+          header_style: "modern", 
+          font_family: "var(--font-inter)"
+        },
       });
     }
     setLoading(false);
@@ -108,6 +123,10 @@ export default function BrandingClient() {
         .from("configuracao_portal")
         .update({ 
           ...data,
+          facebook_page_url: data.facebook_page_url?.trim(),
+          youtube_channel_url: data.youtube_channel_url?.trim(),
+          instagram_url: data.instagram_url?.trim(),
+          whatsapp_number: data.whatsapp_number?.replace(/\D/g, ''),
           updated_at: new Date().toISOString()
         })
         .eq('id', 1);
@@ -231,14 +250,59 @@ export default function BrandingClient() {
                 </label>
 
                 {alertaAtivo && (
-                  <div className="animate-in fade-in slide-in-from-top-2">
-                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Texto do Alerta</label>
-                    <input
-                      type="text"
-                      {...register("alerta_urgente_texto")}
-                      placeholder="Ex: BREAKING NEWS: Evento importante acontecendo agora..."
-                      className="w-full bg-slate-950 border border-red-900/30 rounded-xl px-4 py-3 text-sm text-red-100 focus:ring-2 focus:ring-red-500 outline-none"
-                    />
+                  <div className="space-y-6 animate-in fade-in slide-in-from-top-2">
+                    <div>
+                      <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Texto do Alerta</label>
+                      <input
+                        type="text"
+                        {...register("alerta_urgente_texto")}
+                        placeholder="Ex: BREAKING NEWS: Evento importante acontecendo agora..."
+                        className="w-full bg-slate-950 border border-red-900/30 rounded-xl px-4 py-3 text-sm text-red-100 focus:ring-2 focus:ring-red-500 outline-none"
+                      />
+                    </div>
+
+                    <div className="grid md:grid-cols-3 gap-6 pt-4 border-t border-slate-800">
+                      <div>
+                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                          <MousePointer2 size={14} className="text-pink-500" /> Velocidade (S)
+                        </label>
+                        <input 
+                          type="number" 
+                          {...register("ticker_speed", { valueAsNumber: true })}
+                          placeholder="Ex: 20"
+                          className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white outline-none" 
+                        />
+                        <p className="text-[9px] text-slate-500 mt-1 italic">Segundos p/ completar volta. Menor = Mais Rápido.</p>
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                          <Type size={14} className="text-pink-500" /> Tamanho Fonte (px)
+                        </label>
+                        <input 
+                          type="number" 
+                          {...register("ticker_font_size", { valueAsNumber: true })}
+                          placeholder="Ex: 14"
+                          className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white outline-none" 
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                          <Palette size={14} className="text-pink-500" /> Cor do Texto
+                        </label>
+                        <div className="flex gap-2">
+                          <input 
+                            type="color" 
+                            {...register("ticker_font_color")}
+                            className="h-11 w-11 bg-slate-950 border border-slate-800 rounded-lg p-1 outline-none cursor-pointer" 
+                          />
+                          <input 
+                            type="text"
+                            {...register("ticker_font_color")}
+                            className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs text-white outline-none font-mono" 
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
@@ -258,6 +322,14 @@ export default function BrandingClient() {
                 <div>
                   <label className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1.5"><MonitorPlay size={14} className="text-red-500"/> YouTube URL</label>
                   <input type="text" {...register("youtube_channel_url")} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white outline-none" />
+                </div>
+                <div>
+                  <label className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1.5"><Globe size={14} className="text-pink-500"/> Instagram URL</label>
+                  <input type="text" {...register("instagram_url")} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white outline-none" />
+                </div>
+                <div>
+                  <label className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1.5"><Phone size={14} className="text-emerald-500"/> WhatsApp (Número com DDD)</label>
+                  <input type="text" {...register("whatsapp_number")} placeholder="Ex: 5543999999999" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white outline-none" />
                 </div>
                 <div className="md:col-span-2 border-t border-slate-800 pt-6 mt-2">
                   <label className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">OpenRouter API Key (Inteligência Artificial)</label>

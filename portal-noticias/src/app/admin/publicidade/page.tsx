@@ -1,13 +1,15 @@
-import AdSlotManager from "@/components/admin/AdSlotManager";
+import AdCanvasEditor from "@/components/admin/ads/AdCanvasEditor";
 
 export const metadata = {
-  title: "Publicidade | Admin Portal",
+  title: "Publicidade — Editor Visual | Admin Portal",
 };
 
 export default function PublicidadePage() {
   return (
-    <div className="p-4 sm:p-6 lg:p-8">
-      <AdSlotManager />
+    // O AdCanvasEditor preenche toda a área disponível no layout do admin
+    // O padding é gerenciado internamente pelo editor para o split-view funcionar corretamente
+    <div className="h-full flex flex-col">
+      <AdCanvasEditor />
     </div>
   );
 }

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { MessageCircle, ChevronUp, MapPin, Mail, Phone } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getPublicUrl } from "./FallbackImage";
+import { formatExternalUrl } from "@/lib/utils";
 
 interface FooterProps {
   config?: any;
@@ -33,10 +34,10 @@ export default function Footer({ config }: FooterProps) {
   const rawLogoUrl = config?.ui_settings?.logo_url || config?.logo_url;
   const logoUrl = getPublicUrl(rawLogoUrl);
 
-  const whatsappNumber = config?.contact_phone || "5543999999999";
-  const instagramUrl = config?.social_links?.instagram || "https://instagram.com/nossawebtv";
-  const facebookUrl = config?.social_links?.facebook || "https://facebook.com/nossawebtv";
-  const youtubeUrl = config?.social_links?.youtube || "https://youtube.com/nossawebtv";
+  const whatsappNumber = config?.whatsapp_number || "5543999999999";
+  const instagramUrl = formatExternalUrl(config?.instagram_url || "instagram.com/nossawebtv");
+  const facebookUrl = formatExternalUrl(config?.facebook_page_url || "facebook.com/nossawebtv1");
+  const youtubeUrl = formatExternalUrl(config?.youtube_channel_url || "youtube.com/@nossawebtv");
 
   return (
     <footer className="bg-[#0f172a] text-slate-300 font-sans border-t-4 border-t-emerald-500 pt-16 pb-8 relative mt-auto">
@@ -56,9 +57,15 @@ export default function Footer({ config }: FooterProps) {
               O portal de notícias mais inovador de Arapongas e região. Jornalismo hiperlocal, ágil e independente na palma da sua mão.
             </p>
             <div className="flex flex-col gap-2 text-xs font-bold text-slate-500">
-              <span className="flex items-center gap-2"><MapPin size={14} /> Arapongas, PR</span>
-              <span className="flex items-center gap-2"><Mail size={14} /> contato@nossawebtv.com.br</span>
-              <span className="flex items-center gap-2"><Phone size={14} /> (43) 99999-9999</span>
+              {config?.endereco_rodape && (
+                <span className="flex items-center gap-2"><MapPin size={14} /> {config.endereco_rodape}</span>
+              )}
+              {config?.email_contato && (
+                <span className="flex items-center gap-2"><Mail size={14} /> {config.email_contato}</span>
+              )}
+              {config?.telefone_contato && (
+                <span className="flex items-center gap-2"><Phone size={14} /> {config.telefone_contato}</span>
+              )}
             </div>
           </div>
 
@@ -67,10 +74,7 @@ export default function Footer({ config }: FooterProps) {
             <h4 className="text-white font-black uppercase tracking-widest text-sm mb-6">Navegação</h4>
             <ul className="space-y-3 text-sm font-bold">
               <li><Link href="/" className="hover:text-emerald-400 transition-colors">Página Inicial</Link></li>
-              <li><Link href="/videos" className="hover:text-emerald-400 transition-colors">Nossa Web TV (VOD)</Link></li>
               <li><Link href="/colunistas" className="hover:text-emerald-400 transition-colors">Colunistas e Artigos</Link></li>
-              <li><Link href="/biblioteca" className="hover:text-emerald-400 transition-colors">Biblioteca de Arquivo</Link></li>
-              <li><Link href="/voce-no-portal" className="text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-1">Você no Portal 📸</Link></li>
             </ul>
           </div>
 
@@ -82,6 +86,7 @@ export default function Footer({ config }: FooterProps) {
               <li><Link href="/quem-somos" className="hover:text-emerald-400 transition-colors">Quem Somos</Link></li>
               <li><Link href="/termos" className="hover:text-emerald-400 transition-colors">Termos de Uso</Link></li>
               <li><Link href="/privacidade" className="hover:text-emerald-400 transition-colors">Política de Privacidade</Link></li>
+              <li><Link href="/exclusao-de-dados" className="hover:text-emerald-400 transition-colors">Exclusão de Dados</Link></li>
             </ul>
           </div>
 
@@ -89,16 +94,16 @@ export default function Footer({ config }: FooterProps) {
           <div>
             <h4 className="text-white font-black uppercase tracking-widest text-sm mb-6">Siga-nos</h4>
             <div className="grid grid-cols-2 gap-3">
-              <a href={instagramUrl} target="_blank" className="flex items-center gap-2 bg-gradient-to-tr from-pink-500 to-purple-500 text-white p-3 rounded-xl hover:scale-105 transition-transform shadow-lg">
+              <a href={instagramUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-gradient-to-tr from-pink-500 to-purple-500 text-white p-3 rounded-xl hover:scale-105 transition-transform shadow-lg">
                 <span className="font-bold text-xs uppercase tracking-wider">Insta</span>
               </a>
-              <a href={`https://wa.me/${whatsappNumber}`} target="_blank" className="flex items-center gap-2 bg-emerald-500 text-white p-3 rounded-xl hover:scale-105 transition-transform shadow-lg">
+              <a href={`https://wa.me/${whatsappNumber}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-emerald-500 text-white p-3 rounded-xl hover:scale-105 transition-transform shadow-lg">
                 <MessageCircle size={20} /> <span className="font-bold text-xs uppercase tracking-wider">WhatsApp</span>
               </a>
-              <a href={facebookUrl} target="_blank" className="flex items-center justify-center gap-2 bg-blue-600 text-white p-3 rounded-xl hover:bg-blue-500 transition-colors">
+              <a href={facebookUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 bg-blue-600 text-white p-3 rounded-xl hover:bg-blue-500 transition-colors">
                 <span className="font-bold text-xs uppercase tracking-wider">Face</span>
               </a>
-              <a href={youtubeUrl} target="_blank" className="flex items-center justify-center gap-2 bg-red-600 text-white p-3 rounded-xl hover:bg-red-500 transition-colors">
+              <a href={youtubeUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 bg-red-600 text-white p-3 rounded-xl hover:bg-red-500 transition-colors">
                 <span className="font-bold text-xs uppercase tracking-wider">Tube</span>
               </a>
             </div>
@@ -115,7 +120,7 @@ export default function Footer({ config }: FooterProps) {
         </div>
 
         <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs font-bold text-slate-500 uppercase tracking-widest">
-          <p>&copy; 2008 - {new Date().getFullYear()} {brandName}. Todos os direitos reservados.</p>
+          <p>{config?.copyright_texto || `© 2008 - ${new Date().getFullYear()} ${brandName}. Todos os direitos reservados.`}</p>
           <p>Powered by <a href="https://webmaster.com.br" target="_blank" className="text-emerald-500 hover:text-emerald-400">WM Soluções Inteligentes</a></p>
         </div>
       </div>

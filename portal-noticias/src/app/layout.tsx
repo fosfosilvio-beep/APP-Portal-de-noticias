@@ -73,13 +73,11 @@ export const metadata: Metadata = {
   title: "Nossa Web TV | Portal de Notícias",
   description: "O seu portal de notícias de Arapongas e região.",
   other: {
-    "Cache-Control": "no-cache, no-store, must-revalidate",
-    "Pragma": "no-cache",
-    "Expires": "0",
+    "fb:app_id": "1316826297252495",
   },
 };
 
-export const dynamic = "force-dynamic";
+// export const dynamic = "force-dynamic";
 
 import { Providers } from "../components/Providers";
 import PushPrompt from "../components/PushPrompt";
@@ -109,9 +107,6 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        <meta httpEquiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-        <meta httpEquiv="Pragma" content="no-cache" />
-        <meta httpEquiv="Expires" content="0" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#00AEE0" />
         <script dangerouslySetInnerHTML={{

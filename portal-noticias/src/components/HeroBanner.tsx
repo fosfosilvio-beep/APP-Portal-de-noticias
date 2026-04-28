@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { formatExternalUrl } from "@/lib/utils";
 
 interface HeroItem {
   image: string;
@@ -42,7 +43,7 @@ export default function HeroBanner({ items, duration, transition }: { items: Her
           }`}
         >
           {item.link ? (
-            <a href={item.link} target="_blank" rel="noopener noreferrer" className="block w-full h-full">
+            <a href={formatExternalUrl(item.link)} target="_blank" rel="noopener noreferrer" className="block w-full h-full">
               <img
                 src={item.image}
                 alt={`Banner ${idx + 1}`}

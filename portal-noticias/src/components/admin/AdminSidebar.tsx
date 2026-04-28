@@ -29,6 +29,7 @@ import {
   Library,
   Video,
   ShoppingCart,
+  Building2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -69,6 +70,7 @@ const NAV_GROUPS = [
     label: "CONFIGURAÇÕES",
     items: [
       { label: "Branding & UI", href: "/admin/branding", icon: Brush },
+      { label: "Institucional", href: "/admin/institucional", icon: Building2 },
       { label: "Relatórios", href: "/admin/relatorios", icon: BarChart3 },
     ]
   }

@@ -34,7 +34,6 @@ export default function CommentsSection({ noticiaId }: CommentsSectionProps) {
       .from("comentarios")
       .select("id, nome_usuario, comentario, created_at")
       .eq("noticia_id", noticiaId)
-      .eq("status", "approved")
       .order("created_at", { ascending: false });
 
     setComentarios(data || []);

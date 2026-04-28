@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase-browser";
 import Link from "next/link";
 import { Megaphone } from "lucide-react";
+import { formatExternalUrl } from "@/lib/utils";
 
 interface AdSlotProps {
   posicao?: 'home_topo' | 'home_meio' | 'noticia_lateral' | 'noticia_meio';
@@ -73,7 +74,7 @@ export default function AdSlot({ posicao, className = "", bannerId }: AdSlotProp
   return (
     <div className={`w-full relative overflow-hidden rounded-2xl group ${className}`}>
       {banner.link_destino ? (
-        <a href={banner.link_destino} target="_blank" rel="noopener noreferrer" onClick={handleClick} className="block w-full h-full">
+        <a href={formatExternalUrl(banner.link_destino)} target="_blank" rel="noopener noreferrer" onClick={handleClick} className="block w-full h-full">
           <img src={banner.codigo_html_ou_imagem} alt={banner.nome_slot} className="w-full h-full object-cover" />
         </a>
       ) : (
