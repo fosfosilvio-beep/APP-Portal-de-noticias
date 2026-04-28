@@ -2,6 +2,7 @@
 
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import AdminTopbar from "@/components/admin/AdminTopbar";
+import AIAgent from "@/components/admin/AIAgent";
 import { ConfirmDialogProvider } from "@/components/ui/confirm-dialog";
 import { AdminGuard } from "@/components/admin/AdminGuard";
 import { usePathname } from "next/navigation";
@@ -33,6 +34,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </ConfirmDialogProvider>
           </main>
       </div>
+      <AIAgent />
     </div>
   );
 }
