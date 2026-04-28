@@ -229,14 +229,16 @@ export function useAdCanvas() {
 
     try {
       const updates = slots.map((slot) => {
-        const zoneId = Object.keys(assignments).find((k) => assignments[k] === slot.id) || slot.zone_id;
+        // Encontrar se o slot está em alguma zona no canvas atual
+        const currentZoneId = Object.keys(assignments).find((k) => assignments[k] === slot.id);
+        
         return supabase.from("ad_slots").update({
           nome_slot:              slot.nome_slot,
           posicao_html:           slot.posicao_html,
-          zone_id:                zoneId || null,
+          zone_id:                currentZoneId || null,
           dimensoes:              slot.dimensoes,
           codigo_html_ou_imagem:  slot.codigo_html_ou_imagem,
-          status_ativo:           slot.status_ativo,
+          status_ativo:           currentZoneId ? true : slot.status_ativo,
           advertiser_name:        slot.cliente_nome,
           click_url:              slot.link_destino,
           end_date:               slot.validade_ate,

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Home, Newspaper, Eye } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Home, Newspaper, Eye, Loader2 } from "lucide-react";
 import type { AdSlot, CanvasAssignments, ZoneDefinition } from "@/hooks/useAdCanvas";
 import { CANVAS_ZONES } from "@/hooks/useAdCanvas";
 import { AdEditorContext } from "@/contexts/AdEditorContext";
@@ -92,29 +92,54 @@ function RealHomeWrapper({ latestNews }: { latestNews: any[] }) {
 }
 
 function RealArticleWrapper({ articleId, latestNews }: { articleId: string | null, latestNews: any[] }) {
-  const foundNews = latestNews.find(n => n.id === articleId);
-  const mockNews = MOCK_NOTICIAS[0];
+  const [article, setArticle] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
 
-  const initialData = {
+  useEffect(() => {
+    if (!articleId) {
+      setArticle(null);
+      return;
+    }
+    
+    const found = latestNews.find(n => n.id === articleId);
+    if (found && found.conteudo) {
+      setArticle(found);
+      return;
+    }
+
+    // Se não tem conteúdo completo (só resumo do fetch de 20), busca o artigo completo
+    async function fetchFull() {
+      setLoading(true);
+      const { createClient } = await import("@/lib/supabase-browser");
+      const supabase = createClient();
+      const { data } = await supabase.from("noticias").select("*").eq("id", articleId).single();
+      if (data) setArticle(data);
+      setLoading(false);
+    }
+    fetchFull();
+  }, [articleId, latestNews]);
+
+  if (loading) {
+    return (
+      <div className="w-full h-screen flex flex-col items-center justify-center bg-white">
+        <Loader2 className="animate-spin text-blue-500 mb-4" size={48} />
+        <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Carregando Matéria Real...</p>
+      </div>
+    );
+  }
+
+  const mockNews = MOCK_NOTICIAS[0];
+  const finalData = article || {
     id: articleId || mockNews.id,
-    titulo: foundNews?.titulo || mockNews.titulo,
-    subtitulo: "Subtítulo de exemplo para preview do editor visual",
-    categoria: foundNews?.categoria || mockNews.categoria,
-    imagem_capa: foundNews?.imagem_capa || mockNews.imagem,
-    created_at: new Date().toISOString(),
-    conteudo: `
-      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum euismod, nisi vel consectetur interdum, nisl nisi aliquam eros.</p>
-      <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium totam rem aperiam.</p>
-      <p>At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti.</p>
-      <p>Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus.</p>
-      <p>Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae.</p>
-      <p>Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis voluptatibus maiores alias consequatur aut perferendis.</p>
-    `
+    titulo: mockNews.titulo,
+    conteudo: "<p>Carregando conteúdo real da notícia...</p>",
+    categoria: mockNews.categoria,
+    imagem_capa: mockNews.imagem
   };
 
   return (
     <div className="pointer-events-auto">
-      <NoticiaClient slug="preview" initialData={initialData} />
+      <NoticiaClient slug={finalData.slug || "preview"} initialData={finalData} />
     </div>
   );
 }
@@ -122,15 +147,32 @@ function RealArticleWrapper({ articleId, latestNews }: { articleId: string | nul
 // ─── PortalCanvas principal ────────────────────────────────────────────────────
 
 export default function PortalCanvas(props: PortalCanvasProps) {
-  // Se o admin selecionou uma notícia específica nas propriedades, forçamos a aba para "article"
   const [activeTab, setActiveTab] = useState<"home" | "article">("home");
+  const [selectedArticleId, setSelectedArticleId] = useState<string | null>(props.previewNoticiaId);
+  const [zoom, setZoom] = useState(0.6);
+  const canvasRef = useRef<HTMLDivElement>(null);
 
-  // Mantemos sincronizado com props.previewNoticiaId
-  if (props.previewNoticiaId && activeTab === "home") {
-     setActiveTab("article");
-  }
+  // Sincroniza tab com previewNoticiaId externo
+  useEffect(() => {
+    if (props.previewNoticiaId) {
+      setSelectedArticleId(props.previewNoticiaId);
+      setActiveTab("article");
+    }
+  }, [props.previewNoticiaId]);
 
-  const selectedArticleId = props.previewNoticiaId || null;
+  // Calcula zoom para caber na tela
+  useEffect(() => {
+    const updateZoom = () => {
+      if (canvasRef.current) {
+        const parentW = canvasRef.current.clientWidth - 64; // padding
+        const newZoom = Math.min(parentW / 1440, 1);
+        setZoom(newZoom);
+      }
+    };
+    updateZoom();
+    window.addEventListener('resize', updateZoom);
+    return () => window.removeEventListener('resize', updateZoom);
+  }, []);
 
   const homeZones = CANVAS_ZONES.filter((z) => z.page === "home");
   const articleZones = CANVAS_ZONES.filter((z) => z.page === "article");
@@ -201,7 +243,30 @@ export default function PortalCanvas(props: PortalCanvasProps) {
       )}
 
       {/* Canvas content */}
-      <div className="flex-1 overflow-y-auto p-4 bg-slate-900 pointer-events-none">
+      <div 
+        ref={canvasRef}
+        className="flex-1 overflow-auto p-8 bg-slate-900/80 flex flex-col items-center custom-scrollbar"
+        onClick={(e) => {
+          const target = e.target as HTMLElement;
+          const link = target.closest('a');
+          if (link) {
+            const href = link.getAttribute('href');
+            if (href?.includes('/noticia/')) {
+              e.preventDefault();
+              const match = href.match(/\/noticia\/([^/?#]+)/);
+              const slug = match ? match[1] : null;
+              
+              if (slug) {
+                const news = props.latestNews.find(n => n.slug === slug || n.id === slug);
+                if (news) {
+                  setSelectedArticleId(news.id);
+                  setActiveTab("article");
+                }
+              }
+            }
+          }
+        }}
+      >
         <AdEditorContext.Provider
           value={{
             isEditing: true,
@@ -210,15 +275,26 @@ export default function PortalCanvas(props: PortalCanvasProps) {
             onRemoveFromZone: props.onRemoveFromZone,
             onSelectSlot: props.onSelectSlot,
             selectedSlotId: props.selectedSlotId,
-            previewNoticiaId: props.previewNoticiaId,
+            previewNoticiaId: selectedArticleId,
           }}
         >
-          <div className="bg-white rounded-xl shadow-xl min-h-full overflow-hidden scale-[0.65] origin-top">
-            {activeTab === "home" ? (
-              <RealHomeWrapper latestNews={props.latestNews} />
-            ) : (
-              <RealArticleWrapper articleId={selectedArticleId} latestNews={props.latestNews} />
-            )}
+          {/* Viewport 1440px fixo para fidelidade de proporções */}
+          <div 
+            className="bg-white shadow-2xl origin-top transition-all duration-500 ease-out" 
+            style={{ 
+              width: '1440px', 
+              minHeight: '2500px',
+              transform: `scale(${zoom})`, 
+              marginBottom: `-${2500 * (1 - zoom)}px` 
+            }}
+          >
+            <div className="pointer-events-auto">
+              {activeTab === "home" ? (
+                <RealHomeWrapper latestNews={props.latestNews} />
+              ) : (
+                <RealArticleWrapper articleId={selectedArticleId} latestNews={props.latestNews} />
+              )}
+            </div>
           </div>
         </AdEditorContext.Provider>
       </div>
