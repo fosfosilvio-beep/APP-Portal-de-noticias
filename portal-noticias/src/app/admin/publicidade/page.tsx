@@ -4,6 +4,8 @@ export const metadata = {
   title: "Publicidade — Editor Visual | Admin Portal",
 };
 
+export const dynamic = "force-dynamic";
+
 export default function PublicidadePage() {
   return (
     // O AdCanvasEditor preenche toda a área disponível no layout do admin
