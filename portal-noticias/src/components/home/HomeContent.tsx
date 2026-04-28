@@ -7,7 +7,6 @@ import Header from "../Header";
 import HeroBanner from "../HeroBanner";
 import AutomatedNewsFeed from "../AutomatedNewsFeed";
 import PlantaoPolicialWidget from "../PlantaoPolicialWidget";
-import DynamicAdSlot from "../DynamicAdSlot";
 import HeroSection from "./HeroSection";
 import CategoryNav from "../CategoryNav";
 import PWAInstallBanner from "../PWAInstallBanner";
@@ -146,21 +145,7 @@ export default function HomeContent({ initialConfig, liveStatus, todasNoticias, 
       <main className="container mx-auto px-4 lg:px-8 py-4 flex-grow">
         
         {/* Ad de Topo */}
-        {categoriaAtiva === "Início" && (
-          <div className="mb-8 max-w-5xl mx-auto flex flex-col gap-8">
-            <DynamicAdSlot 
-              position="home__header_top" 
-              className="h-auto" 
-              initialData={initialAds.find(a => a.zone_id === "home__header_top" || a.posicao_html === "header_top")}
-            />
-            
-            <DynamicAdSlot 
-              position="home__hero_below" 
-              className="h-auto" 
-              initialData={initialAds.find(a => a.zone_id === "home__hero_below")}
-            />
-          </div>
-        )}
+        {/* Ad de Topo removido */}
 
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-10 min-w-0">
           
@@ -176,25 +161,9 @@ export default function HomeContent({ initialConfig, liveStatus, todasNoticias, 
                 {/* Grade de Notícias */}
                 <NewsGrid title="Últimas Notícias" news={todasNoticias.slice(0, 8)} />
 
-                <DynamicAdSlot 
-                  position="home__between_articles" 
-                  className="h-auto" 
-                  initialData={initialAds.find(a => a.zone_id === "home__between_articles")}
-                />
+                {/* Ad removido */}
 
-                {/* Zonas Dinâmicas Extras (visíveis no modo edição) */}
-                <DynamicAdSlot 
-                  position="home__feed_middle" 
-                  className="h-auto" 
-                />
-
-                {/* Importador RSS */}
-                <AutomatedNewsFeed />
-
-                <DynamicAdSlot 
-                  position="home__feed_bottom" 
-                  className="h-auto" 
-                />
+                {/* Ads removidos */}
               </div>
             ) : categoriaAtiva === "Biblioteca" ? (
               <div className="space-y-8 animate-in fade-in duration-500">
@@ -301,19 +270,7 @@ export default function HomeContent({ initialConfig, liveStatus, todasNoticias, 
 
 
             {/* Ad Lateral */}
-            <div className="flex flex-col gap-8">
-              <DynamicAdSlot 
-                position="home__sidebar_1" 
-                className="min-h-[250px]" 
-                initialData={initialAds.find(a => a.zone_id === "home__sidebar_1" || a.posicao_html === "sidebar_right_1")}
-              />
-
-              <DynamicAdSlot 
-                position="home__sidebar_2" 
-                className="min-h-[400px]" 
-                initialData={initialAds.find(a => a.zone_id === "home__sidebar_2")}
-              />
-            </div>
+            {/* Sidebar Ads removidos */}
 
             {/* Clima se ativado */}
             {(config?.ui_settings?.widgets_visibility?.weather !== false) && (
@@ -330,13 +287,7 @@ export default function HomeContent({ initialConfig, liveStatus, todasNoticias, 
         </div>
         
         {/* Ad Inferior */}
-        <div className="mt-12 max-w-5xl mx-auto">
-          <DynamicAdSlot 
-            position="home__footer_top" 
-            className="h-24 sm:h-32" 
-            initialData={initialAds.find(a => a.zone_id === "home__footer_top" || a.posicao_html === "footer_top")}
-          />
-        </div>
+        {/* Footer Ad removido */}
       </main>
 
       <Footer config={config} />

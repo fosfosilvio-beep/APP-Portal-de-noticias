@@ -22,14 +22,11 @@ import NewsNarrator from "../../../components/NewsNarrator";
 import CommentsSection from "../../../components/noticias/CommentsSection";
 import Footer from "../../../components/Footer";
 import SmartPlayer from "../../../components/SmartPlayer";
-import DynamicAdSlot from "../../../components/DynamicAdSlot";
-import { AdEditorContext } from "../../../contexts/AdEditorContext";
 
 export default function NoticiaClient({ slug, initialData }: { slug: string, initialData?: any }) {
   const [noticia, setNoticia] = useState<any>(initialData || null);
   const [loading, setLoading] = useState(!initialData);
   const [error, setError] = useState("");
-  const { isEditing } = useContext(AdEditorContext);
   const hasTracked = useRef(false);
   
   // Estados para o Header
@@ -234,13 +231,7 @@ export default function NoticiaClient({ slug, initialData }: { slug: string, ini
           </Link>
         </div>
 
-        <div className="mb-6 max-w-5xl mx-auto">
-          <DynamicAdSlot 
-            position="article__header_top" 
-            noticiaId={noticia?.id}
-            className="h-auto" 
-          />
-        </div>
+        {/* Ad de topo removido */}
 
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="w-full lg:w-[70%]">
@@ -312,23 +303,9 @@ export default function NoticiaClient({ slug, initialData }: { slug: string, ini
                             if (!p.trim() && index === paragraphs.length - 1) return null;
                             const content = p + '</p>';
                             
-                            // Zonas dinâmicas entre parágrafos no modo edição
-                            const showInArticleSlot = (index === 1 || index === 4 || (isEditing && index < 10));
-                            const slotPosition = index === 1 ? "article__in_article_1" : 
-                                                 index === 4 ? "article__in_article_2" : 
-                                                 `article__paragraph_${index}`;
-
                             return (
                               <div key={index}>
                                 <div dangerouslySetInnerHTML={{ __html: content }} />
-                                {showInArticleSlot && (
-                                  <div className="my-6">
-                                    <DynamicAdSlot 
-                                      position={slotPosition} 
-                                      noticiaId={noticia.id} 
-                                    />
-                                  </div>
-                                )}
                               </div>
                             );
                           });
@@ -342,13 +319,7 @@ export default function NoticiaClient({ slug, initialData }: { slug: string, ini
                 <div className="mt-8">
                    <ShareBar url={`/noticia/${slug}`} title={noticia.titulo} />
                    
-                   <div className="my-10">
-                      <DynamicAdSlot 
-                        position="article__footer_top" 
-                        noticiaId={noticia?.id}
-                        className="h-auto" 
-                      />
-                   </div>
+                   {/* Footer ad removido */}
 
                    <CommentsSection noticiaId={noticia.id} />
                 </div>
@@ -389,7 +360,7 @@ export default function NoticiaClient({ slug, initialData }: { slug: string, ini
             </div>
 
             <div className="sticky top-24">
-               <DynamicAdSlot position="article__sidebar_1" noticiaId={noticia?.id} className="min-h-[500px]" />
+                {/* Sidebar ad removido */}
             </div>
           </aside>
         </div>
