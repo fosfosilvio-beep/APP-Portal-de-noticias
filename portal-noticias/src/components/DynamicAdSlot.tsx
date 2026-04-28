@@ -5,6 +5,10 @@ import { createClient } from "@/lib/supabase-browser";
 import { ExternalLink } from "lucide-react";
 import DOMPurify from "dompurify";
 import { formatExternalUrl } from "@/lib/utils";
+import { useContext } from "react";
+import { AdEditorContext } from "@/contexts/AdEditorContext";
+import DropZone from "@/components/admin/ads/DropZone";
+import { CANVAS_ZONES } from "@/hooks/useAdCanvas";
 
 interface AdSlotData {
   id: string;
@@ -15,6 +19,10 @@ interface AdSlotData {
   status_ativo: boolean;
   validade_ate?: string | null;
   link_destino?: string | null;
+  custom_width?: number | null;
+  custom_height?: number | null;
+  noticia_id?: string | null;
+  zone_id?: string | null;
 }
 
 interface DynamicAdSlotProps {
@@ -26,13 +34,21 @@ interface DynamicAdSlotProps {
 }
 
 export default function DynamicAdSlot({ position, className, noticiaId, fallback, initialData }: DynamicAdSlotProps) {
+  const { isEditing, previewNoticiaId } = useContext(AdEditorContext);
   const [ad, setAd] = useState<AdSlotData | null>(initialData || null);
-  const [loading, setLoading] = useState(!initialData);
+  const [loading, setLoading] = useState(!initialData && !isEditing);
   const [tracked, setTracked] = useState(false);
 
   useEffect(() => {
+    if (isEditing) {
+      setLoading(false);
+      return;
+    }
+
     // Se já temos dados iniciais e eles correspondem à posição, não buscamos novamente
-    if (initialData && initialData.posicao_html === position) {
+    // Importante: em caso de notícia específica, initialData pode não ter o banner específico, 
+    // então ignoramos o cache se tivermos noticiaId (poderia ser melhorado no Server Component)
+    if (initialData && (initialData.posicao_html === position || initialData.zone_id === position) && !noticiaId) {
        setLoading(false);
        return;
     }
@@ -41,11 +57,22 @@ export default function DynamicAdSlot({ position, className, noticiaId, fallback
       const supabase = createClient();
       if (!supabase) return;
 
-      const { data } = await supabase
+      let query = supabase
         .from("ad_slots")
         .select("*")
-        .eq("posicao_html", position)
-        .eq("status_ativo", true)
+        .or(`zone_id.eq.${position},posicao_html.eq.${position}`)
+        .eq("status_ativo", true);
+        
+      if (noticiaId) {
+        query = query.or(`noticia_id.is.null,noticia_id.eq.${noticiaId}`);
+      } else {
+        query = query.is("noticia_id", null);
+      }
+
+      // nullsFirst: false faz com que os banners ESPECÍFICOS (noticia_id preenchido) venham primeiro
+      const { data } = await query
+        .order("noticia_id", { ascending: false, nullsFirst: false }) 
+        .order("zone_order", { ascending: true })
         .limit(1)
         .maybeSingle();
       
@@ -53,7 +80,7 @@ export default function DynamicAdSlot({ position, className, noticiaId, fallback
       setLoading(false);
     }
     loadAd();
-  }, [position]);
+  }, [position, noticiaId, isEditing]);
 
   // Tracking de Impressão
   useEffect(() => {
@@ -83,7 +110,30 @@ export default function DynamicAdSlot({ position, className, noticiaId, fallback
       const timer = setTimeout(trackImpression, 1000);
       return () => clearTimeout(timer);
     }
-  }, [ad, tracked, noticiaId]);
+  }, [ad, tracked, noticiaId, isEditing]);
+
+  if (isEditing) {
+    const { slots, assignments, onRemoveFromZone, onSelectSlot, selectedSlotId } = useContext(AdEditorContext);
+    const zone = CANVAS_ZONES.find((z) => z.id === position);
+    
+    if (!zone) return null;
+
+    const assignedSlotId = assignments[position];
+    const assignedSlot = assignedSlotId ? slots.find(s => s.id === assignedSlotId) || null : null;
+
+    // Retornamos a DropZone correspondente a este slot
+    return (
+      <div className={`w-full overflow-hidden ${className}`}>
+         <DropZone 
+            zone={zone}
+            assignedSlot={assignedSlot}
+            isSelected={!!assignedSlotId && selectedSlotId === assignedSlotId}
+            onSelect={() => assignedSlotId && onSelectSlot?.(assignedSlotId)}
+            onRemove={() => onRemoveFromZone?.(position)}
+         />
+      </div>
+    );
+  }
 
   if (loading) return <div className={`animate-pulse bg-transparent h-32 ${className}`} />;
 
@@ -114,25 +164,33 @@ export default function DynamicAdSlot({ position, className, noticiaId, fallback
     ? `/api/ads/click?id=${ad.id}${noticiaId ? `&noticia_id=${noticiaId}` : ""}` 
     : "#";
 
+  const widthStyle = ad.custom_width ? `${ad.custom_width}px` : "100%";
+  const heightStyle = ad.custom_height ? `${ad.custom_height}px` : "auto";
+
   return (
     <div className={`w-full overflow-hidden transition-all duration-300 hover:shadow-md ${className}`}>
       {isHtml ? (
-        <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(ad.codigo_html_ou_imagem, {
-          ADD_TAGS: ['iframe', 'script'],
-          ADD_ATTR: ['allow', 'allowfullscreen', 'frameborder', 'scrolling', 'loading']
-        }) }} />
+        <div 
+          className="mx-auto" 
+          style={{ width: widthStyle, height: heightStyle }}
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(ad.codigo_html_ou_imagem, {
+            ADD_TAGS: ['iframe', 'script'],
+            ADD_ATTR: ['allow', 'allowfullscreen', 'frameborder', 'scrolling', 'loading']
+          }) }} 
+        />
       ) : (
         <a 
           href={hrefUrl} 
           target={clickUrl ? "_blank" : "_self"} 
-          className="relative block group w-full"
+          className="relative block group w-full mx-auto"
+          style={{ width: widthStyle, height: heightStyle }}
         >
           <img 
             src={ad.codigo_html_ou_imagem} 
             alt={ad.nome_slot} 
-            className="w-full h-auto object-cover group-hover:scale-[1.01] transition-transform duration-500" 
+            className="w-full h-full object-cover group-hover:scale-[1.01] transition-transform duration-500" 
           />
-          <div className="absolute top-1.5 right-1.5 bg-black/40 backdrop-blur-md px-1.5 py-0.5 rounded text-white text-[7px] font-bold uppercase tracking-widest flex items-center gap-0.5">
+          <div className="absolute top-1.5 right-1.5 bg-black/40 backdrop-blur-md px-1.5 py-0.5 rounded text-white text-[7px] font-bold uppercase tracking-widest flex items-center gap-0.5 z-10">
              Publicidade <ExternalLink size={8} />
           </div>
         </a>

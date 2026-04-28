@@ -13,6 +13,9 @@ interface AdPropertiesPanelProps {
   onUpdate: (patch: Partial<AdSlot>) => void;
   onSave: () => void;
   saving: boolean;
+  latestNews: any[];
+  previewNoticiaId: string | null;
+  setPreviewNoticiaId: (id: string | null) => void;
 }
 
 // Slider com label
@@ -56,7 +59,7 @@ function DimensionControl({
   );
 }
 
-export default function AdPropertiesPanel({ slot, onUpdate, onSave, saving }: AdPropertiesPanelProps) {
+export default function AdPropertiesPanel({ slot, onUpdate, onSave, saving, latestNews, previewNoticiaId, setPreviewNoticiaId }: AdPropertiesPanelProps) {
   const [keepRatio, setKeepRatio] = useState(false);
   const [aspectRatio, setAspectRatio] = useState<number | null>(null);
 
@@ -120,6 +123,40 @@ export default function AdPropertiesPanel({ slot, onUpdate, onSave, saving }: Ad
       </div>
 
       <div className="p-4 space-y-5">
+        
+        {/* CONTEXTO DA NOTÍCIA (RESTRIÇÃO) */}
+        <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100">
+           <label className="text-[10px] font-black text-blue-800 uppercase tracking-widest block mb-2">
+             Exibir este banner em:
+           </label>
+           <div className="relative">
+             <select
+               value={slot.noticia_id || ""}
+               onChange={(e) => {
+                 const id = e.target.value || null;
+                 onUpdate({ noticia_id: id });
+                 // Se definiu uma notícia específica, muda o preview para ela automaticamente
+                 if (id) setPreviewNoticiaId(id);
+               }}
+               className="w-full text-[11px] font-bold px-3 py-2 pr-8 border border-blue-200 rounded-lg bg-white text-blue-900 outline-none focus:ring-2 focus:ring-blue-400 transition-all appearance-none cursor-pointer"
+             >
+               <option value="">🌐 Todas as Notícias (Global)</option>
+               <optgroup label="Restringir à Notícia:">
+                 {latestNews.map(news => (
+                   <option key={news.id} value={news.id}>
+                     {news.titulo.length > 40 ? news.titulo.substring(0, 40) + "..." : news.titulo}
+                   </option>
+                 ))}
+               </optgroup>
+             </select>
+             <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-blue-400 pointer-events-none" />
+           </div>
+           {slot.noticia_id && (
+             <p className="text-[9px] text-blue-600 font-medium mt-2 leading-tight">
+               Este banner será exibido <strong className="font-black">apenas</strong> na notícia selecionada. Banners globais desta mesma zona serão ocultados nela.
+             </p>
+           )}
+        </div>
 
         {/* Informações básicas */}
         <div className="space-y-3">

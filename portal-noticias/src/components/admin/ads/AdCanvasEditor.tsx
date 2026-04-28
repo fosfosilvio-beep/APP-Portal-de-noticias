@@ -73,6 +73,9 @@ export default function AdCanvasEditor() {
     deleteSlot,
     uploadImage,
     saveAll,
+    latestNews,
+    previewNoticiaId,
+    setPreviewNoticiaId,
   } = useAdCanvas();
 
   const [activeDragSlot, setActiveDragSlot] = useState<AdSlot | null>(null);
@@ -244,6 +247,8 @@ export default function AdCanvasEditor() {
               selectedSlotId={selectedSlotId}
               onSelectSlot={handleSelectSlot}
               onRemoveFromZone={removeFromZone}
+              latestNews={latestNews}
+              previewNoticiaId={previewNoticiaId}
             />
           </div>
 
@@ -272,6 +277,9 @@ export default function AdCanvasEditor() {
               onUpdate={(patch) => selectedSlotId && updateSlot(selectedSlotId, patch)}
               onSave={saveAll}
               saving={saving}
+              latestNews={latestNews}
+              previewNoticiaId={previewNoticiaId}
+              setPreviewNoticiaId={setPreviewNoticiaId}
             />
           </div>
         </div>

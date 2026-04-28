@@ -147,11 +147,17 @@ export default function HomeContent({ initialConfig, liveStatus, todasNoticias, 
         
         {/* Ad de Topo */}
         {categoriaAtiva === "Início" && (
-          <div className="mb-8 max-w-5xl mx-auto">
+          <div className="mb-8 max-w-5xl mx-auto flex flex-col gap-8">
             <DynamicAdSlot 
-              position="header_top" 
+              position="home__header_top" 
               className="h-auto" 
-              initialData={initialAds.find(a => a.posicao_html === "header_top")}
+              initialData={initialAds.find(a => a.zone_id === "home__header_top" || a.posicao_html === "header_top")}
+            />
+            
+            <DynamicAdSlot 
+              position="home__hero_below" 
+              className="h-auto" 
+              initialData={initialAds.find(a => a.zone_id === "home__hero_below")}
             />
           </div>
         )}
@@ -169,6 +175,12 @@ export default function HomeContent({ initialConfig, liveStatus, todasNoticias, 
 
                 {/* Grade de Notícias */}
                 <NewsGrid title="Últimas Notícias" news={todasNoticias.slice(0, 8)} />
+
+                <DynamicAdSlot 
+                  position="home__between_articles" 
+                  className="h-auto" 
+                  initialData={initialAds.find(a => a.zone_id === "home__between_articles")}
+                />
 
 
                 {/* Importador RSS */}
@@ -279,11 +291,19 @@ export default function HomeContent({ initialConfig, liveStatus, todasNoticias, 
 
 
             {/* Ad Lateral */}
-            <DynamicAdSlot 
-              position="sidebar_right_1" 
-              className="min-h-[300px]" 
-              initialData={initialAds.find(a => a.posicao_html === "sidebar_right_1")}
-            />
+            <div className="flex flex-col gap-8">
+              <DynamicAdSlot 
+                position="home__sidebar_1" 
+                className="min-h-[250px]" 
+                initialData={initialAds.find(a => a.zone_id === "home__sidebar_1" || a.posicao_html === "sidebar_right_1")}
+              />
+
+              <DynamicAdSlot 
+                position="home__sidebar_2" 
+                className="min-h-[400px]" 
+                initialData={initialAds.find(a => a.zone_id === "home__sidebar_2")}
+              />
+            </div>
 
             {/* Clima se ativado */}
             {(config?.ui_settings?.widgets_visibility?.weather !== false) && (
@@ -302,9 +322,9 @@ export default function HomeContent({ initialConfig, liveStatus, todasNoticias, 
         {/* Ad Inferior */}
         <div className="mt-12 max-w-5xl mx-auto">
           <DynamicAdSlot 
-            position="footer_top" 
+            position="home__footer_top" 
             className="h-24 sm:h-32" 
-            initialData={initialAds.find(a => a.posicao_html === "footer_top")}
+            initialData={initialAds.find(a => a.zone_id === "home__footer_top" || a.posicao_html === "footer_top")}
           />
         </div>
       </main>

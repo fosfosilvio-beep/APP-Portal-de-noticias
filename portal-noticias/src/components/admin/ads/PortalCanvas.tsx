@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Home, Newspaper, Eye, ChevronRight } from "lucide-react";
-import DropZone from "./DropZone";
+import { Home, Newspaper, Eye } from "lucide-react";
 import type { AdSlot, CanvasAssignments, ZoneDefinition } from "@/hooks/useAdCanvas";
 import { CANVAS_ZONES } from "@/hooks/useAdCanvas";
+import { AdEditorContext } from "@/contexts/AdEditorContext";
+import HomeContent from "@/components/home/HomeContent";
+import NoticiaClient from "@/app/noticia/[slug]/NoticiaClient";
 
 // ─── Mock de notícias para o preview interativo ────────────────────────────────
 
@@ -47,6 +49,8 @@ interface PortalCanvasProps {
   selectedSlotId: string | null;
   onSelectSlot: (id: string) => void;
   onRemoveFromZone: (zoneId: string) => void;
+  latestNews: any[];
+  previewNoticiaId: string | null;
 }
 
 function getSlotForZone(
@@ -62,275 +66,55 @@ function getZone(id: string): ZoneDefinition {
   return CANVAS_ZONES.find((z) => z.id === id)!;
 }
 
-// ─── Canvas da HOME ────────────────────────────────────────────────────────────
+// ─── Componentes Reais Embrulhados ──────────────────────────────────────────
 
-function HomeCanvas({
-  slots,
-  assignments,
-  selectedSlotId,
-  onSelectSlot,
-  onRemoveFromZone,
-  onArticleClick,
-}: PortalCanvasProps & { onArticleClick: (noticiaId: string) => void }) {
-  const dropZoneProps = (zoneId: string) => ({
-    zone: getZone(zoneId),
-    assignedSlot: getSlotForZone(zoneId, assignments, slots),
-    isSelected: assignments[zoneId] === selectedSlotId,
-    onSelect: () => {
-      const slotId = assignments[zoneId];
-      if (slotId) onSelectSlot(slotId);
-    },
-    onRemove: () => onRemoveFromZone(zoneId),
-  });
+function RealHomeWrapper({ latestNews }: { latestNews: any[] }) {
+  const todasNoticias = latestNews.length > 0 ? latestNews : MOCK_NOTICIAS.map(n => ({
+    ...n,
+    created_at: new Date().toISOString()
+  }));
 
   return (
-    <div className="space-y-3">
-      {/* Simulação: Header */}
-      <div className="bg-slate-800 rounded-lg px-4 py-2.5 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-24 h-4 bg-slate-600 rounded-full" />
-          <div className="flex gap-2">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="w-10 h-2.5 bg-slate-700 rounded-full" />
-            ))}
-          </div>
-        </div>
-        <div className="w-6 h-6 bg-red-500/60 rounded-full" />
-      </div>
-
-      {/* Zona: header_top */}
-      <DropZone {...dropZoneProps("home__header_top")} />
-
-      {/* Simulação: HeroBanner carrossel */}
-      <div className="bg-slate-700/40 rounded-lg h-28 flex items-center justify-center relative overflow-hidden">
-        <img
-          src={MOCK_NOTICIAS[0].imagem}
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover opacity-30"
-        />
-        <div className="relative z-10 space-y-1 text-center px-4">
-          <span className="text-[8px] font-black text-blue-300 uppercase tracking-widest bg-blue-500/20 px-2 py-0.5 rounded-full">
-            {MOCK_NOTICIAS[0].categoria}
-          </span>
-          <p className="text-[11px] font-black text-white">{MOCK_NOTICIAS[0].titulo}</p>
-        </div>
-        <div className="absolute bottom-2 right-2 flex gap-1">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className={`w-1.5 h-1.5 rounded-full ${i === 1 ? "bg-white" : "bg-white/30"}`} />
-          ))}
-        </div>
-      </div>
-
-      {/* Zona: hero_below */}
-      <DropZone {...dropZoneProps("home__hero_below")} />
-
-      {/* Corpo: feed + sidebar */}
-      <div className="flex gap-3">
-        {/* Feed de notícias */}
-        <div className="flex-1 space-y-2">
-          <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">
-            Feed de Notícias
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            {MOCK_NOTICIAS.map((n) => (
-              <button
-                key={n.id}
-                onClick={() => onArticleClick(n.id)}
-                className="group text-left bg-white border border-slate-200 rounded-lg overflow-hidden hover:border-blue-300 hover:shadow-md transition-all"
-              >
-                <div className="relative h-14 overflow-hidden">
-                  <img src={n.imagem} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-                  <div className="absolute bottom-1 left-1.5">
-                    <span className="text-[7px] font-black text-white bg-blue-500/80 px-1 py-0.5 rounded uppercase">
-                      {n.categoria}
-                    </span>
-                  </div>
-                  <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity bg-blue-500 rounded text-white p-0.5">
-                    <ChevronRight size={8} />
-                  </div>
-                </div>
-                <div className="p-1.5">
-                  <p className="text-[8px] font-black text-slate-800 leading-tight line-clamp-2">
-                    {n.titulo}
-                  </p>
-                </div>
-              </button>
-            ))}
-          </div>
-
-          {/* Zona: between_articles */}
-          <DropZone {...dropZoneProps("home__between_articles")} />
-
-          {/* Mais cards simulados */}
-          <div className="space-y-1">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="flex gap-2 bg-white border border-slate-100 rounded-lg p-2">
-                <div className="w-12 h-8 bg-slate-200 rounded flex-shrink-0" />
-                <div className="flex-1 space-y-1">
-                  <div className="h-2 bg-slate-200 rounded-full w-4/5" />
-                  <div className="h-1.5 bg-slate-100 rounded-full w-3/5" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Sidebar */}
-        <div className="w-28 space-y-2 flex-shrink-0">
-          <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Sidebar</p>
-          <DropZone {...dropZoneProps("home__sidebar_1")} />
-          <DropZone {...dropZoneProps("home__sidebar_2")} />
-          {/* Widgets simulados */}
-          <div className="bg-slate-100 rounded-lg p-2 space-y-1">
-            <div className="h-2 bg-slate-200 rounded-full w-4/5" />
-            <div className="h-1.5 bg-slate-200 rounded-full w-3/5" />
-            <div className="h-1.5 bg-slate-200 rounded-full w-4/5" />
-          </div>
-        </div>
-      </div>
-
-      {/* Zona: footer_top */}
-      <DropZone {...dropZoneProps("home__footer_top")} />
-
-      {/* Simulação: Footer */}
-      <div className="bg-slate-800 rounded-lg px-4 py-3">
-        <div className="flex gap-6">
-          <div className="flex-1 space-y-1">
-            <div className="w-16 h-3 bg-slate-600 rounded-full" />
-            <div className="w-20 h-2 bg-slate-700 rounded-full" />
-          </div>
-          <div className="flex gap-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="w-6 h-6 bg-slate-700 rounded-full" />
-            ))}
-          </div>
-        </div>
-      </div>
+    <div className="pointer-events-auto">
+      <HomeContent 
+        initialConfig={{
+          ui_settings: {
+            widgets_visibility: { plantao: false, weather: false }
+          }
+        }} 
+        liveStatus={null} 
+        todasNoticias={todasNoticias} 
+        bibliotecaLives={[]} 
+        initialAds={[]} 
+      />
     </div>
   );
 }
 
-// ─── Canvas da PÁGINA DE NOTÍCIA ──────────────────────────────────────────────
+function RealArticleWrapper({ articleId, latestNews }: { articleId: string | null, latestNews: any[] }) {
+  const foundNews = latestNews.find(n => n.id === articleId);
+  const mockNews = MOCK_NOTICIAS[0];
 
-function ArticleCanvas({
-  slots,
-  assignments,
-  selectedSlotId,
-  onSelectSlot,
-  onRemoveFromZone,
-  articleId,
-}: PortalCanvasProps & { articleId: string | null }) {
-  const noticia = MOCK_NOTICIAS.find((n) => n.id === articleId) || MOCK_NOTICIAS[0];
-
-  const dropZoneProps = (zoneId: string) => ({
-    zone: getZone(zoneId),
-    assignedSlot: getSlotForZone(zoneId, assignments, slots),
-    isSelected: assignments[zoneId] === selectedSlotId,
-    onSelect: () => {
-      const slotId = assignments[zoneId];
-      if (slotId) onSelectSlot(slotId);
-    },
-    onRemove: () => onRemoveFromZone(zoneId),
-  });
-
-  const paragraphs = [
-    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum euismod, nisi vel consectetur interdum, nisl nisi aliquam eros.",
-    "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium totam rem aperiam.",
-    "At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti.",
-    "Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus.",
-    "Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae.",
-    "Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis voluptatibus maiores alias consequatur aut perferendis.",
-  ];
+  const initialData = {
+    id: articleId || mockNews.id,
+    titulo: foundNews?.titulo || mockNews.titulo,
+    subtitulo: "Subtítulo de exemplo para preview do editor visual",
+    categoria: foundNews?.categoria || mockNews.categoria,
+    imagem_capa: foundNews?.imagem_capa || mockNews.imagem,
+    created_at: new Date().toISOString(),
+    conteudo: `
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum euismod, nisi vel consectetur interdum, nisl nisi aliquam eros.</p>
+      <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium totam rem aperiam.</p>
+      <p>At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti.</p>
+      <p>Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus.</p>
+      <p>Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae.</p>
+      <p>Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis voluptatibus maiores alias consequatur aut perferendis.</p>
+    `
+  };
 
   return (
-    <div className="space-y-3">
-      {/* Header simulado */}
-      <div className="bg-slate-800 rounded-lg px-4 py-2.5 flex items-center gap-3">
-        <div className="w-24 h-4 bg-slate-600 rounded-full" />
-        <div className="flex gap-2 flex-1">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="w-10 h-2.5 bg-slate-700 rounded-full" />
-          ))}
-        </div>
-      </div>
-
-      {/* Zona: article header */}
-      <DropZone {...dropZoneProps("article__header_top")} />
-
-      {/* Artigo + Sidebar */}
-      <div className="flex gap-3">
-        {/* Conteúdo do artigo */}
-        <div className="flex-1 space-y-2">
-          {/* Capa */}
-          <div className="relative rounded-lg overflow-hidden h-24">
-            <img src={noticia.imagem} alt="" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-            <div className="absolute bottom-2 left-2">
-              <span className="text-[7px] font-black text-white bg-blue-500/80 px-1.5 py-0.5 rounded-full uppercase">
-                {noticia.categoria}
-              </span>
-            </div>
-          </div>
-
-          {/* Título */}
-          <div className="space-y-1">
-            <div className="text-[10px] font-black text-slate-900 leading-tight">
-              {noticia.titulo}
-            </div>
-            <div className="text-[8px] text-slate-400 font-medium">
-              28 de abril de 2026 • Por Redação NossaWebTV
-            </div>
-          </div>
-
-          {/* Parágrafos com zonas in-article */}
-          <div className="space-y-2 text-[8px] text-slate-600 leading-relaxed">
-            {paragraphs.slice(0, 2).map((p, i) => (
-              <p key={i}>{p}</p>
-            ))}
-            <DropZone {...dropZoneProps("article__in_article_1")} />
-            {paragraphs.slice(2, 5).map((p, i) => (
-              <p key={i + 2}>{p}</p>
-            ))}
-            <DropZone {...dropZoneProps("article__in_article_2")} />
-            {paragraphs.slice(5).map((p, i) => (
-              <p key={i + 5}>{p}</p>
-            ))}
-          </div>
-        </div>
-
-        {/* Sidebar da notícia */}
-        <div className="w-28 space-y-2 flex-shrink-0">
-          <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Sidebar</p>
-          <DropZone {...dropZoneProps("article__sidebar_1")} />
-          {/* Leia também simulado */}
-          <div className="bg-slate-100 rounded-lg p-2 space-y-1.5">
-            <p className="text-[7px] font-black text-slate-500 uppercase">Leia Também</p>
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="flex gap-1.5">
-                <div className="w-8 h-6 bg-slate-200 rounded flex-shrink-0" />
-                <div className="flex-1 space-y-1">
-                  <div className="h-1.5 bg-slate-200 rounded-full" />
-                  <div className="h-1.5 bg-slate-200 rounded-full w-3/4" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Zona: article footer */}
-      <DropZone {...dropZoneProps("article__footer_top")} />
-
-      {/* Footer simulado */}
-      <div className="bg-slate-800 rounded-lg px-4 py-3">
-        <div className="flex gap-6">
-          <div className="flex-1 space-y-1">
-            <div className="w-16 h-3 bg-slate-600 rounded-full" />
-            <div className="w-20 h-2 bg-slate-700 rounded-full" />
-          </div>
-        </div>
-      </div>
+    <div className="pointer-events-auto">
+      <NoticiaClient slug="preview" initialData={initialData} />
     </div>
   );
 }
@@ -338,13 +122,15 @@ function ArticleCanvas({
 // ─── PortalCanvas principal ────────────────────────────────────────────────────
 
 export default function PortalCanvas(props: PortalCanvasProps) {
+  // Se o admin selecionou uma notícia específica nas propriedades, forçamos a aba para "article"
   const [activeTab, setActiveTab] = useState<"home" | "article">("home");
-  const [selectedArticleId, setSelectedArticleId] = useState<string | null>(null);
 
-  const handleArticleClick = (id: string) => {
-    setSelectedArticleId(id);
-    setActiveTab("article");
-  };
+  // Mantemos sincronizado com props.previewNoticiaId
+  if (props.previewNoticiaId && activeTab === "home") {
+     setActiveTab("article");
+  }
+
+  const selectedArticleId = props.previewNoticiaId || null;
 
   const homeZones = CANVAS_ZONES.filter((z) => z.page === "home");
   const articleZones = CANVAS_ZONES.filter((z) => z.page === "article");
@@ -400,27 +186,41 @@ export default function PortalCanvas(props: PortalCanvasProps) {
           <Newspaper size={10} className="text-purple-400 flex-shrink-0" />
           <p className="text-[9px] font-bold text-slate-400 truncate flex-1">
             Visualizando: <span className="text-white">
-              {MOCK_NOTICIAS.find((n) => n.id === selectedArticleId)?.titulo || MOCK_NOTICIAS[0].titulo}
+              {props.latestNews.find((n) => n.id === selectedArticleId)?.titulo || "Notícia Exemplo"}
             </span>
           </p>
-          <button
-            onClick={() => setActiveTab("home")}
-            className="text-[8px] font-black text-slate-500 hover:text-white uppercase tracking-wider transition-colors flex-shrink-0"
-          >
-            ← Home
-          </button>
+          {(!props.previewNoticiaId) && (
+            <button
+              onClick={() => setActiveTab("home")}
+              className="text-[8px] font-black text-slate-500 hover:text-white uppercase tracking-wider transition-colors flex-shrink-0"
+            >
+              ← Home
+            </button>
+          )}
         </div>
       )}
 
       {/* Canvas content */}
-      <div className="flex-1 overflow-y-auto p-4 bg-slate-900">
-        <div className="bg-white rounded-xl p-3 shadow-xl min-h-full">
-          {activeTab === "home" ? (
-            <HomeCanvas {...props} onArticleClick={handleArticleClick} />
-          ) : (
-            <ArticleCanvas {...props} articleId={selectedArticleId} />
-          )}
-        </div>
+      <div className="flex-1 overflow-y-auto p-4 bg-slate-900 pointer-events-none">
+        <AdEditorContext.Provider
+          value={{
+            isEditing: true,
+            slots: props.slots,
+            assignments: props.assignments,
+            onRemoveFromZone: props.onRemoveFromZone,
+            onSelectSlot: props.onSelectSlot,
+            selectedSlotId: props.selectedSlotId,
+            previewNoticiaId: props.previewNoticiaId,
+          }}
+        >
+          <div className="bg-white rounded-xl shadow-xl min-h-full overflow-hidden scale-[0.65] origin-top">
+            {activeTab === "home" ? (
+              <RealHomeWrapper latestNews={props.latestNews} />
+            ) : (
+              <RealArticleWrapper articleId={selectedArticleId} latestNews={props.latestNews} />
+            )}
+          </div>
+        </AdEditorContext.Provider>
       </div>
 
       {/* Footer instrução */}

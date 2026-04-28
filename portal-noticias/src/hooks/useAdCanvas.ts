@@ -26,6 +26,7 @@ export interface AdSlot {
   custom_height?: number | null;
   zone_order?: number;
   cliques?: number;
+  noticia_id?: string | null;
 }
 
 /** Mapa de { zoneId → slotId } — representa o que está alocado no canvas */
@@ -68,7 +69,9 @@ export const CANVAS_ZONES: ZoneDefinition[] = [
 export function useAdCanvas() {
   const [slots, setSlots] = useState<AdSlot[]>([]);
   const [assignments, setAssignments] = useState<CanvasAssignments>({});
+  const [latestNews, setLatestNews] = useState<any[]>([]);
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
+  const [previewNoticiaId, setPreviewNoticiaId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -105,11 +108,22 @@ export function useAdCanvas() {
     // Montar assignments a partir do zone_id salvo
     const initial: CanvasAssignments = {};
     normalized.forEach((s) => {
+      // Se não tem previewNoticiaId, só carrega os assignments globais?
+      // Ou carregamos todos? O mais simples é carregar todos.
       if (s.zone_id && s.status_ativo) {
         initial[s.zone_id] = s.id;
       }
     });
     setAssignments(initial);
+
+    // Buscar as últimas 20 notícias para o seletor
+    const { data: newsData } = await supabase
+      .from("noticias")
+      .select("id, titulo, slug, thumbnail, imagem_capa")
+      .order("created_at", { ascending: false })
+      .limit(20);
+    if (newsData) setLatestNews(newsData);
+
     setLoading(false);
   }, []);
 
@@ -229,6 +243,7 @@ export function useAdCanvas() {
           custom_width:           slot.custom_width ?? null,
           custom_height:          slot.custom_height ?? null,
           zone_order:             slot.zone_order ?? 0,
+          noticia_id:             slot.noticia_id ?? null,
         }).eq("id", slot.id);
       });
 
@@ -264,5 +279,8 @@ export function useAdCanvas() {
     uploadImage,
     saveAll,
     fetchSlots,
+    latestNews,
+    previewNoticiaId,
+    setPreviewNoticiaId,
   };
 }

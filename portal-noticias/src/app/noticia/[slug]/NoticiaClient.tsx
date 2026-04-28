@@ -215,6 +215,14 @@ export default function NoticiaClient({ slug, initialData }: { slug: string, ini
           </Link>
         </div>
 
+        <div className="mb-6 max-w-5xl mx-auto">
+          <DynamicAdSlot 
+            position="article__header_top" 
+            noticiaId={noticia?.id}
+            className="h-auto" 
+          />
+        </div>
+
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="w-full lg:w-[70%]">
             {loading ? (
@@ -276,11 +284,33 @@ export default function NoticiaClient({ slug, initialData }: { slug: string, ini
 
                 <div className="prose prose-zinc lg:prose-xl max-w-none text-zinc-800 mb-8">
                   {noticia.conteudo ? (
-                    <div 
-                      id="article-body"
-                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(noticia.conteudo) }} 
-                      className="font-inter"
-                    />
+                    <div id="article-body" className="font-inter">
+                       {(() => {
+                          const sanitized = DOMPurify.sanitize(noticia.conteudo);
+                          const paragraphs = sanitized.split('</p>');
+                          
+                          return paragraphs.map((p, index) => {
+                            if (!p.trim() && index === paragraphs.length - 1) return null;
+                            const content = p + '</p>';
+                            
+                            return (
+                              <div key={index}>
+                                <div dangerouslySetInnerHTML={{ __html: content }} />
+                                {index === 1 && (
+                                  <div className="my-8">
+                                    <DynamicAdSlot position="article__in_article_1" noticiaId={noticia.id} />
+                                  </div>
+                                )}
+                                {index === 4 && (
+                                  <div className="my-8">
+                                    <DynamicAdSlot position="article__in_article_2" noticiaId={noticia.id} />
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          });
+                       })()}
+                    </div>
                   ) : (
                     <p className="italic text-zinc-500">Conteúdo indisponível.</p>
                   )}
@@ -288,6 +318,15 @@ export default function NoticiaClient({ slug, initialData }: { slug: string, ini
 
                 <div className="mt-8">
                    <ShareBar url={`/noticia/${slug}`} title={noticia.titulo} />
+                   
+                   <div className="my-10">
+                      <DynamicAdSlot 
+                        position="article__footer_top" 
+                        noticiaId={noticia?.id}
+                        className="h-auto" 
+                      />
+                   </div>
+
                    <CommentsSection noticiaId={noticia.id} />
                 </div>
               </article>
@@ -327,7 +366,7 @@ export default function NoticiaClient({ slug, initialData }: { slug: string, ini
             </div>
 
             <div className="sticky top-24">
-               <DynamicAdSlot position="sidebar_right_1" noticiaId={noticia?.id} className="min-h-[500px]" />
+               <DynamicAdSlot position="article__sidebar_1" noticiaId={noticia?.id} className="min-h-[500px]" />
             </div>
           </aside>
         </div>
