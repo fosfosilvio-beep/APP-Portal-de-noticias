@@ -73,7 +73,7 @@ export const metadata: Metadata = {
   title: "Nossa Web TV | Portal de Notícias",
   description: "O seu portal de notícias de Arapongas e região.",
   other: {
-    "fb:app_id": "1316826297252495",
+    "fb:app_id": "131682697252495",
   },
 };
 
@@ -109,6 +109,7 @@ export default function RootLayout({
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#00AEE0" />
+        <meta property="fb:app_id" content="131682697252495" />
         <script dangerouslySetInnerHTML={{
           __html: `
             if ('serviceWorker' in navigator) {

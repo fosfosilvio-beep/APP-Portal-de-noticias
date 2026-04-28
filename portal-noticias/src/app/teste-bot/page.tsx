@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     locale: "pt_BR",
   },
   other: {
-    "fb:app_id": "1316826297252495",
+    "fb:app_id": "131682697252495",
   },
 };
 

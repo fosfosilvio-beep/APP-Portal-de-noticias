@@ -74,7 +74,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     title: noticia.titulo,
     description: description,
     other: {
-      "fb:app_id": "1316826297252495",
+      "fb:app_id": "131682697252495",
     },
     openGraph: {
       title: noticia.titulo,
