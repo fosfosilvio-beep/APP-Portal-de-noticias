@@ -1,0 +1,29 @@
+{
+  "project": "Nossa Web TV",
+  "version": "1.2.0",
+  "modules": {
+    "publicidade": {
+      "name": "Smart Ads Manager",
+      "root": "/admin/publicidade",
+      "pages": ["dashboard", "banners", "campanhas", "anunciantes", "slots"],
+      "tech_stack": ["Supabase RPC", "Lazy Loading", "Intersection Observer", "Click Tracking API"],
+      "tables": ["anunciantes", "campanhas", "banners", "slots_publicitarios", "banners_slots", "logs_publicidade"]
+    },
+    "noticias": {
+      "name": "Gestão de Notícias",
+      "root": "/admin/noticias",
+      "features": ["Editor Tiptap", "Categorização Dinâmica", "FeedNews RSS", "IA para geração de texto"],
+      "tables": ["noticias", "categorias"]
+    },
+    "transmissao": {
+      "name": "Live Streaming",
+      "root": "/admin/transmissao",
+      "tech": ["SmartPlayer", "RTMP Settings", "Chat Híbrido YouTube"]
+    }
+  },
+  "global_components": {
+    "sidebar": "AdminSidebar.tsx",
+    "topbar": "AdminTopbar.tsx",
+    "ui_system": "Shadcn UI + Tailwind CSS"
+  }
+}

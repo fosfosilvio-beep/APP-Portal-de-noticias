@@ -16,16 +16,21 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
+import { usePathname } from "next/navigation";
+import portalManifest from "@/lib/portal-manifest.json";
+import { createClient } from "@/lib/supabase-browser";
+
 interface Message {
   role: "user" | "assistant";
   content: string;
 }
 
 export default function AIAgent() {
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", content: "Olá! Sou o Copiloto da Nossa Web TV. Estou pronto para te ajudar com a gestão do portal (Publicidade, Notícias, Transmissões e mais). O que vamos construir hoje?" }
+    { role: "assistant", content: "Olá! Sou o Copiloto da Nossa Web TV. Estou onisciente sobre o sistema e pronto para agir. Em que módulo vamos trabalhar agora?" }
   ]);
   const [isTyping, setIsTyping] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -36,6 +41,23 @@ export default function AIAgent() {
     }
   }, [messages, isTyping]);
 
+  // 1. Log da interação no Supabase
+  const logInteraction = async (pergunta: string, resposta: string) => {
+    try {
+      const supabase = createClient();
+      await supabase.from("logs_agente").insert({
+        rota: pathname,
+        pergunta,
+        resposta,
+        metadata: {
+          manifest_version: portalManifest.version
+        }
+      });
+    } catch (err) {
+      console.error("Erro ao logar interação do agente:", err);
+    }
+  };
+
   const handleSend = async () => {
     if (!query.trim()) return;
 
@@ -44,22 +66,42 @@ export default function AIAgent() {
     setQuery("");
     setIsTyping(true);
 
-    // Lógica Simulada do Agente Baseada em Contexto
-    setTimeout(() => {
+    // Lógica Evoluída com Context Awareness
+    setTimeout(async () => {
       let response = "";
       const q = userMessage.toLowerCase();
+      
+      // Identificar módulo atual pela rota
+      const isAdsModule = pathname.includes("publicidade");
+      const isNewsModule = pathname.includes("noticias");
 
-      if (q.includes("publicidade") || q.includes("anúncio") || q.includes("slot")) {
-        response = "O módulo de Publicidade foi recentemente refatorado para o Smart Ads Manager. Você pode gerenciar Banners, Campanhas e Slots em /admin/publicidade. \n\n**Dica:** Para criar um novo slot, use a aba 'Slots' e depois vincule o banner através da interface de Multi-Seleção.";
-      } else if (q.includes("erro") || q.includes("bug") || q.includes("corrigir")) {
-        response = "Entendi. Vou gerar um comando estruturado para o Antigravity resolver isso:\n\n```markdown\nCONTEXTO: [Módulo Relatado]\nPROBLEMA: " + userMessage + "\nAÇÃO: Analisar código e aplicar correção imediata.\n```\nCopie e cole este comando para o Antigravity agir!";
+      if (q.includes("erro") || q.includes("melhorar") || q.includes("prompt")) {
+        const moduleName = isAdsModule ? "Publicidade" : isNewsModule ? "Notícias" : "Global";
+        const tables = isAdsModule ? portalManifest.modules.publicidade.tables.join(", ") : "Diversas";
+        
+        response = `Detectei um pedido de evolução em **${moduleName}**. Gerando prompt técnico para o Antigravity:\n\n` +
+                   "```markdown\n" +
+                   `[ANTIGRAVITY COMMAND]\n` +
+                   `CONTEXTO: ${moduleName} (Rota: ${pathname})\n` +
+                   `PEDIDO: ${userMessage}\n` +
+                   `ESTRUTURA: React + Supabase (Tabelas: ${tables})\n` +
+                   `AÇÃO: Implementar melhoria seguindo padrões de modularidade extrema.\n` +
+                   "```\n" +
+                   "Copie o bloco acima e cole no chat principal!";
+      } else if (isAdsModule || q.includes("publicidade")) {
+        response = `Você está no módulo **${portalManifest.modules.publicidade.name}**. ` +
+                   "Atualmente gerencio Banners, Campanhas e Slots. \n\n" +
+                   "**Dica técnica:** Este módulo usa RPC para métricas atômicas e Lazy Loading no frontend para SEO.";
       } else {
-        response = "Interessante! Como Engenheiro Chefe do portal, posso te ajudar a implementar novas funcionalidades ou ajustar as atuais (como as seções de notícias ou o player de live). Pode detalhar mais?";
+        response = "Estou monitorando seu progresso. Como Engenheiro Chefe, posso te ajudar a ajustar as regras de negócio ou a UI Shadcn. O que precisa?";
       }
 
       setMessages(prev => [...prev, { role: "assistant", content: response }]);
       setIsTyping(false);
-    }, 1000);
+      
+      // Salvar log silenciosamente
+      await logInteraction(userMessage, response);
+    }, 800);
   };
 
   return (
