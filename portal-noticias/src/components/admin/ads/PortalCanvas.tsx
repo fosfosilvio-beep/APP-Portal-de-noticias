@@ -50,6 +50,7 @@ interface PortalCanvasProps {
   onSelectSlot: (id: string) => void;
   onRemoveFromZone: (zoneId: string) => void;
   latestNews: any[];
+  portalConfig: any;
   previewNoticiaId: string | null;
   onAddSlot: (zoneId: string) => void;
 }
@@ -69,20 +70,22 @@ function getZone(id: string): ZoneDefinition {
 
 // ─── Componentes Reais Embrulhados ──────────────────────────────────────────
 
-function RealHomeWrapper({ latestNews }: { latestNews: any[] }) {
+function RealHomeWrapper({ latestNews, portalConfig }: { latestNews: any[], portalConfig: any }) {
   const todasNoticias = latestNews.length > 0 ? latestNews : MOCK_NOTICIAS.map(n => ({
     ...n,
     created_at: new Date().toISOString()
   }));
 
+  const initialConfig = portalConfig || {
+    ui_settings: {
+      widgets_visibility: { plantao: false, weather: false }
+    }
+  };
+
   return (
     <div className="pointer-events-auto">
       <HomeContent 
-        initialConfig={{
-          ui_settings: {
-            widgets_visibility: { plantao: false, weather: false }
-          }
-        }} 
+        initialConfig={initialConfig} 
         liveStatus={null} 
         todasNoticias={todasNoticias} 
         bibliotecaLives={[]} 
@@ -293,7 +296,7 @@ export default function PortalCanvas(props: PortalCanvasProps) {
           >
             <div className="pointer-events-auto">
               {activeTab === "home" ? (
-                <RealHomeWrapper latestNews={props.latestNews} />
+                <RealHomeWrapper latestNews={props.latestNews} portalConfig={props.portalConfig} />
               ) : (
                 <RealArticleWrapper articleId={selectedArticleId} latestNews={props.latestNews} />
               )}

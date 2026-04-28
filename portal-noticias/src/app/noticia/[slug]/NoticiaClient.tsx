@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useContext } from "react";
 import { useParams } from "next/navigation";
 import DOMPurify from "dompurify";
 
@@ -23,11 +23,13 @@ import CommentsSection from "../../../components/noticias/CommentsSection";
 import Footer from "../../../components/Footer";
 import SmartPlayer from "../../../components/SmartPlayer";
 import DynamicAdSlot from "../../../components/DynamicAdSlot";
+import { AdEditorContext } from "../../../contexts/AdEditorContext";
 
 export default function NoticiaClient({ slug, initialData }: { slug: string, initialData?: any }) {
   const [noticia, setNoticia] = useState<any>(initialData || null);
   const [loading, setLoading] = useState(!initialData);
   const [error, setError] = useState("");
+  const { isEditing } = useContext(AdEditorContext);
   const hasTracked = useRef(false);
   
   // Estados para o Header
@@ -158,17 +160,30 @@ export default function NoticiaClient({ slug, initialData }: { slug: string, ini
 
       if (!initialData) {
         const decodedSlug = decodeURIComponent(slug as string);
-        const { data, error: err } = await supabase
+        
+        // Tenta buscar por Slug
+        let { data, error: err } = await supabase
           .from("noticias")
           .select("*")
           .eq("slug", decodedSlug)
-          .single();
+          .maybeSingle();
 
-        if (err) throw err;
+        // Se não achou por slug, tenta por ID (caso o slug seja o próprio ID)
+        if (!data) {
+          const { data: dataById, error: errId } = await supabase
+            .from("noticias")
+            .select("*")
+            .eq("id", decodedSlug)
+            .maybeSingle();
+          data = dataById;
+        }
+
+        if (!data) throw new Error("Notícia não encontrada.");
         setNoticia(data);
       }
     } catch (err: any) {
-      if (!noticia) setError("Notícia não encontrada.");
+      console.error("[NoticiaClient] Fetch error:", err);
+      if (!noticia) setError("Notícia não encontrada ou link inválido.");
     } finally {
       setLoading(false);
     }
@@ -297,17 +312,21 @@ export default function NoticiaClient({ slug, initialData }: { slug: string, ini
                             if (!p.trim() && index === paragraphs.length - 1) return null;
                             const content = p + '</p>';
                             
+                            // Zonas dinâmicas entre parágrafos no modo edição
+                            const showInArticleSlot = (index === 1 || index === 4 || (isEditing && index < 10));
+                            const slotPosition = index === 1 ? "article__in_article_1" : 
+                                                 index === 4 ? "article__in_article_2" : 
+                                                 `article__paragraph_${index}`;
+
                             return (
                               <div key={index}>
                                 <div dangerouslySetInnerHTML={{ __html: content }} />
-                                {index === 1 && (
-                                  <div className="my-8">
-                                    <DynamicAdSlot position="article__in_article_1" noticiaId={noticia.id} />
-                                  </div>
-                                )}
-                                {index === 4 && (
-                                  <div className="my-8">
-                                    <DynamicAdSlot position="article__in_article_2" noticiaId={noticia.id} />
+                                {showInArticleSlot && (
+                                  <div className="my-6">
+                                    <DynamicAdSlot 
+                                      position={slotPosition} 
+                                      noticiaId={noticia.id} 
+                                    />
                                   </div>
                                 )}
                               </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useDroppable } from "@dnd-kit/core";
+import { useDroppable, useDraggable } from "@dnd-kit/core";
 import { X, ImageIcon } from "lucide-react";
 import type { AdSlot, ZoneDefinition } from "@/hooks/useAdCanvas";
 
@@ -22,6 +22,18 @@ export default function DropZone({
   onAdd,
 }: DropZoneProps) {
   const { isOver, setNodeRef } = useDroppable({ id: zone.id });
+  
+  const { 
+    attributes, 
+    listeners, 
+    setNodeRef: setDraggableRef, 
+    transform, 
+    isDragging 
+  } = useDraggable({
+    id: assignedSlot?.id || `empty-${zone.id}`,
+    disabled: !assignedSlot,
+    data: { zoneId: zone.id }
+  });
 
   const isEmpty = !assignedSlot;
   const hasImage =
@@ -91,23 +103,32 @@ export default function DropZone({
           )}
         </div>
       ) : (
-        /* Estado ocupado — preview do banner */
-        <div className="relative w-full overflow-hidden rounded-md" style={{ minHeight: `${Math.max(previewH, 40)}px` }}>
+        /* Estado ocupado — preview do banner (Arrastável) */
+        <div 
+          ref={setDraggableRef}
+          {...listeners}
+          {...attributes}
+          className={`relative w-full overflow-hidden rounded-md group transition-transform ${isDragging ? "opacity-30 scale-95" : ""}`} 
+          style={{ 
+            minHeight: `${Math.max(previewH, 40)}px`,
+            transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
+          }}
+        >
           {hasImage ? (
             <img
               src={assignedSlot!.codigo_html_ou_imagem!}
               alt={assignedSlot!.nome_slot}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover pointer-events-none"
               style={{ maxHeight: "120px" }}
             />
           ) : hasHtml ? (
-            <div className="w-full h-full flex items-center justify-center bg-slate-700/50 py-2 px-3">
+            <div className="w-full h-full flex items-center justify-center bg-slate-700/50 py-2 px-3 pointer-events-none">
               <span className="text-[8px] font-bold text-slate-300 uppercase tracking-wider">
                 ⚡ HTML/Script — {assignedSlot!.nome_slot}
               </span>
             </div>
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-slate-700/50 py-2">
+            <div className="w-full h-full flex items-center justify-center bg-slate-700/50 py-2 pointer-events-none">
               <span className="text-[8px] font-bold text-slate-400">
                 {assignedSlot!.nome_slot}
               </span>
@@ -115,14 +136,14 @@ export default function DropZone({
           )}
 
           {/* Overlay info */}
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100 pointer-events-none">
             <span className="text-white text-[9px] font-black uppercase tracking-widest">
-              {assignedSlot!.nome_slot}
+              Segure para Arrastar
             </span>
           </div>
 
           {/* Badge ativo */}
-          <div className="absolute top-1 left-1">
+          <div className="absolute top-1 left-1 pointer-events-none">
             <span className="bg-emerald-500 text-white text-[7px] font-black uppercase px-1 py-0.5 rounded-full">
               ✓ Ativo
             </span>
@@ -131,7 +152,7 @@ export default function DropZone({
           {/* Botão remover */}
           <button
             onClick={(e) => { e.stopPropagation(); onRemove(); }}
-            className="absolute top-1 right-1 bg-red-500/80 hover:bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-all"
+            className="absolute top-1 right-1 bg-red-500/80 hover:bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-all z-20"
           >
             <X size={10} />
           </button>

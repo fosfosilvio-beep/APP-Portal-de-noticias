@@ -74,6 +74,7 @@ export default function AdCanvasEditor() {
     uploadImage,
     saveAll,
     latestNews,
+    portalConfig,
     previewNoticiaId,
     setPreviewNoticiaId,
   } = useAdCanvas();
@@ -248,6 +249,7 @@ export default function AdCanvasEditor() {
               onSelectSlot={handleSelectSlot}
               onRemoveFromZone={removeFromZone}
               latestNews={latestNews}
+              portalConfig={portalConfig}
               previewNoticiaId={previewNoticiaId}
               onAddSlot={addSlot}
             />

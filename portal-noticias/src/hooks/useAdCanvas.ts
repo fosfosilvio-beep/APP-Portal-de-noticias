@@ -72,6 +72,7 @@ export function useAdCanvas() {
   const [slots, setSlots] = useState<AdSlot[]>([]);
   const [assignments, setAssignments] = useState<CanvasAssignments>({});
   const [latestNews, setLatestNews] = useState<any[]>([]);
+  const [portalConfig, setPortalConfig] = useState<any>(null);
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
   const [previewNoticiaId, setPreviewNoticiaId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -118,13 +119,20 @@ export function useAdCanvas() {
     });
     setAssignments(initial);
 
-    // Buscar as últimas 20 notícias para o seletor
+    // Buscar as últimas 50 notícias para o seletor e preview
     const { data: newsData } = await supabase
       .from("noticias")
-      .select("id, titulo, slug, thumbnail, imagem_capa")
+      .select("*, categorias(id, nome, slug)")
       .order("created_at", { ascending: false })
-      .limit(20);
+      .limit(50);
     if (newsData) setLatestNews(newsData);
+
+    // Buscar Configuração Real do Portal
+    const { data: configData } = await supabase
+      .from("configuracao_portal")
+      .select("*")
+      .single();
+    if (configData) setPortalConfig(configData);
 
     setLoading(false);
   }, []);
@@ -303,6 +311,7 @@ export function useAdCanvas() {
     saveAll,
     fetchSlots,
     latestNews,
+    portalConfig,
     previewNoticiaId,
     setPreviewNoticiaId,
   };
