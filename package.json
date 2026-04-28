@@ -1,5 +1,17 @@
 {
+  "name": "portal-noticias-root",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix portal-noticias run dev",
+    "build": "npm --prefix portal-noticias run build",
+    "start": "npm --prefix portal-noticias run start",
+    "typecheck": "npm --prefix portal-noticias run typecheck"
+  },
   "devDependencies": {
     "supabase": "^2.92.0"
+  },
+  "engines": {
+    "node": "20.x"
   }
 }
