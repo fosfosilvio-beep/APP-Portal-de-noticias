@@ -16,6 +16,8 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 import { usePathname } from "next/navigation";
 import portalManifest from "@/lib/portal-manifest.json";
@@ -193,9 +195,11 @@ export default function AIAgent() {
                       ? "bg-blue-600 text-white rounded-tr-none" 
                       : "bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 rounded-tl-none border border-zinc-200/50 dark:border-zinc-700/50"
                   )}>
-                    {msg.content.split('\n').map((line, idx) => (
-                      <p key={idx} className={idx > 0 ? "mt-2" : ""}>{line}</p>
-                    ))}
+                    <div className="prose prose-sm dark:prose-invert max-w-none prose-p:leading-snug prose-pre:bg-zinc-900 prose-pre:text-zinc-100 prose-code:text-xs prose-code:bg-zinc-100 dark:prose-code:bg-zinc-800 prose-code:rounded prose-code:px-1 prose-a:text-blue-500">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {msg.content}
+                      </ReactMarkdown>
+                    </div>
 
                     {msg.role === "assistant" && i > 0 && (
                       <Button
