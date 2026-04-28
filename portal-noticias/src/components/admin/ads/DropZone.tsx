@@ -44,7 +44,9 @@ export default function DropZone({
     assignedSlot.codigo_html_ou_imagem.includes("<");
 
   // Calculamos a altura proporcional para o preview no canvas (max 120px)
-  const aspectRatio = zone.defaultHeight / zone.defaultWidth;
+  const currentW = assignedSlot?.custom_width || zone.defaultWidth;
+  const currentH = assignedSlot?.custom_height || zone.defaultHeight;
+  const aspectRatio = currentH / currentW;
   const previewH = Math.min(Math.round(120 * aspectRatio), 120);
 
   const borderClass = isSelected
