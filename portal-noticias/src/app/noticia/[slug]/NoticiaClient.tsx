@@ -146,7 +146,11 @@ export default function NoticiaClient({ slug, initialData }: { slug: string, ini
   }
 
   async function fetchData() {
-    if (!slug) return;
+    if (!slug || slug === 'preview') {
+      setLoading(false);
+      return;
+    }
+    
     try {
       if (!supabase) return;
       

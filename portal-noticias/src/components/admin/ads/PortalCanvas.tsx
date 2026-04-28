@@ -139,7 +139,7 @@ function RealArticleWrapper({ articleId, latestNews }: { articleId: string | nul
 
   return (
     <div className="pointer-events-auto">
-      <NoticiaClient slug={finalData.slug || "preview"} initialData={finalData} />
+      <NoticiaClient slug={finalData.slug || finalData.id || "preview"} initialData={finalData} />
     </div>
   );
 }
