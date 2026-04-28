@@ -15,7 +15,7 @@ import {
 import { restrictToWindowEdges } from "@dnd-kit/modifiers";
 import {
   Save, Loader2, LayoutPanelLeft, SlidersHorizontal,
-  ImageIcon, Sparkles
+  ImageIcon, Sparkles, Plus
 } from "lucide-react";
 
 import AdBannerLibrary from "./AdBannerLibrary";
