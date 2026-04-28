@@ -1,0 +1,5 @@
+{
+  "buildCommand": "npm --prefix portal-noticias run build",
+  "installCommand": "npm --prefix portal-noticias install",
+  "framework": "nextjs"
+}
