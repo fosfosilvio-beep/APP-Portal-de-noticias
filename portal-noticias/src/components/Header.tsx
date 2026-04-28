@@ -169,7 +169,24 @@ export default function Header({
                 <NotificationBell />
                 <ThemeToggle />
                 {session ? (
-                  <button onClick={() => supabase.auth.signOut()} className="text-zinc-400 hover:text-white"><LogOut size={18} /></button>
+                  <div className="flex items-center gap-3">
+                    {session.user?.user_metadata?.avatar_url || session.user?.user_metadata?.picture ? (
+                      <img 
+                        src={session.user.user_metadata.avatar_url || session.user.user_metadata.picture} 
+                        alt="Avatar" 
+                        className="w-8 h-8 rounded-full object-cover border border-zinc-200 dark:border-zinc-700 shadow-sm"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center border border-zinc-200 dark:border-zinc-700 shadow-sm">
+                        <span className="text-[10px] font-black text-white">
+                          {(session.user?.user_metadata?.full_name || session.user?.user_metadata?.name || session.user?.email || "US").substring(0, 2).toUpperCase()}
+                        </span>
+                      </div>
+                    )}
+                    <button onClick={() => supabase.auth.signOut()} className="text-zinc-400 hover:text-white transition-colors" title="Sair">
+                      <LogOut size={18} />
+                    </button>
+                  </div>
                 ) : (
                   <button onClick={() => setIsLoginModalOpen(true)} className="bg-white text-black px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">Entrar</button>
                 )}
