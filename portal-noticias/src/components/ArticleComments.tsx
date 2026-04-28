@@ -110,7 +110,7 @@ export default function ArticleComments({ noticiaId }: { noticiaId: string }) {
       await supabase.auth.signInWithOAuth({ 
         provider,
         options: {
-          redirectTo: window.location.origin
+          redirectTo: `${window.location.origin}/`
         }
       });
     }
