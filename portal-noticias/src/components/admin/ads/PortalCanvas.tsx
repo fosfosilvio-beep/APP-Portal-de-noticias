@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Home, Newspaper, Eye, Loader2 } from "lucide-react";
+import { Home, Newspaper, Eye, Loader2, ChevronLeft } from "lucide-react";
 import type { AdSlot, CanvasAssignments, ZoneDefinition } from "@/hooks/useAdCanvas";
 import { CANVAS_ZONES } from "@/hooks/useAdCanvas";
 import { AdEditorContext } from "@/contexts/AdEditorContext";
@@ -51,6 +51,7 @@ interface PortalCanvasProps {
   onRemoveFromZone: (zoneId: string) => void;
   latestNews: any[];
   previewNoticiaId: string | null;
+  onAddSlot: (zoneId: string) => void;
 }
 
 function getSlotForZone(
@@ -164,8 +165,8 @@ export default function PortalCanvas(props: PortalCanvasProps) {
   useEffect(() => {
     const updateZoom = () => {
       if (canvasRef.current) {
-        const parentW = canvasRef.current.clientWidth - 64; // padding
-        const newZoom = Math.min(parentW / 1440, 1);
+        const parentW = canvasRef.current.clientWidth - 100; // margem maior para respiro
+        const newZoom = Math.min(parentW / 1920, 1);
         setZoom(newZoom);
       }
     };
@@ -181,62 +182,63 @@ export default function PortalCanvas(props: PortalCanvasProps) {
     zones.filter((z) => !!props.assignments[z.id]).length;
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-slate-950">
       {/* Tabs */}
-      <div className="flex items-center gap-1 px-4 pt-3 pb-0 border-b border-slate-700 bg-slate-900 sticky top-0 z-10">
+      <div className="flex items-center gap-1 px-4 pt-3 pb-0 border-b border-white/5 bg-slate-900/50 backdrop-blur-md sticky top-0 z-20">
         <button
           onClick={() => setActiveTab("home")}
-          className={`flex items-center gap-1.5 px-3 py-2 text-[11px] font-black uppercase tracking-wider rounded-t-lg transition-all border-b-2 -mb-px
+          className={`flex items-center gap-1.5 px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-t-xl transition-all border-b-2 -mb-px
             ${activeTab === "home"
-              ? "bg-slate-800 text-white border-blue-400"
+              ? "bg-slate-800 text-blue-400 border-blue-500 shadow-[0_-4px_12px_rgba(59,130,246,0.15)]"
               : "text-slate-500 border-transparent hover:text-slate-300"
             }`}
         >
           <Home size={12} />
-          Home
-          <span className="bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded-full text-[8px]">
+          Portal Home
+          <span className="bg-blue-500/10 text-blue-400 px-1.5 py-0.5 rounded-full text-[8px] ring-1 ring-blue-500/20">
             {countAssigned(homeZones)}/{homeZones.length}
           </span>
         </button>
         <button
           onClick={() => setActiveTab("article")}
-          className={`flex items-center gap-1.5 px-3 py-2 text-[11px] font-black uppercase tracking-wider rounded-t-lg transition-all border-b-2 -mb-px
+          className={`flex items-center gap-1.5 px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-t-xl transition-all border-b-2 -mb-px
             ${activeTab === "article"
-              ? "bg-slate-800 text-white border-purple-400"
+              ? "bg-slate-800 text-purple-400 border-purple-500 shadow-[0_-4px_12px_rgba(168,85,247,0.15)]"
               : "text-slate-500 border-transparent hover:text-slate-300"
             }`}
         >
           <Newspaper size={12} />
-          Página da Notícia
-          <span className="bg-purple-500/20 text-purple-300 px-1.5 py-0.5 rounded-full text-[8px]">
+          Página Interna
+          <span className="bg-purple-500/10 text-purple-400 px-1.5 py-0.5 rounded-full text-[8px] ring-1 ring-purple-500/20">
             {countAssigned(articleZones)}/{articleZones.length}
           </span>
         </button>
 
-        <div className="ml-auto flex items-center gap-1.5 pb-2">
-          <Eye size={10} className="text-slate-500" />
-          <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">
-            Preview Live
-          </span>
-          <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+        <div className="ml-auto flex items-center gap-2 pb-2 px-2">
+          <div className="flex items-center gap-1.5 bg-emerald-500/10 px-2 py-1 rounded-full ring-1 ring-emerald-500/20">
+            <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+            <span className="text-[9px] font-black text-emerald-400 uppercase tracking-tighter">
+              Live Preview
+            </span>
+          </div>
         </div>
       </div>
 
       {/* Contexto da notícia selecionada */}
       {activeTab === "article" && (
-        <div className="px-4 py-2 bg-slate-800 border-b border-slate-700 flex items-center gap-2">
+        <div className="px-4 py-2 bg-slate-800/80 border-b border-white/5 flex items-center gap-2 backdrop-blur-sm">
           <Newspaper size={10} className="text-purple-400 flex-shrink-0" />
           <p className="text-[9px] font-bold text-slate-400 truncate flex-1">
-            Visualizando: <span className="text-white">
-              {props.latestNews.find((n) => n.id === selectedArticleId)?.titulo || "Notícia Exemplo"}
+            Matéria em Foco: <span className="text-white italic">
+              {props.latestNews.find((n) => n.id === selectedArticleId)?.titulo || "Carregando..."}
             </span>
           </p>
           {(!props.previewNoticiaId) && (
             <button
               onClick={() => setActiveTab("home")}
-              className="text-[8px] font-black text-slate-500 hover:text-white uppercase tracking-wider transition-colors flex-shrink-0"
+              className="text-[8px] font-black text-slate-500 hover:text-white uppercase tracking-wider transition-colors flex-shrink-0 flex items-center gap-1"
             >
-              ← Home
+              <ChevronLeft size={8} /> Voltar à Home
             </button>
           )}
         </div>
@@ -245,7 +247,7 @@ export default function PortalCanvas(props: PortalCanvasProps) {
       {/* Canvas content */}
       <div 
         ref={canvasRef}
-        className="flex-1 overflow-auto p-8 bg-slate-900/80 flex flex-col items-center custom-scrollbar"
+        className="flex-1 overflow-auto p-12 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:24px_24px] flex flex-col items-center custom-scrollbar"
         onClick={(e) => {
           const target = e.target as HTMLElement;
           const link = target.closest('a');
@@ -276,16 +278,17 @@ export default function PortalCanvas(props: PortalCanvasProps) {
             onSelectSlot: props.onSelectSlot,
             selectedSlotId: props.selectedSlotId,
             previewNoticiaId: selectedArticleId,
+            onAddSlot: props.onAddSlot,
           }}
         >
-          {/* Viewport 1440px fixo para fidelidade de proporções */}
+          {/* Viewport 1920px (Full HD) para fidelidade absoluta */}
           <div 
-            className="bg-white shadow-2xl origin-top transition-all duration-500 ease-out" 
+            className="bg-white shadow-[0_32px_64px_rgba(0,0,0,0.5)] origin-top transition-all duration-700 cubic-bezier(0.4, 0, 0.2, 1)" 
             style={{ 
-              width: '1440px', 
-              minHeight: '2500px',
+              width: '1920px', 
+              minHeight: '3000px',
               transform: `scale(${zoom})`, 
-              marginBottom: `-${2500 * (1 - zoom)}px` 
+              marginBottom: `-${3000 * (1 - zoom)}px` 
             }}
           >
             <div className="pointer-events-auto">

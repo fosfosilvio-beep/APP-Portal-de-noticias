@@ -27,6 +27,8 @@ export interface AdSlot {
   zone_order?: number;
   cliques?: number;
   noticia_id?: string | null;
+  page_context?: "global" | "home" | "article";
+  css_overrides?: any;
 }
 
 /** Mapa de { zoneId → slotId } — representa o que está alocado no canvas */
@@ -174,22 +176,39 @@ export function useAdCanvas() {
   );
 
   // ── Criar novo slot em branco ───────────────────────────────
-  const addSlot = useCallback(async () => {
+  const addSlot = useCallback(async (zoneId?: string) => {
     const supabase = createClient();
     if (!supabase) return;
+    
+    // Dimensões padrão baseadas na zona se fornecida
+    const zone = zoneId ? CANVAS_ZONES.find(z => z.id === zoneId) : null;
+    
     const { data, error } = await supabase
       .from("ad_slots")
       .insert([{
         nome_slot: "Novo Banner",
-        posicao_html: "home__header_top",
-        dimensoes: "728x90",
+        posicao_html: zoneId || "home__header_top",
+        zone_id: zoneId || null,
+        dimensoes: zone ? `${zone.defaultWidth}x${zone.defaultHeight}` : "728x90",
         status_ativo: false,
         zone_order: 0,
+        page_context: zoneId?.startsWith('home') ? 'home' : (zoneId?.startsWith('article') ? 'article' : 'global')
       }])
       .select()
       .single();
+      
     if (error) { toast.error("Erro", error.message); return; }
-    if (data) setSlots((prev) => [...prev, data as AdSlot]);
+    if (data) {
+      const newSlot = data as AdSlot;
+      setSlots((prev) => [...prev, newSlot]);
+      
+      if (zoneId) {
+        setAssignments(prev => ({ ...prev, [zoneId]: newSlot.id }));
+      }
+      
+      setSelectedSlotId(newSlot.id);
+      return newSlot.id;
+    }
   }, []);
 
   // ── Deletar slot ────────────────────────────────────────────
@@ -246,6 +265,8 @@ export function useAdCanvas() {
           custom_height:          slot.custom_height ?? null,
           zone_order:             slot.zone_order ?? 0,
           noticia_id:             slot.noticia_id ?? null,
+          page_context:           slot.page_context ?? 'global',
+          css_overrides:          slot.css_overrides ?? {},
         }).eq("id", slot.id);
       });
 

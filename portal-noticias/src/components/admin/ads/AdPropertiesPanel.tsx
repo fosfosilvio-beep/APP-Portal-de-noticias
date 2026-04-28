@@ -62,6 +62,7 @@ function DimensionControl({
 export default function AdPropertiesPanel({ slot, onUpdate, onSave, saving, latestNews, previewNoticiaId, setPreviewNoticiaId }: AdPropertiesPanelProps) {
   const [keepRatio, setKeepRatio] = useState(false);
   const [aspectRatio, setAspectRatio] = useState<number | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Zona atual do slot
   const zone: ZoneDefinition | undefined = CANVAS_ZONES.find((z) => z.id === slot?.zone_id);
@@ -124,36 +125,90 @@ export default function AdPropertiesPanel({ slot, onUpdate, onSave, saving, late
 
       <div className="p-4 space-y-5">
         
-        {/* CONTEXTO DA NOTÍCIA (RESTRIÇÃO) */}
-        <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100">
-           <label className="text-[10px] font-black text-blue-800 uppercase tracking-widest block mb-2">
-             Exibir este banner em:
-           </label>
-           <div className="relative">
-             <select
-               value={slot.noticia_id || ""}
-               onChange={(e) => {
-                 const id = e.target.value || null;
-                 onUpdate({ noticia_id: id });
-                 // Se definiu uma notícia específica, muda o preview para ela automaticamente
-                 if (id) setPreviewNoticiaId(id);
-               }}
-               className="w-full text-[11px] font-bold px-3 py-2 pr-8 border border-blue-200 rounded-lg bg-white text-blue-900 outline-none focus:ring-2 focus:ring-blue-400 transition-all appearance-none cursor-pointer"
-             >
-               <option value="">🌐 Todas as Notícias (Global)</option>
-               <optgroup label="Restringir à Notícia:">
-                 {latestNews.map(news => (
-                   <option key={news.id} value={news.id}>
-                     {news.titulo.length > 40 ? news.titulo.substring(0, 40) + "..." : news.titulo}
-                   </option>
-                 ))}
-               </optgroup>
-             </select>
-             <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-blue-400 pointer-events-none" />
+        {/* CONTEXTO DE EXIBIÇÃO (REGRAS DE NEGÓCIO) */}
+        <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100 space-y-3">
+           <div className="flex items-center justify-between">
+             <label className="text-[10px] font-black text-blue-800 uppercase tracking-widest block">
+               Onde exibir este banner?
+             </label>
+             <div className="h-1.5 w-1.5 rounded-full bg-blue-400 animate-pulse" />
            </div>
-           {slot.noticia_id && (
-             <p className="text-[9px] text-blue-600 font-medium mt-2 leading-tight">
-               Este banner será exibido <strong className="font-black">apenas</strong> na notícia selecionada. Banners globais desta mesma zona serão ocultados nela.
+           
+           <div className="grid grid-cols-3 gap-1 p-1 bg-blue-100/30 rounded-lg border border-blue-100/50">
+             {(['global', 'home', 'article'] as const).map((ctx) => (
+               <button
+                 key={ctx}
+                 onClick={() => {
+                   onUpdate({ 
+                     page_context: ctx, 
+                     noticia_id: ctx !== 'article' ? null : slot.noticia_id 
+                   });
+                 }}
+                 className={`py-1.5 text-[9px] font-black uppercase tracking-tight rounded-md transition-all duration-200 ${
+                   (slot.page_context === ctx || (!slot.page_context && ctx === 'global'))
+                     ? "bg-white text-blue-600 shadow-sm ring-1 ring-blue-100"
+                     : "text-blue-400 hover:text-blue-500 hover:bg-blue-50/50"
+                 }`}
+               >
+                 {ctx === 'global' ? 'Global' : ctx === 'home' ? 'SÓ Home' : 'SÓ Notícia'}
+               </button>
+             ))}
+           </div>
+
+           {slot.page_context === 'article' && (
+             <div className="space-y-2 pt-1 animate-in fade-in slide-in-from-top-1 duration-300">
+               <div className="relative">
+                 <input 
+                   type="text"
+                   value={searchTerm}
+                   placeholder="🔍 Pesquisar notícia por título..."
+                   className="w-full text-[10px] font-bold px-3 py-1.5 border border-blue-200 rounded-lg bg-white text-blue-900 outline-none focus:ring-2 focus:ring-blue-400/20 transition-all placeholder:text-blue-300"
+                   onChange={(e) => setSearchTerm(e.target.value)}
+                 />
+               </div>
+               
+               <div className="relative">
+                 <select
+                   value={slot.noticia_id || ""}
+                   onChange={(e) => {
+                     const id = e.target.value || null;
+                     onUpdate({ noticia_id: id });
+                     if (id) setPreviewNoticiaId(id);
+                   }}
+                   className="w-full text-[11px] font-bold px-3 py-2.5 pr-8 border border-blue-200 rounded-lg bg-white text-blue-900 outline-none focus:ring-2 focus:ring-blue-400/20 transition-all appearance-none cursor-pointer"
+                 >
+                   <option value="">Selecione a matéria específica...</option>
+                   {latestNews
+                    .filter(n => !searchTerm || n.titulo.toLowerCase().includes(searchTerm.toLowerCase()))
+                    .map(news => (
+                      <option key={news.id} value={news.id}>
+                        {news.titulo.length > 50 ? news.titulo.substring(0, 50) + "..." : news.titulo}
+                      </option>
+                    ))}
+                 </select>
+                 <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-blue-400 pointer-events-none" />
+               </div>
+               
+               {slot.noticia_id && (
+                 <div className="flex items-center gap-1.5 px-2 py-1.5 bg-blue-600 rounded-md shadow-sm">
+                   <div className="w-1 h-1 rounded-full bg-white animate-ping" />
+                   <p className="text-[8px] text-white font-black uppercase tracking-wider">
+                     Focado em Matéria Específica
+                   </p>
+                 </div>
+               )}
+             </div>
+           )}
+
+           {slot.page_context === 'home' && (
+             <p className="text-[9px] text-blue-600 font-bold bg-blue-100/50 p-2 rounded-lg leading-tight flex items-center gap-2">
+               <span>🏠</span> Este banner aparecerá apenas na página inicial.
+             </p>
+           )}
+           
+           {(slot.page_context === 'global' || !slot.page_context) && (
+             <p className="text-[9px] text-slate-500 font-bold bg-slate-100/50 p-2 rounded-lg leading-tight flex items-center gap-2">
+               <span>🌐</span> Exibição global (todas as notícias e home).
              </p>
            )}
         </div>

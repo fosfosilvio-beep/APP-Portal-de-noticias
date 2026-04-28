@@ -10,6 +10,7 @@ interface DropZoneProps {
   isSelected: boolean;
   onSelect: () => void;
   onRemove: () => void;
+  onAdd: (zoneId: string) => void;
 }
 
 export default function DropZone({
@@ -18,6 +19,7 @@ export default function DropZone({
   isSelected,
   onSelect,
   onRemove,
+  onAdd,
 }: DropZoneProps) {
   const { isOver, setNodeRef } = useDroppable({ id: zone.id });
 
@@ -75,12 +77,16 @@ export default function DropZone({
             </>
           ) : (
             <>
-              <span className="text-[9px] font-bold text-slate-600 uppercase tracking-wider">
+              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">
                 {zone.defaultWidth} × {zone.defaultHeight}px
               </span>
-              <span className="text-[8px] text-slate-700 text-center px-2">
-                {zone.description}
-              </span>
+              <button
+                onClick={(e) => { e.stopPropagation(); onAdd(zone.id); }}
+                className="flex items-center gap-1.5 bg-blue-600/10 hover:bg-blue-600 text-blue-400 hover:text-white px-3 py-1.5 rounded-full border border-blue-500/20 transition-all duration-300 text-[9px] font-black uppercase tracking-widest group/btn shadow-sm"
+              >
+                <div className="w-1 h-1 bg-current rounded-full animate-ping" />
+                Criar Novo Slot Aqui
+              </button>
             </>
           )}
         </div>

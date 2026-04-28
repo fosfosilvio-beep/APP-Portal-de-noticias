@@ -249,6 +249,7 @@ export default function AdCanvasEditor() {
               onRemoveFromZone={removeFromZone}
               latestNews={latestNews}
               previewNoticiaId={previewNoticiaId}
+              onAddSlot={addSlot}
             />
           </div>
 

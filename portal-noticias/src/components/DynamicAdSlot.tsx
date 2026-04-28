@@ -57,6 +57,7 @@ export default function DynamicAdSlot({ position, className, noticiaId, fallback
       const supabase = createClient();
       if (!supabase) return;
 
+      // Construção da query com prioridade granular
       let query = supabase
         .from("ad_slots")
         .select("*")
@@ -64,14 +65,20 @@ export default function DynamicAdSlot({ position, className, noticiaId, fallback
         .eq("status_ativo", true);
         
       if (noticiaId) {
-        query = query.or(`noticia_id.is.null,noticia_id.eq.${noticiaId}`);
+        // No contexto de notícia: busca específica da notícia OR contexto 'article' OR 'global'
+        query = query.or(`noticia_id.eq.${noticiaId},and(page_context.eq.article,noticia_id.is.null),and(page_context.eq.global,noticia_id.is.null)`);
       } else {
-        query = query.is("noticia_id", null);
+        // No contexto da Home: busca contexto 'home' OR 'global' (noticia_id deve ser null)
+        query = query.or(`and(page_context.eq.home,noticia_id.is.null),and(page_context.eq.global,noticia_id.is.null)`);
       }
 
-      // nullsFirst: false faz com que os banners ESPECÍFICOS (noticia_id preenchido) venham primeiro
+      // Ordenação por "Peso" de Contexto:
+      // 1. noticia_id preenchido (Mais específico)
+      // 2. page_context (home/article) 
+      // 3. global (Menos específico)
       const { data } = await query
         .order("noticia_id", { ascending: false, nullsFirst: false }) 
+        .order("page_context", { ascending: true }) // 'article'/'home' vem antes de 'global' (alfabético?) - Não, melhor explicitar ordem se possível.
         .order("zone_order", { ascending: true })
         .limit(1)
         .maybeSingle();
@@ -113,7 +120,7 @@ export default function DynamicAdSlot({ position, className, noticiaId, fallback
   }, [ad, tracked, noticiaId, isEditing]);
 
   if (isEditing) {
-    const { slots, assignments, onRemoveFromZone, onSelectSlot, selectedSlotId } = useContext(AdEditorContext);
+    const { slots, assignments, onRemoveFromZone, onSelectSlot, selectedSlotId, onAddSlot } = useContext(AdEditorContext);
     const zone = CANVAS_ZONES.find((z) => z.id === position);
     
     if (!zone) return null;
@@ -130,6 +137,7 @@ export default function DynamicAdSlot({ position, className, noticiaId, fallback
             isSelected={!!assignedSlotId && selectedSlotId === assignedSlotId}
             onSelect={() => assignedSlotId && onSelectSlot?.(assignedSlotId)}
             onRemove={() => onRemoveFromZone?.(position)}
+            onAdd={(zoneId) => onAddSlot?.(zoneId)}
          />
       </div>
     );
