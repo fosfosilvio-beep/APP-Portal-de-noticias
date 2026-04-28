@@ -61,6 +61,12 @@ const NAV_GROUPS = [
     ]
   },
   {
+    label: "MONETIZAÇÃO",
+    items: [
+      { label: "Publicidade", href: "/admin/publicidade", icon: Megaphone },
+    ]
+  },
+  {
     label: "CONFIGURAÇÕES",
     items: [
       { label: "Branding & UI", href: "/admin/branding", icon: Brush },
