@@ -151,16 +151,16 @@ export default function AdCanvasEditor() {
       <div className="flex flex-col h-full">
 
         {/* ── Topbar do editor ── */}
-        <div className="flex items-center justify-between px-5 py-3 bg-white border-b border-slate-200 shadow-sm z-30">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200">
-              <Sparkles size={16} className="text-white" />
+        <div className="flex items-center justify-between px-6 py-4 bg-blue-600 border-b border-blue-700 shadow-lg z-20">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 bg-white rounded-2xl flex items-center justify-center shadow-inner">
+              <Sparkles size={20} className="text-blue-600" />
             </div>
             <div>
-              <h2 className="text-sm font-black text-slate-900 uppercase tracking-tighter">Visual Ad Builder <span className="text-blue-600 font-black">v2.1</span></h2>
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-2">
+              <h2 className="text-sm font-black text-white uppercase tracking-tighter">Visual Ad Builder <span className="text-blue-100 font-black">v3.0</span></h2>
+              <p className="text-[10px] text-blue-100 font-bold uppercase tracking-widest flex items-center gap-2">
                 <span>{filledZones}/{totalZones} Zonas • {activeSlots} Ativos</span>
-                <span className="text-emerald-500 font-black bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">REV: 20260428-1455</span>
+                <span className="text-white font-black bg-blue-500/50 px-1.5 py-0.5 rounded border border-blue-400">DEPLOY ATIVO: 20260428-1510</span>
               </p>
             </div>
           </div>
@@ -194,10 +194,10 @@ export default function AdCanvasEditor() {
 
             <button
               onClick={() => addSlot()}
-              className="flex items-center gap-2 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-all text-[10px] font-black uppercase tracking-widest border border-slate-200 group"
+              className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-blue-50 text-blue-700 rounded-xl transition-all text-[10px] font-black uppercase tracking-widest border border-blue-200 group shadow-sm"
             >
-              <Sparkles size={12} className="text-blue-500 group-hover:animate-pulse" />
-              Novo Banner
+              <Plus size={12} className="group-hover:rotate-90 transition-transform" />
+              Adicionar Novo Slot
             </button>
 
             <div className="h-6 w-px bg-slate-200 mx-1" />

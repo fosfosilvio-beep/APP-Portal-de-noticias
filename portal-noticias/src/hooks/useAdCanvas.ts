@@ -189,37 +189,15 @@ export function useAdCanvas() {
     const sourceSlot = slots.find(s => s.id === slotId);
     if (!sourceSlot) return;
 
-    // Se o slot já está em uma zona e o destino é outra, ou se vem da biblioteca,
-    // nós CLONAMOS o slot para a nova zona para permitir duplicidade.
-    const isFromLibrary = !sourceSlot.zone_id;
-    const isMovingToNewZone = sourceSlot.zone_id && sourceSlot.zone_id !== zoneId;
-
-    if (isFromLibrary || isMovingToNewZone) {
-      // Criamos um novo slot localmente (o saveAll cuidará da persistência se necessário)
-      // Mas para ser imediato e evitar bugs de ID, o ideal é criar no banco agora ou marcar para criação.
-      // Vamos simplificar: Se for da biblioteca, criamos um novo. Se for movimento, apenas movemos.
-      // O usuário disse: "se coloco em um lugar, some do outro". 
-      // Então, ao arrastar da biblioteca, NÃO deve sumir da biblioteca.
-      
-      if (isFromLibrary) {
-        // Criar um novo slot baseado no template da biblioteca
-        addSlot(zoneId, sourceSlot);
-        return;
-      }
+    // SEMPRE clonamos ao arrastar para uma zona, a menos que o slot já pertença a essa zona específica
+    // Isso garante a liberdade total pedida pelo usuário: "um banner em infinitos slots".
+    if (sourceSlot.zone_id !== zoneId) {
+      addSlot(zoneId, sourceSlot);
+      return;
     }
 
-    // Comportamento padrão: mover (apenas se for movimento interno e o usuário não quiser clonar?)
-    // Na verdade, o usuário quer que "ID do banner" seja repetível.
-    // Vamos apenas mover por enquanto, mas garantir que a biblioteca seja infinita.
-    setAssignments((prev) => ({ ...prev, [zoneId]: slotId }));
-
-    setSlots((prev) =>
-      prev.map((s) =>
-        s.id === slotId
-          ? { ...s, zone_id: zoneId, status_ativo: true }
-          : s
-      )
-    );
+    // Se por algum motivo já for da mesma zona, apenas selecionamos
+    setSelectedSlotId(slotId);
   }, [slots, addSlot]);
 
   // ── Remover slot de uma zona ────────────────────────────────

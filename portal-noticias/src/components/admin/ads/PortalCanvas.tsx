@@ -98,27 +98,50 @@ function RealHomeWrapper({ latestNews, portalConfig }: { latestNews: any[], port
 function RealArticleWrapper({ articleId, latestNews }: { articleId: string | null, latestNews: any[] }) {
   const [article, setArticle] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     if (!articleId) {
       setArticle(null);
+      setError(false);
       return;
     }
     
-    const found = latestNews.find(n => n.id === articleId);
+    // 1. Tentar encontrar no cache de 'latestNews' (notícias carregadas na home)
+    const found = latestNews.find(n => n.id === articleId || n.slug === articleId);
     if (found && found.conteudo) {
       setArticle(found);
+      setError(false);
       return;
     }
 
-    // Se não tem conteúdo completo (só resumo do fetch de 20), busca o artigo completo
+    // 2. Buscar no Supabase se não estiver no cache ou se o cache for apenas resumo
     async function fetchFull() {
       setLoading(true);
-      const { createClient } = await import("@/lib/supabase-browser");
-      const supabase = createClient();
-      const { data } = await supabase.from("noticias").select("*").eq("id", articleId).single();
-      if (data) setArticle(data);
-      setLoading(false);
+      setError(false);
+      try {
+        const { createClient } = await import("@/lib/supabase-browser");
+        const supabase = createClient();
+        if (!supabase) throw new Error("No client");
+
+        const { data, error: fetchErr } = await supabase
+          .from("noticias")
+          .select("*")
+          .or(`id.eq.${articleId},slug.eq.${articleId}`)
+          .maybeSingle();
+
+        if (fetchErr) throw fetchErr;
+        if (data) {
+          setArticle(data);
+        } else {
+          setError(true);
+        }
+      } catch (err) {
+        console.error("Erro ao buscar notícia real:", err);
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
     }
     fetchFull();
   }, [articleId, latestNews]);
@@ -126,24 +149,33 @@ function RealArticleWrapper({ articleId, latestNews }: { articleId: string | nul
   if (loading) {
     return (
       <div className="w-full h-screen flex flex-col items-center justify-center bg-white">
-        <Loader2 className="animate-spin text-blue-500 mb-4" size={48} />
-        <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Carregando Matéria Real...</p>
+        <Loader2 className="animate-spin text-blue-600 mb-4" size={48} />
+        <p className="text-slate-400 font-black uppercase tracking-widest text-[10px]">Carregando Matéria Real...</p>
       </div>
     );
   }
 
-  const mockNews = MOCK_NOTICIAS[0];
-  const finalData = article || {
-    id: articleId || mockNews.id,
-    titulo: mockNews.titulo,
-    conteudo: "<p>Carregando conteúdo real da notícia...</p>",
-    categoria: mockNews.categoria,
-    imagem_capa: mockNews.imagem
-  };
+  if (error || (!article && !loading)) {
+    return (
+      <div className="w-full h-screen flex flex-col items-center justify-center bg-slate-50 p-10 text-center">
+        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center text-red-500 mb-4">
+          <Newspaper size={32} />
+        </div>
+        <h3 className="text-lg font-black text-slate-900 uppercase">Notícia Não Encontrada</h3>
+        <p className="text-sm text-slate-500 mb-6 max-w-md">O ID ou Slug da notícia não foi localizado no banco de dados real. Certifique-se de que a notícia está publicada.</p>
+        <button 
+          onClick={() => window.location.reload()}
+          className="px-6 py-2 bg-slate-900 text-white font-black rounded-xl uppercase text-xs tracking-widest"
+        >
+          Tentar Novamente
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="pointer-events-auto">
-      <NoticiaClient slug={finalData.slug || finalData.id || "preview"} initialData={finalData} />
+      <NoticiaClient slug={article.slug || article.id} initialData={article} />
     </div>
   );
 }
