@@ -22,6 +22,7 @@ import NewsNarrator from "../../../components/NewsNarrator";
 import CommentsSection from "../../../components/noticias/CommentsSection";
 import Footer from "../../../components/Footer";
 import SmartPlayer from "../../../components/SmartPlayer";
+import SmartAdSlot from "../../../components/ads/SmartAdSlot";
 
 export default function NoticiaClient({ slug, initialData }: { slug: string, initialData?: any }) {
   const [noticia, setNoticia] = useState<any>(initialData || null);
@@ -231,7 +232,7 @@ export default function NoticiaClient({ slug, initialData }: { slug: string, ini
           </Link>
         </div>
 
-        {/* Ad de topo removido */}
+        <SmartAdSlot slotName="article__header_top" className="mb-6 max-w-5xl mx-auto" />
 
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="w-full lg:w-[70%]">

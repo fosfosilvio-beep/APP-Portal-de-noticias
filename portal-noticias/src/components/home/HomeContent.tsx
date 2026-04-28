@@ -8,6 +8,7 @@ import HeroBanner from "../HeroBanner";
 import AutomatedNewsFeed from "../AutomatedNewsFeed";
 import PlantaoPolicialWidget from "../PlantaoPolicialWidget";
 import HeroSection from "./HeroSection";
+import SmartAdSlot from "../ads/SmartAdSlot";
 import CategoryNav from "../CategoryNav";
 import PWAInstallBanner from "../PWAInstallBanner";
 import NewsGrid from "./NewsGrid";
@@ -144,8 +145,7 @@ export default function HomeContent({ initialConfig, liveStatus, todasNoticias, 
 
       <main className="container mx-auto px-4 lg:px-8 py-4 flex-grow">
         
-        {/* Ad de Topo */}
-        {/* Ad de Topo removido */}
+        <SmartAdSlot slotName="home__header_top" className="mb-8 max-w-5xl mx-auto" />
 
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-10 min-w-0">
           
@@ -270,7 +270,9 @@ export default function HomeContent({ initialConfig, liveStatus, todasNoticias, 
 
 
             {/* Ad Lateral */}
-            {/* Sidebar Ads removidos */}
+            {/* Sidebar Ads */}
+            <SmartAdSlot slotName="home__sidebar_1" className="min-h-[250px]" />
+            <SmartAdSlot slotName="home__sidebar_2" className="min-h-[400px]" />
 
             {/* Clima se ativado */}
             {(config?.ui_settings?.widgets_visibility?.weather !== false) && (
