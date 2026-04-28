@@ -77,11 +77,19 @@ export default function SmartAdSlot({ slotName, className = "" }: SmartAdSlotPro
     if (banner && !hasTrackedImpression.current) {
       hasTrackedImpression.current = true;
       
-      const supabase = createClient();
-      supabase.rpc("registrar_impressao", { 
-        banner_uuid: banner.banner_id, 
-        slot_uuid: banner.slot_id 
-      }).catch(() => null); // Silencioso
+      const trackImpression = async () => {
+        try {
+          const supabase = createClient();
+          await supabase.rpc("registrar_impressao", { 
+            banner_uuid: banner.banner_id, 
+            slot_uuid: banner.slot_id 
+          });
+        } catch (err) {
+          console.error("[SmartAdSlot] Erro silencioso ao registrar impressão:", err);
+        }
+      };
+
+      trackImpression();
     }
   }, [banner]);
 
