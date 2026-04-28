@@ -1,6 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
-import { GoogleGenerativeAI } from "https://esm.sh/@google/generative-ai@0.1.0"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,14 +12,11 @@ serve(async (req) => {
 
   try {
     const { query, route, history } = await req.json()
-    const apiKey = Deno.env.get("GEMINI_API_KEY")
+    const apiKey = Deno.env.get("OPENROUTER_API_KEY")
     
     if (!apiKey) {
-      throw new Error("GEMINI_API_KEY não configurada")
+      throw new Error("OPENROUTER_API_KEY não configurada")
     }
-
-    const genAI = new GoogleGenerativeAI(apiKey)
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" })
 
     const systemPrompt = `Você é o Engenheiro Chefe e Arquiteto de Software do portal Nossa Web TV. 
     Sua missão é auxiliar o administrador a gerenciar e evoluir a plataforma com precisão técnica absoluta. 
@@ -54,19 +49,42 @@ serve(async (req) => {
     - Campanha vincula Banner a Slot.
     - Foco em Performance.`
 
-    const chat = model.startChat({
-      history: history || [],
-      generationConfig: {
-        maxOutputTokens: 1000,
+    // Formatar histórico para o padrão OpenAI/OpenRouter
+    const formattedHistory = history?.map((h: any) => ({
+      role: h.role === 'assistant' ? 'assistant' : 'user',
+      content: h.parts?.[0]?.text || h.content
+    })) || []
+
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "HTTP-Referer": "https://nossawebtv.com.br",
+        "X-Title": "Nossa Web TV Copilot",
+        "Content-Type": "application/json"
       },
+      body: JSON.stringify({
+        model: "deepseek/deepseek-chat", // DeepSeek v3 no OpenRouter
+        messages: [
+          { role: "system", content: systemPrompt },
+          ...formattedHistory,
+          { role: "user", content: query }
+        ],
+        temperature: 0.3,
+        max_tokens: 1500
+      })
     })
 
-    const result = await chat.sendMessage(`${systemPrompt}\n\nUsuário pergunta: ${query}`)
-    const response = await result.response
-    const text = response.text()
+    const data = await response.json()
+    
+    if (data.error) {
+      throw new Error(data.error.message || "Erro na API do OpenRouter")
+    }
+
+    const aiText = data.choices[0].message.content
 
     return new Response(
-      JSON.stringify({ text }),
+      JSON.stringify({ text: aiText }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (error) {
