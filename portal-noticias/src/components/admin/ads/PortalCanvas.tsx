@@ -256,15 +256,19 @@ export default function PortalCanvas(props: PortalCanvasProps) {
           const link = target.closest('a');
           if (link) {
             const href = link.getAttribute('href');
-            if (href?.includes('/noticia/')) {
+            if (href && (href.includes('/noticia/') || href.startsWith('noticia/'))) {
               e.preventDefault();
-              const match = href.match(/\/noticia\/([^/?#]+)/);
-              const slug = match ? match[1] : null;
+              const parts = href.split('/');
+              const slug = parts[parts.length - 1];
               
               if (slug) {
                 const news = props.latestNews.find(n => n.slug === slug || n.id === slug);
                 if (news) {
                   setSelectedArticleId(news.id);
+                  setActiveTab("article");
+                } else {
+                  // Fallback: se for um ID mas não está no fetch inicial de 50
+                  setSelectedArticleId(slug);
                   setActiveTab("article");
                 }
               }

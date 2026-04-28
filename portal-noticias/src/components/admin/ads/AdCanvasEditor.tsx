@@ -151,15 +151,15 @@ export default function AdCanvasEditor() {
       <div className="flex flex-col h-full">
 
         {/* ── Topbar do editor ── */}
-        <div className="flex items-center justify-between px-5 py-3 bg-white border-b border-slate-200 shadow-sm">
+        <div className="flex items-center justify-between px-5 py-3 bg-white border-b border-slate-200 shadow-sm z-30">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-slate-900 rounded-xl flex items-center justify-center">
+            <div className="w-8 h-8 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200">
               <Sparkles size={16} className="text-white" />
             </div>
             <div>
-              <h2 className="text-sm font-black text-slate-900">Editor de Publicidade</h2>
-              <p className="text-[10px] text-slate-400 font-medium">
-                {filledZones}/{totalZones} zonas preenchidas • {activeSlots} banners ativos
+              <h2 className="text-sm font-black text-slate-900 uppercase tracking-tighter">Ad Editor <span className="text-blue-500 text-[10px] ml-1">PRO</span></h2>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                {filledZones}/{totalZones} Zonas • {activeSlots} Ativos
               </p>
             </div>
           </div>
@@ -191,18 +191,28 @@ export default function AdCanvasEditor() {
               </button>
             </div>
 
+            <button
+              onClick={() => addSlot()}
+              className="flex items-center gap-2 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-all text-[10px] font-black uppercase tracking-widest border border-slate-200 group"
+            >
+              <Sparkles size={12} className="text-blue-500 group-hover:animate-pulse" />
+              Novo Banner
+            </button>
+
+            <div className="h-6 w-px bg-slate-200 mx-1" />
+
             {/* Publicar */}
             <button
               onClick={saveAll}
               disabled={saving}
-              className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white font-black text-sm px-5 py-2 rounded-xl transition-all shadow-md hover:shadow-lg active:scale-[0.98]"
+              className="flex items-center gap-2 bg-slate-900 hover:bg-blue-600 disabled:opacity-50 text-white font-black text-[10px] uppercase tracking-widest px-5 py-2 rounded-xl transition-all shadow-xl shadow-slate-200 hover:shadow-blue-200 active:scale-[0.98]"
             >
               {saving ? (
-                <Loader2 size={14} className="animate-spin" />
+                <Loader2 size={12} className="animate-spin" />
               ) : (
-                <Save size={14} />
+                <Save size={12} className="text-blue-400" />
               )}
-              {saving ? "Publicando..." : "Publicar Tudo"}
+              {saving ? "Deploying..." : "Publicar Tudo 🚀"}
             </button>
           </div>
         </div>

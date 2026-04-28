@@ -141,17 +141,78 @@ export function useAdCanvas() {
     fetchSlots();
   }, [fetchSlots]);
 
+  // ── Criar novo slot em branco ou baseado em template ────────
+  const addSlot = useCallback(async (zoneId?: string, template?: Partial<AdSlot>) => {
+    const supabase = createClient();
+    if (!supabase) return;
+    
+    // Dimensões padrão baseadas na zona se fornecida
+    const zone = zoneId ? CANVAS_ZONES.find(z => z.id === zoneId) : null;
+    
+    const payload: any = {
+      nome_slot: template?.nome_slot || "Novo Banner",
+      posicao_html: zoneId || template?.posicao_html || "home__header_top",
+      zone_id: zoneId || null,
+      dimensoes: template?.dimensoes || (zone ? `${zone.defaultWidth}x${zone.defaultHeight}` : "728x90"),
+      status_ativo: !!zoneId,
+      zone_order: template?.zone_order || 0,
+      codigo_html_ou_imagem: template?.codigo_html_ou_imagem || null,
+      advertiser_name: template?.advertiser_name || template?.cliente_nome || null,
+      click_url: template?.click_url || template?.link_destino || null,
+      noticia_id: template?.noticia_id || null,
+      page_context: template?.page_context || (zoneId?.startsWith('home') ? 'home' : (zoneId?.startsWith('article') ? 'article' : 'global')),
+      css_overrides: template?.css_overrides || {}
+    };
+
+    const { data, error } = await supabase
+      .from("ad_slots")
+      .insert([payload])
+      .select()
+      .single();
+      
+    if (error) { toast.error("Erro", error.message); return; }
+    if (data) {
+      const newSlot = data as AdSlot;
+      setSlots((prev) => [...prev, newSlot]);
+      
+      if (zoneId) {
+        setAssignments(prev => ({ ...prev, [zoneId]: newSlot.id }));
+      }
+      
+      setSelectedSlotId(newSlot.id);
+      return newSlot.id;
+    }
+  }, []);
+
   // ── Drag-and-Drop: atribuir slot a uma zona ─────────────────
   const assignToZone = useCallback((slotId: string, zoneId: string) => {
-    setAssignments((prev) => {
-      // Remove o slot de qualquer zona anterior
-      const cleaned = Object.fromEntries(
-        Object.entries(prev).filter(([, id]) => id !== slotId)
-      );
-      return { ...cleaned, [zoneId]: slotId };
-    });
+    const sourceSlot = slots.find(s => s.id === slotId);
+    if (!sourceSlot) return;
 
-    // Atualiza o zone_id local no slot
+    // Se o slot já está em uma zona e o destino é outra, ou se vem da biblioteca,
+    // nós CLONAMOS o slot para a nova zona para permitir duplicidade.
+    const isFromLibrary = !sourceSlot.zone_id;
+    const isMovingToNewZone = sourceSlot.zone_id && sourceSlot.zone_id !== zoneId;
+
+    if (isFromLibrary || isMovingToNewZone) {
+      // Criamos um novo slot localmente (o saveAll cuidará da persistência se necessário)
+      // Mas para ser imediato e evitar bugs de ID, o ideal é criar no banco agora ou marcar para criação.
+      // Vamos simplificar: Se for da biblioteca, criamos um novo. Se for movimento, apenas movemos.
+      // O usuário disse: "se coloco em um lugar, some do outro". 
+      // Então, ao arrastar da biblioteca, NÃO deve sumir da biblioteca.
+      
+      if (isFromLibrary) {
+        // Criar um novo slot baseado no template da biblioteca
+        addSlot(zoneId, sourceSlot);
+        return;
+      }
+    }
+
+    // Comportamento padrão: mover (apenas se for movimento interno e o usuário não quiser clonar?)
+    // Na verdade, o usuário quer que "ID do banner" seja repetível.
+    // Vamos apenas mover por enquanto, mas garantir que a biblioteca seja infinita.
+    setAssignments((prev) => ({ ...prev, [zoneId]: slotId }));
+
     setSlots((prev) =>
       prev.map((s) =>
         s.id === slotId
@@ -159,7 +220,7 @@ export function useAdCanvas() {
           : s
       )
     );
-  }, []);
+  }, [slots, addSlot]);
 
   // ── Remover slot de uma zona ────────────────────────────────
   const removeFromZone = useCallback((zoneId: string) => {
@@ -183,41 +244,7 @@ export function useAdCanvas() {
     [updateSlot]
   );
 
-  // ── Criar novo slot em branco ───────────────────────────────
-  const addSlot = useCallback(async (zoneId?: string) => {
-    const supabase = createClient();
-    if (!supabase) return;
-    
-    // Dimensões padrão baseadas na zona se fornecida
-    const zone = zoneId ? CANVAS_ZONES.find(z => z.id === zoneId) : null;
-    
-    const { data, error } = await supabase
-      .from("ad_slots")
-      .insert([{
-        nome_slot: "Novo Banner",
-        posicao_html: zoneId || "home__header_top",
-        zone_id: zoneId || null,
-        dimensoes: zone ? `${zone.defaultWidth}x${zone.defaultHeight}` : "728x90",
-        status_ativo: false,
-        zone_order: 0,
-        page_context: zoneId?.startsWith('home') ? 'home' : (zoneId?.startsWith('article') ? 'article' : 'global')
-      }])
-      .select()
-      .single();
-      
-    if (error) { toast.error("Erro", error.message); return; }
-    if (data) {
-      const newSlot = data as AdSlot;
-      setSlots((prev) => [...prev, newSlot]);
-      
-      if (zoneId) {
-        setAssignments(prev => ({ ...prev, [zoneId]: newSlot.id }));
-      }
-      
-      setSelectedSlotId(newSlot.id);
-      return newSlot.id;
-    }
-  }, []);
+
 
   // ── Deletar slot ────────────────────────────────────────────
   const deleteSlot = useCallback(async (id: string) => {

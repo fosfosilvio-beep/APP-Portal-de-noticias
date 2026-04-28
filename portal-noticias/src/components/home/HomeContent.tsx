@@ -182,9 +182,19 @@ export default function HomeContent({ initialConfig, liveStatus, todasNoticias, 
                   initialData={initialAds.find(a => a.zone_id === "home__between_articles")}
                 />
 
+                {/* Zonas Dinâmicas Extras (visíveis no modo edição) */}
+                <DynamicAdSlot 
+                  position="home__feed_middle" 
+                  className="h-auto" 
+                />
 
                 {/* Importador RSS */}
                 <AutomatedNewsFeed />
+
+                <DynamicAdSlot 
+                  position="home__feed_bottom" 
+                  className="h-auto" 
+                />
               </div>
             ) : categoriaAtiva === "Biblioteca" ? (
               <div className="space-y-8 animate-in fade-in duration-500">

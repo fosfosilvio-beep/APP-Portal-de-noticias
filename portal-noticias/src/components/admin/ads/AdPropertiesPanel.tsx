@@ -118,9 +118,20 @@ export default function AdPropertiesPanel({ slot, onUpdate, onSave, saving, late
       <div className="px-4 py-3 border-b border-slate-100 bg-white sticky top-0 z-10">
         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Propriedades</p>
         <h4 className="text-sm font-black text-slate-900 truncate">{slot.nome_slot}</h4>
-        {zone && (
-          <span className="text-[9px] text-blue-500 font-bold">{zone.label}</span>
-        )}
+        <div className="flex items-center justify-between mt-1">
+          {zone ? (
+            <span className="text-[9px] text-blue-500 font-black uppercase tracking-widest">{zone.label}</span>
+          ) : (
+            <span className="text-[9px] text-slate-400 font-black uppercase tracking-widest">Biblioteca (Template)</span>
+          )}
+          
+          <button
+            onClick={() => { if(window.confirm("Remover este slot permanentemente?")) onUpdate({ status_ativo: false, zone_id: null }); }}
+            className="text-[9px] font-black text-red-500 hover:text-red-700 uppercase tracking-widest flex items-center gap-1 transition-colors"
+          >
+            ✕ Excluir Slot
+          </button>
+        </div>
       </div>
 
       <div className="p-4 space-y-5">
@@ -241,17 +252,19 @@ export default function AdPropertiesPanel({ slot, onUpdate, onSave, saving, late
         </div>
 
         {/* URL de destino */}
-        <div className="space-y-1.5">
-          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
-            <Link2 size={10} />URL de Destino
-          </label>
-          <input
-            type="url"
-            value={slot.link_destino || ""}
-            onChange={(e) => onUpdate({ link_destino: e.target.value })}
-            placeholder="https://anunciante.com.br"
-            className="w-full text-xs font-bold px-3 py-2 border border-slate-200 rounded-lg bg-white text-slate-900 outline-none focus:ring-2 focus:ring-blue-400 transition-all"
-          />
+        <div className="grid grid-cols-1 gap-4">
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+              <Link2 size={10} />URL de Destino
+            </label>
+            <input
+              type="url"
+              value={slot.link_destino || ""}
+              onChange={(e) => onUpdate({ link_destino: e.target.value })}
+              placeholder="https://anunciante.com.br"
+              className="w-full text-xs font-bold px-3 py-2 border border-slate-200 rounded-lg bg-white text-slate-900 outline-none focus:ring-2 focus:ring-blue-400 transition-all"
+            />
+          </div>
         </div>
 
         {/* URL / HTML */}
