@@ -83,7 +83,57 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 8. Habilitar RLS (Segurança)
+-- 9. Função de Seleção Inteligente de Banner
+CREATE OR REPLACE FUNCTION public.buscar_banner_ativo(slot_slug_input TEXT)
+RETURNS TABLE (
+  banner_id UUID,
+  nome_banner TEXT,
+  tipo TEXT,
+  url_imagem TEXT,
+  url_destino TEXT,
+  codigo_html TEXT,
+  slot_id UUID
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    b.id as banner_id,
+    b.nome as nome_banner,
+    b.tipo,
+    b.url_imagem,
+    b.url_destino,
+    b.codigo_html,
+    s.id as slot_id
+  FROM public.banners b
+  JOIN public.banners_slots bs ON b.id = bs.banner_id
+  JOIN public.slots_publicitarios s ON bs.slot_id = s.id
+  JOIN public.campanhas c ON b.campanha_id = c.id
+  WHERE s.slug = slot_slug_input
+    AND bs.ativo = TRUE
+    AND c.status = 'ativa'
+    AND c.data_inicio <= CURRENT_DATE
+    AND (c.data_fim IS NULL OR c.data_fim >= CURRENT_DATE)
+  ORDER BY bs.peso DESC, RANDOM()
+  LIMIT 1;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 10. Função para Registro de Impressão (Métrica Silenciosa)
+CREATE OR REPLACE FUNCTION public.registrar_impressao(banner_uuid UUID, slot_uuid UUID)
+RETURNS VOID AS $$
+BEGIN
+  -- 1. Inserir Log Bruto
+  INSERT INTO public.logs_publicidade (banner_id, slot_id, evento)
+  VALUES (banner_uuid, slot_uuid, 'impression');
+
+  -- 2. Incrementar Contador no Banner para consulta rápida
+  UPDATE public.banners
+  SET total_views = total_views + 1
+  WHERE id = banner_uuid;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 11. Habilitar RLS (Segurança)
 ALTER TABLE public.anunciantes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.campanhas ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.slots_publicitarios ENABLE ROW LEVEL SECURITY;
