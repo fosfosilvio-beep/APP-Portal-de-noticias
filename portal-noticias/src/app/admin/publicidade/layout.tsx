@@ -8,11 +8,13 @@ import {
   LayoutGrid, 
   ImageIcon, 
   ChevronRight,
-  Megaphone
+  Megaphone,
+  BarChart3
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const tabs = [
+  { id: "dashboard", label: "Dashboard / Métricas", href: "/admin/publicidade/dashboard", icon: BarChart3 },
   { id: "banners", label: "Banners & Criativos", href: "/admin/publicidade/banners", icon: ImageIcon },
   { id: "campanhas", label: "Campanhas", href: "/admin/publicidade/campanhas", icon: Flag },
   { id: "anunciantes", label: "Anunciantes", href: "/admin/publicidade/anunciantes", icon: Users },
