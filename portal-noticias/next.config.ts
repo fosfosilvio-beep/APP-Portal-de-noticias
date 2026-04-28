@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
 
-// Trigger Build: 2026-04-28T15:17:00
+// Trigger Build: 2026-04-28T17:50:00
 
 const nextConfig: NextConfig = {
   images: {

@@ -157,9 +157,10 @@ export default function AdCanvasEditor() {
               <Sparkles size={16} className="text-white" />
             </div>
             <div>
-              <h2 className="text-sm font-black text-slate-900 uppercase tracking-tighter">Ad Editor <span className="text-blue-500 text-[10px] ml-1">PRO</span></h2>
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                {filledZones}/{totalZones} Zonas • {activeSlots} Ativos
+              <h2 className="text-sm font-black text-slate-900 uppercase tracking-tighter">Visual Ad Builder <span className="text-blue-600 font-black">v2.1</span></h2>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-2">
+                <span>{filledZones}/{totalZones} Zonas • {activeSlots} Ativos</span>
+                <span className="text-emerald-500 font-black bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">REV: 20260428-1455</span>
               </p>
             </div>
           </div>
@@ -238,13 +239,13 @@ export default function AdCanvasEditor() {
           {/* Painel esquerdo: Biblioteca de banners (30%) */}
           <div className="w-64 xl:w-72 flex-shrink-0 border-r border-slate-200 bg-slate-50 overflow-hidden flex flex-col">
             <AdBannerLibrary
-              slots={slots}
+              slots={slots.filter(s => !s.zone_id)}
               selectedSlotId={selectedSlotId}
               onSelect={handleSelectSlot}
               onToggle={(id, val) => updateSlot(id, { status_ativo: val })}
               onDelete={deleteSlot}
               onUpload={uploadImage}
-              onAdd={addSlot}
+              onAdd={() => addSlot()}
             />
           </div>
 
