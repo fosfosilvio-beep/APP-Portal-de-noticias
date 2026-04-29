@@ -108,6 +108,7 @@ export default function RootLayout({
     >
       <head>
         <link rel="manifest" href="/manifest.json" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <meta name="theme-color" content="#00AEE0" />
         <meta property="fb:app_id" content="131682697252495" />
         <script dangerouslySetInnerHTML={{
