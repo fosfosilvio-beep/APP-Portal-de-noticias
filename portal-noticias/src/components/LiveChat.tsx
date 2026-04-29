@@ -153,59 +153,51 @@ export default function LiveChat({ liveUrl }: LiveChatProps) {
     if (client) await client.auth.signOut();
   };
 
-  // --- Lógica de Permissão de Comentário (OAuth Only) ---
-  const userProvider = session?.user?.app_metadata?.provider || session?.user?.identities?.[0]?.provider;
-  // Permissivo: Se tem sessão e o provedor contém google ou facebook, ou se simplesmente está logado
-  const isAuthorized = !!session && (
-    userProvider?.includes('google') || 
-    userProvider?.includes('facebook') || 
-    !!session.user.identities?.some((id: any) => id.provider === 'google' || id.provider === 'facebook')
-  );
+  // --- Lógica de Permissão de Comentário (Qualquer Autenticado) ---
+  const isAuthorized = !!session;
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     const client = supabase;
-    if (!client || !session?.user) return;
+    if (!client || !session?.user) {
+      console.warn("[LiveChat] Tentativa de envio sem sessão ativa.");
+      return;
+    }
     
     const text = newMessage.trim();
     if (!text) return;
 
     try {
-      console.log("[LiveChat] Verificando/Criando perfil do usuário...");
+      console.log("[LiveChat] Iniciando envio da mensagem...");
       
-      // Capturando metadados do provedor (Google/Facebook)
-      const fullName = session.user.user_metadata?.full_name || session.user.user_metadata?.name;
-      const avatarUrl = session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture;
+      const payload = { 
+        profile_id: session.user.id, 
+        conteudo: text 
+      };
 
-      // RESOLUÇÃO DA FK: Garantir que o perfil existe antes do INSERT da mensagem
-      const { error: profileError } = await client.from("profiles").upsert({
-        id: session.user.id,
-        nome_completo: fullName,
-        avatar_url: avatarUrl,
-        email: session.user.email
-      });
+      console.log("[LiveChat] Payload:", payload);
 
-      if (profileError) {
-        console.warn("[LiveChat] Erro ao sincronizar perfil (possível RLS):", profileError.message);
-        // Continuamos tentando enviar a mensagem mesmo assim
-      }
-
-      console.log("[LiveChat] Enviando mensagem...");
       const { data, error } = await client
         .from("live_messages")
-        .insert([
-          { 
-            profile_id: session.user.id, 
-            conteudo: text 
-          }
-        ])
+        .insert([payload])
         .select(`
           id, conteudo, created_at, is_admin_msg, profile_id,
           profiles (id, nome_completo, avatar_url)
         `)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("[LiveChat] ERRO NO INSERT:", error);
+        console.error("[LiveChat] Detalhes do Erro Supabase:", {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint
+        });
+        throw error;
+      }
+      
+      console.log("[LiveChat] Sucesso! Mensagem retornada:", data);
       
       if (data) {
         setMessages(prev => {
@@ -216,8 +208,8 @@ export default function LiveChat({ liveUrl }: LiveChatProps) {
 
       setNewMessage("");
     } catch (err: any) {
-      console.error("[LiveChat] Erro crítico no fluxo de chat:", err.message);
-      alert(`Erro: ${err.message}`);
+      console.error("[LiveChat] FAIHA CRÍTICA NO FRONTEND:", err.message);
+      alert(`Erro ao enviar: ${err.message}`);
     }
   };
 
