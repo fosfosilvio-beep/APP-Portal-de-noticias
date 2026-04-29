@@ -25,15 +25,7 @@ interface LiveChatProps {
 }
 
 export default function LiveChat({ liveUrl }: LiveChatProps) {
-  console.log("[LiveChat] DEPLOY_VERSION_V4 - 2026-04-29 20:23");
   const [session, setSession] = useState<any>(null);
-
-  useEffect(() => {
-    if (session) {
-       console.log("[LiveChat] Auth Metadata:", session.user.app_metadata);
-       console.log("[LiveChat] User Identity:", session.user.identities?.[0]?.provider);
-    }
-  }, [session]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -108,41 +100,46 @@ export default function LiveChat({ liveUrl }: LiveChatProps) {
 
     fetchMessages();
 
-    const channel = supabase.channel("public:live_messages");
-    
-    channel
+    // --- Configuração do Canal de Mensagens (Realtime) ---
+    const chatChannel = supabase.channel("realtime:public:live_messages");
+
+    chatChannel
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "live_messages" },
         async (payload: any) => {
-           if (!payload.new) return;
-           
-           const { data: profileData } = await supabase
-             .from("profiles")
-             .select("id, nome_completo, avatar_url")
-             .eq("id", payload.new.profile_id)
-             .maybeSingle();
-             
-           const newMsg: ChatMessage = {
-             id: payload.new.id,
-             profile_id: payload.new.profile_id,
-             conteudo: payload.new.conteudo,
-             created_at: payload.new.created_at,
-             is_admin_msg: payload.new.is_admin_msg,
-             profiles: profileData || undefined
-           };
-           setMessages(prev => {
-             if (prev.some(m => m.id === newMsg.id)) return prev;
-             return [...prev, newMsg];
-           });
+          if (!payload.new) return;
+          
+          // Buscar dados do perfil para a mensagem recebida em tempo real
+          const { data: profileData } = await supabase
+            .from("profiles")
+            .select("id, nome_completo, avatar_url")
+            .eq("id", payload.new.profile_id)
+            .maybeSingle();
+            
+          const incomingMsg: ChatMessage = {
+            id: payload.new.id,
+            profile_id: payload.new.profile_id,
+            conteudo: payload.new.conteudo,
+            created_at: payload.new.created_at,
+            is_admin_msg: payload.new.is_admin_msg,
+            profiles: profileData || undefined
+          };
+
+          setMessages(prev => {
+            if (prev.some(m => m.id === incomingMsg.id)) return prev;
+            return [...prev, incomingMsg];
+          });
         }
       )
-      .subscribe((status: string) => {
-        console.log(`[LiveChat] Realtime Status: ${status}`);
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log("[LiveChat] Conectado ao Realtime.");
+        }
       });
 
-    return () => { 
-      supabase.removeChannel(channel);
+    return () => {
+      supabase.removeChannel(chatChannel);
     };
   }, [useNativeChat]);
 
@@ -261,7 +258,7 @@ export default function LiveChat({ liveUrl }: LiveChatProps) {
   return (
     <div className="w-full h-full min-h-[400px] lg:h-full flex flex-col bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-xl font-sans">
       {/* HEADER */}
-      <div className="bg-indigo-50 py-3 px-4 border-b border-indigo-100 flex items-center justify-between shrink-0">
+      <div className="bg-slate-50 py-3 px-4 border-b border-slate-100 flex items-center justify-between shrink-0">
         <h3 className="text-slate-900 font-black text-xs tracking-widest uppercase flex items-center gap-2">
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
