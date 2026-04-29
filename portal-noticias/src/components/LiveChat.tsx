@@ -100,8 +100,10 @@ export default function LiveChat({ liveUrl }: LiveChatProps) {
 
     fetchMessages();
 
-    // --- Configuração do Canal de Mensagens (Realtime) ---
-    const chatChannel = supabase.channel("realtime:public:live_messages");
+    // --- Configuração do Canal de Mensagens (Realtime v2) ---
+    // Usamos um nome de canal dinâmico para evitar colisões no Hot Reload
+    const channelId = `chat-${Math.random().toString(36).substring(7)}`;
+    const chatChannel = supabase.channel(channelId);
 
     chatChannel
       .on(
@@ -134,7 +136,7 @@ export default function LiveChat({ liveUrl }: LiveChatProps) {
       )
       .subscribe((status: any) => {
         if (status === 'SUBSCRIBED') {
-          console.log("[LiveChat] Conectado ao Realtime.");
+          console.log("[LiveChat] Realtime Ativo:", channelId);
         }
       });
 
