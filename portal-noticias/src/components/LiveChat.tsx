@@ -155,7 +155,12 @@ export default function LiveChat({ liveUrl }: LiveChatProps) {
 
   // --- Lógica de Permissão de Comentário (OAuth Only) ---
   const userProvider = session?.user?.app_metadata?.provider || session?.user?.identities?.[0]?.provider;
-  const isAuthorized = userProvider === 'google' || userProvider === 'facebook';
+  // Permissivo: Se tem sessão e o provedor contém google ou facebook, ou se simplesmente está logado
+  const isAuthorized = !!session && (
+    userProvider?.includes('google') || 
+    userProvider?.includes('facebook') || 
+    !!session.user.identities?.some((id: any) => id.provider === 'google' || id.provider === 'facebook')
+  );
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
