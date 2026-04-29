@@ -1,9 +1,11 @@
 {
+  "id": "/?source=pwa",
   "name": "Nossa Web TV - Portal de Notícias",
   "short_name": "Web TV",
   "description": "A maior fonte regional de notícias, entretenimento e transmissões ao vivo de Arapongas e região. Fique bem informado com agilidade e credibilidade.",
   "start_url": "/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#ffffff",
   "theme_color": "#00AEE0",
   "lang": "pt-BR",
@@ -13,13 +15,13 @@
     {
       "src": "/icon-192x192.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     },
     {
       "src": "/icon-512x512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ],
   "shortcuts": [
@@ -31,7 +33,8 @@
       "icons": [
         {
           "src": "/icon-192x192.png",
-          "sizes": "192x192"
+          "sizes": "192x192",
+          "type": "image/png"
         }
       ]
     },
@@ -43,7 +46,8 @@
       "icons": [
         {
           "src": "/icon-192x192.png",
-          "sizes": "192x192"
+          "sizes": "192x192",
+          "type": "image/png"
         }
       ]
     }
