@@ -1,11 +1,14 @@
 {
   "name": "Nossa Web TV - Portal de Notícias",
   "short_name": "Web TV",
-  "description": "A maior fonte regional de notícias de Arapongas e região.",
+  "description": "A maior fonte regional de notícias, entretenimento e transmissões ao vivo de Arapongas e região. Fique bem informado com agilidade e credibilidade.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#00AEE0",
+  "lang": "pt-BR",
+  "iarc_rating_id": "e",
+  "categories": ["news", "entertainment", "lifestyle"],
   "icons": [
     {
       "src": "/icon-192x192.png",
@@ -17,6 +20,58 @@
       "src": "/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Ao Vivo",
+      "short_name": "Ao Vivo",
+      "description": "Acompanhe nossa programação ao vivo",
+      "url": "/?isLive=true",
+      "icons": [
+        {
+          "src": "/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Últimas Notícias",
+      "short_name": "Notícias",
+      "description": "Veja as últimas notícias publicadas",
+      "url": "/?cat=Início",
+      "icons": [
+        {
+          "src": "/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/mobile1.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "/screenshots/mobile2.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "/screenshots/desktop1.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide"
+    },
+    {
+      "src": "/screenshots/desktop2.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide"
     }
   ]
 }
