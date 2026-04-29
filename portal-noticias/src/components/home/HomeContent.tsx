@@ -44,6 +44,18 @@ export default function HomeContent({ initialConfig, liveStatus, todasNoticias, 
     speed: config?.ui_settings?.breaking_news_alert?.speed || "normal"
   };
 
+  // Filtrar duplicidade da live na lista de notícias
+  const noticiasFiltradas = todasNoticias.filter((noticia) => {
+    if (!isLive) return true;
+    
+    const hasSameUrl = (liveStatus?.url_youtube && noticia.video_url && noticia.video_url.includes(liveStatus.url_youtube)) ||
+                       (liveStatus?.url_facebook && noticia.video_url && noticia.video_url.includes(liveStatus.url_facebook));
+    
+    const hasSameTitle = liveStatus?.titulo && noticia.titulo && noticia.titulo.toLowerCase().trim() === liveStatus.titulo.toLowerCase().trim();
+
+    return !(hasSameUrl || hasSameTitle || noticia.is_live);
+  });
+
   useEffect(() => {
     setIsMounted(true);
     const supabase = createClient();
@@ -100,10 +112,10 @@ export default function HomeContent({ initialConfig, liveStatus, todasNoticias, 
   }, [categoriaAtiva]);
 
   const noticiasDaCategoriaAtiva = categoriaAtiva === "Início" 
-    ? todasNoticias 
+    ? noticiasFiltradas 
     : noticiasCategoria.length > 0 
       ? noticiasCategoria 
-      : todasNoticias.filter(n => {
+      : noticiasFiltradas.filter(n => {
           const rawCat = n.categorias?.nome || n.categoria || "Geral";
           const catName = getVisualCategory(rawCat);
           return catName.toLowerCase() === getVisualCategory(categoriaAtiva).toLowerCase();
@@ -160,7 +172,7 @@ export default function HomeContent({ initialConfig, liveStatus, todasNoticias, 
                 {/* Moderação Live / Web TV - Removida duplicidade */}
 
                 {/* Grade de Notícias */}
-                <NewsGrid title="Últimas Notícias" news={todasNoticias.slice(0, 8)} />
+                <NewsGrid title="Últimas Notícias" news={noticiasFiltradas.slice(0, 8)} />
 
                 {/* Ad removido */}
 
@@ -187,7 +199,7 @@ export default function HomeContent({ initialConfig, liveStatus, todasNoticias, 
                 </div>
 
                  <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
-                  {[...bibliotecaLives, ...todasNoticias.filter(n => n.video_url)].filter(item => 
+                  {[...bibliotecaLives, ...noticiasFiltradas.filter(n => n.video_url)].filter(item => 
                     (item.titulo || "").toLowerCase().includes(searchBiblioteca.toLowerCase()) || 
                     (item.tema || item.categoria || "").toLowerCase().includes(searchBiblioteca.toLowerCase())
                   ).map((item, idx) => (
@@ -228,7 +240,7 @@ export default function HomeContent({ initialConfig, liveStatus, todasNoticias, 
                   ))}
                 </div>
 
-                {[...bibliotecaLives, ...todasNoticias.filter(n => n.video_url)].length === 0 && (
+                {[...bibliotecaLives, ...noticiasFiltradas.filter(n => n.video_url)].length === 0 && (
                   <div className="py-20 text-center bg-white rounded-3xl border border-dashed border-slate-200">
                     <Film className="mx-auto text-slate-200 mb-4" size={64} />
                     <p className="text-slate-400 font-bold">Nenhum vídeo encontrado no catálogo.</p>

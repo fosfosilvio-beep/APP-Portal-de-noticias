@@ -90,8 +90,10 @@ export default function LiveChat({ liveUrl, liveId }: LiveChatProps) {
       if (liveId) {
         query = query.eq("live_id", liveId);
       } else {
-        // Se não houver liveId nas props, buscamos mensagens sem ID (legado ou global)
-        query = query.is("live_id", null);
+        // Se não houver liveId nas props, filtramos pela data atual para iniciar um chat limpo (e que não pertença a outra live)
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        query = query.is("live_id", null).gte("created_at", today.toISOString());
       }
 
       const { data } = await query
@@ -124,6 +126,7 @@ export default function LiveChat({ liveUrl, liveId }: LiveChatProps) {
           
           // Filtro por Live ID
           if (liveId && payload.new.live_id !== liveId) return;
+          if (!liveId && payload.new.live_id !== null) return;
 
           // Buscar dados do perfil para a mensagem recebida em tempo real
           const { data: profileData } = await supabase

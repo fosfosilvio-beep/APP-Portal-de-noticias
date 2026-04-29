@@ -8,7 +8,7 @@ Garantir total posse e governança da base de usuários ativos e leads qualifica
 *   `profile_id` (UUID): FK conectada à tabela `profiles`, representando o "autor" da mensagem.
 *   `conteudo` (TEXT): A mensagem textual do Chat.
 *   `is_admin_msg` (BOOLEAN): Tag visual para respostas da equipe da emissora.
-*   `created_at` (TIMESTAMPTZ): TIMESTAMP.
+*   `created_at` (TIMESTAMPTZ): TIMESTAMP. O componente Frontend agora usa este campo para filtrar mensagens apenas do dia atual caso o `live_id` não esteja presente, garantindo um "chat limpo" por padrão.
 
 ## 3. Row Level Security (RLS)
 *   **Permissão Pública (SELECT)**: Qualquer usuário anônimo observa o bate-papo, mas o formulário de Input não.

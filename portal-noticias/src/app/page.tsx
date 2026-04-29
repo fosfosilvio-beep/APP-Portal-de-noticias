@@ -21,8 +21,10 @@ export async function generateMetadata() {
     ? live.descricao || "Assista agora à nossa transmissão ao vivo pelo portal."
     : "Fique por dentro das principais notícias de Arapongas e região em tempo real.";
 
-  // Tenta extrair thumbnail se for YouTube
-  let ogImage = "/og-image.png"; // Fallback
+  // Configurar metadados dinâmicos para SEO e Redes Sociais
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://nossawebtv.com.br";
+  let ogImage = `${baseUrl}/logo.png`; // Fallback: imagem padrão do portal
+
   if (live?.is_live && live.url_youtube) {
     const ytId = live.url_youtube.includes("v=") 
       ? live.url_youtube.split("v=")[1]?.split("&")[0]
@@ -37,7 +39,9 @@ export async function generateMetadata() {
       title,
       description,
       images: [ogImage],
+      url: baseUrl,
       type: "website",
+      siteName: "Nossa Web TV",
     },
     twitter: {
       card: "summary_large_image",
