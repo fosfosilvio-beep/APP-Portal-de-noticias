@@ -66,7 +66,15 @@ export default function TransmissaoClient({ initialConfig }: { initialConfig: an
   const onSubmit = async (data: TransmissaoFormData) => {
     setIsSaving(true);
     try {
-      // 1. Update the NEW table (portal_live_status)
+      // 1. Gerar novo Live ID se estiver iniciando a live agora
+      let newLiveId = liveData?.live_id;
+      if (data.is_live && !liveData?.is_live) {
+        newLiveId = `live_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+      } else if (!data.is_live) {
+        newLiveId = null; // Limpa o ID quando desativa
+      }
+
+      // 2. Update the NEW table (portal_live_status)
       const { error: newTableError } = await supabase
         .from("portal_live_status")
         .upsert({
@@ -77,10 +85,21 @@ export default function TransmissaoClient({ initialConfig }: { initialConfig: an
           titulo: data.titulo_live,
           descricao: data.descricao_live,
           fake_viewers_boost: data.fake_viewers_boost,
+          live_id: newLiveId,
           updated_at: new Date().toISOString()
         });
 
       if (newTableError) throw newTableError;
+
+      // 3. Update the LEGACY table (configuracao_portal) for backward compatibility
+      await supabase.from("configuracao_portal").update({
+        is_live: data.is_live,
+        titulo_live: data.titulo_live,
+        descricao_live: data.descricao_live,
+        url_live_youtube: data.url_live_youtube,
+        url_live_facebook: data.url_live_facebook,
+        live_id: newLiveId
+      }).eq("id", 1);
         
       toast.success("Transmissão atualizada com sucesso!");
     } catch (err: any) {

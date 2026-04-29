@@ -103,6 +103,7 @@ interface SmartPlayerProps {
   startTime?: number;
   endTime?: number;
   disableFallback?: boolean;
+  hideInfo?: boolean;
   onLiveChange?: (isLive: boolean, liveUrl: string | null) => void;
 }
 
@@ -117,6 +118,7 @@ export default function SmartPlayer({
   startTime, 
   endTime, 
   disableFallback = false,
+  hideInfo = false,
   onLiveChange 
 }: SmartPlayerProps) {
   const [configInterno, setConfigInterno] = useState<ConfiguracaoPortal | null>(null);
@@ -375,7 +377,7 @@ export default function SmartPlayer({
       </div>
 
       {/* ═══ RODAPÉ DE METADADOS — FORA DO PLAYER ═══ */}
-      {config.is_live && (config.titulo_live || config.descricao_live) && (
+      {!hideInfo && config.is_live && (config.titulo_live || config.descricao_live) && (
         <div className="px-4 py-3 sm:py-4 bg-slate-900 border-t border-slate-800">
           {config.titulo_live && (
             <h2 className="text-white font-black text-sm sm:text-lg leading-tight mb-0.5">{config.titulo_live}</h2>

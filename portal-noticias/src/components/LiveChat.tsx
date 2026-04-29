@@ -90,7 +90,7 @@ export default function LiveChat({ liveUrl, liveId }: LiveChatProps) {
       if (liveId) {
         query = query.eq("live_id", liveId);
       } else {
-        // Fallback para não carregar mensagens sem ID caso queiramos limpar o histórico legado
+        // Se não houver liveId nas props, buscamos mensagens sem ID (legado ou global)
         query = query.is("live_id", null);
       }
 

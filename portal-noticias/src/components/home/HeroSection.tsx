@@ -51,6 +51,7 @@ export default function HeroSection() {
                 url={status.url_youtube || status.url_facebook || ""} 
                 isLive={true}
                 title={status.titulo || "Transmissão Ao Vivo"}
+                hideInfo={true}
               />
             </div>
 

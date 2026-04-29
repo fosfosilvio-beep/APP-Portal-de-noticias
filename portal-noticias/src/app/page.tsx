@@ -5,6 +5,49 @@ import { SupabaseClient } from "@supabase/supabase-js";
 
 export const dynamic = "force-dynamic";
 
+export async function generateMetadata() {
+  const supabase = await createClient();
+  const { data: live } = await supabase
+    .from("portal_live_status")
+    .select("*")
+    .eq("id", 1)
+    .maybeSingle();
+
+  const title = live?.is_live 
+    ? `AO VIVO: ${live.titulo || "Acompanhe nossa transmissão"}`
+    : "Nossa Web TV - O seu portal de notícias";
+  
+  const description = live?.is_live 
+    ? live.descricao || "Assista agora à nossa transmissão ao vivo pelo portal."
+    : "Fique por dentro das principais notícias de Arapongas e região em tempo real.";
+
+  // Tenta extrair thumbnail se for YouTube
+  let ogImage = "/og-image.png"; // Fallback
+  if (live?.is_live && live.url_youtube) {
+    const ytId = live.url_youtube.includes("v=") 
+      ? live.url_youtube.split("v=")[1]?.split("&")[0]
+      : live.url_youtube.split("/").pop();
+    if (ytId) ogImage = `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`;
+  }
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: [ogImage],
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [ogImage],
+    },
+  };
+}
+
 export default async function Home() {
   const supabase = await createClient();
   
