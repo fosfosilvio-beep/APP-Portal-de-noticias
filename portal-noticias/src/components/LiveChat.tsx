@@ -132,7 +132,7 @@ export default function LiveChat({ liveUrl }: LiveChatProps) {
           });
         }
       )
-      .subscribe((status) => {
+      .subscribe((status: any) => {
         if (status === 'SUBSCRIBED') {
           console.log("[LiveChat] Conectado ao Realtime.");
         }
