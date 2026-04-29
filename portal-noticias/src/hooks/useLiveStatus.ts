@@ -9,6 +9,7 @@ export interface LiveStatus {
   url_facebook: string | null;
   titulo: string | null;
   descricao: string | null;
+  live_id: string | null;
 }
 
 export function useLiveStatus() {
@@ -40,6 +41,7 @@ export function useLiveStatus() {
               url_facebook: null,
               titulo: null,
               descricao: null,
+              live_id: null,
             });
           }
           setLoading(false);

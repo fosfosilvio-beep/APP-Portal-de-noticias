@@ -157,10 +157,7 @@ export default function HomeContent({ initialConfig, liveStatus, todasNoticias, 
             {categoriaAtiva === "Início" ? (
               <div className="flex flex-col space-y-16 animate-in fade-in slide-in-from-bottom-4 duration-1000">
                 
-                {/* Moderação Live / Web TV */}
-                <ErrorBoundary>
-                  <HeroSection />
-                </ErrorBoundary>
+                {/* Moderação Live / Web TV - Removida duplicidade */}
 
                 {/* Grade de Notícias */}
                 <NewsGrid title="Últimas Notícias" news={todasNoticias.slice(0, 8)} />

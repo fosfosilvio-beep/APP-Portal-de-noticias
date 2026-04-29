@@ -22,9 +22,10 @@ interface ChatMessage {
 
 interface LiveChatProps {
   liveUrl?: string | null;
+  liveId?: string | null;
 }
 
-export default function LiveChat({ liveUrl }: LiveChatProps) {
+export default function LiveChat({ liveUrl, liveId }: LiveChatProps) {
   const [session, setSession] = useState<any>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState("");
@@ -79,12 +80,21 @@ export default function LiveChat({ liveUrl }: LiveChatProps) {
     if (!useNativeChat) return;
 
     const fetchMessages = async () => {
-      const { data } = await supabase
+      let query = supabase
         .from("live_messages")
         .select(`
           id, conteudo, created_at, is_admin_msg, profile_id,
           profiles (id, nome_completo, avatar_url)
-        `)
+        `);
+      
+      if (liveId) {
+        query = query.eq("live_id", liveId);
+      } else {
+        // Fallback para não carregar mensagens sem ID caso queiramos limpar o histórico legado
+        query = query.is("live_id", null);
+      }
+
+      const { data } = await query
         .order("created_at", { ascending: false })
         .limit(50);
       
@@ -112,6 +122,9 @@ export default function LiveChat({ liveUrl }: LiveChatProps) {
         async (payload: any) => {
           if (!payload.new) return;
           
+          // Filtro por Live ID
+          if (liveId && payload.new.live_id !== liveId) return;
+
           // Buscar dados do perfil para a mensagem recebida em tempo real
           const { data: profileData } = await supabase
             .from("profiles")
@@ -174,7 +187,8 @@ export default function LiveChat({ liveUrl }: LiveChatProps) {
       
       const payload = { 
         profile_id: session.user.id, 
-        conteudo: text 
+        conteudo: text,
+        live_id: liveId || null
       };
 
       console.log("[LiveChat] Payload:", payload);
