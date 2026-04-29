@@ -16,6 +16,7 @@ import BreakingNewsMarquee from "../BreakingNewsMarquee";
 import ColunistasWidget from "./ColunistasWidget";
 import EnquetesWidget from "./EnquetesWidget";
 import Footer from "../Footer";
+import ErrorBoundary from "../ErrorBoundary";
 import { createClient } from "@/lib/supabase-browser";
 import { getVisualCategory } from "@/lib/category-utils";
 
@@ -124,8 +125,9 @@ export default function HomeContent({ initialConfig, liveStatus, todasNoticias, 
       />
       <PWAInstallBanner />
 
-
-      <HeroSection />
+      <ErrorBoundary>
+        <HeroSection />
+      </ErrorBoundary>
 
       <style dangerouslySetInnerHTML={{ __html: `
         :root {
@@ -156,7 +158,9 @@ export default function HomeContent({ initialConfig, liveStatus, todasNoticias, 
               <div className="flex flex-col space-y-16 animate-in fade-in slide-in-from-bottom-4 duration-1000">
                 
                 {/* Moderação Live / Web TV */}
-                <HeroSection />
+                <ErrorBoundary>
+                  <HeroSection />
+                </ErrorBoundary>
 
                 {/* Grade de Notícias */}
                 <NewsGrid title="Últimas Notícias" news={todasNoticias.slice(0, 8)} />

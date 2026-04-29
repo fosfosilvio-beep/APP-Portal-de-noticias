@@ -8,6 +8,7 @@ import Header from "@/components/Header";
 import HeroSection from "@/components/home/HeroSection";
 import PWAInstallBanner from "@/components/PWAInstallBanner";
 import Footer from "@/components/Footer";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 interface PuckRendererProps {
   data: any;
@@ -42,7 +43,11 @@ export default function PuckRenderer({ data, config }: PuckRendererProps) {
       <main className="container mx-auto px-4 lg:px-8 flex-grow">
         
         {/* Adicionar Player de Live se estiver ativo */}
-        {isLive && <HeroSection />}
+        {isLive && (
+          <ErrorBoundary>
+            <HeroSection />
+          </ErrorBoundary>
+        )}
 
         {data && typeof data === 'object' && Object.keys(data).length > 0 ? (
           <Render config={puckConfig} data={data} />

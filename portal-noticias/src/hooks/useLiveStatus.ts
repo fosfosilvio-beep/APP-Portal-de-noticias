@@ -59,8 +59,11 @@ export function useLiveStatus() {
         "postgres_changes",
         { event: "*", schema: "public", table: "portal_live_status" },
         (payload: any) => {
-          if (mounted) {
-            setStatus((prev) => ({ ...prev, ...payload.new } as LiveStatus));
+          if (mounted && payload.new) {
+            setStatus((prev) => {
+              if (!prev) return payload.new as LiveStatus;
+              return { ...prev, ...payload.new } as LiveStatus;
+            });
           }
         }
       )
