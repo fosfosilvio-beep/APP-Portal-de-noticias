@@ -4,14 +4,22 @@
   "short_name": "Web TV",
   "description": "A maior fonte regional de notícias, entretenimento e transmissões ao vivo de Arapongas e região. Fique bem informado com agilidade e credibilidade.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "window-controls-overlay", "minimal-ui"],
   "orientation": "portrait",
   "background_color": "#ffffff",
   "theme_color": "#00AEE0",
   "lang": "pt-BR",
   "iarc_rating_id": "e",
+  "prefer_related_applications": false,
   "categories": ["news", "entertainment", "lifestyle"],
   "icons": [
+    {
+      "src": "/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png"
+    },
     {
       "src": "/icon-192x192.png",
       "sizes": "192x192",
@@ -32,8 +40,8 @@
       "url": "/?isLive=true",
       "icons": [
         {
-          "src": "/icon-192x192.png",
-          "sizes": "192x192",
+          "src": "/icon-96x96.png",
+          "sizes": "96x96",
           "type": "image/png"
         }
       ]
@@ -45,8 +53,8 @@
       "url": "/?cat=Início",
       "icons": [
         {
-          "src": "/icon-192x192.png",
-          "sizes": "192x192",
+          "src": "/icon-96x96.png",
+          "sizes": "96x96",
           "type": "image/png"
         }
       ]
