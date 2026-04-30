@@ -28,19 +28,15 @@ export async function analyzeVideo(
       displayName: "Análise Multimodal IA NEWS",
     });
 
-    // Ordem de tentativa conforme diagnóstico técnico
-    const videoConfigs = [
-      { model: "gemini-1.5-pro-latest", version: "v1" },
-      { model: "gemini-1.5-flash", version: "v1" },
-      { model: "gemini-1.5-pro", version: "v1beta" },
-      { model: "gemini-1.5-flash", version: "v1beta" }
-    ];
+    // Para análise de vídeo (File API), v1beta é OBRIGATÓRIO.
+    // v1 ainda não suporta o campo 'fileData' para vídeos.
+    const videoModels = ["gemini-1.5-pro", "gemini-1.5-flash"];
     let lastError = null;
 
-    for (const config of videoConfigs) {
+    for (const modelName of videoModels) {
       try {
-        console.log(`[ai-provider] Tentando análise com ${config.model} (${config.version})...`);
-        const model = genAI.getGenerativeModel({ model: config.model }, { apiVersion: config.version as any });
+        console.log(`[ai-provider] Tentando análise de vídeo com ${modelName} (v1beta)...`);
+        const model = genAI.getGenerativeModel({ model: modelName }, { apiVersion: 'v1beta' });
         
         const result = await model.generateContent([
           {
@@ -57,10 +53,10 @@ export async function analyzeVideo(
       } catch (err: any) {
         lastError = err;
         if (err.message?.includes("404") || err.message?.includes("not found")) {
-          console.warn(`[ai-provider] Modelo ${config.model} indisponível. Tentando próximo...`);
+          console.warn(`[ai-provider] Modelo ${modelName} indisponível. Tentando próximo...`);
           continue;
         }
-        break; // Se for outro erro (como quota), interrompe e joga para o catch externo
+        break; 
       }
     }
     throw lastError;
