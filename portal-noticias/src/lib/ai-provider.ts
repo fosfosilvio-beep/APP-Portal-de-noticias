@@ -29,8 +29,11 @@ export async function analyzeVideo(
   console.log(`[ai-provider] Arquivo enviado: ${uploadResult.file.uri}. Processando...`);
 
   try {
-    // Usamos o modelo pro-latest para garantir suporte multimodal estável
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro-latest" });
+    // Forçamos a versão 'v1' estável para evitar o erro de v1beta com o 1.5 Pro
+    const model = genAI.getGenerativeModel(
+      { model: "gemini-1.5-pro" },
+      { apiVersion: 'v1' }
+    );
     
     const result = await model.generateContent([
       {
@@ -46,13 +49,8 @@ export async function analyzeVideo(
     return { text, provider: "gemini" };
   } catch (err: any) {
     console.error("[ai-provider] Erro ao processar vídeo com Gemini 1.5 Pro:", err);
-    throw new Error(`Falha na análise da IA: ${err.message || "Erro desconhecido de versão/modelo"}`);
+    throw new Error(`Falha na análise da IA (v1): ${err.message || "Erro de conexão/modelo"}`);
   }
-  
-  // Limpeza opcional do arquivo após processamento (o Google deleta após 48h automaticamente)
-  // try { await fileManager.deleteFile(uploadResult.file.name); } catch (e) {}
-
-  return { text, provider: "gemini" };
 }
 
 /**
