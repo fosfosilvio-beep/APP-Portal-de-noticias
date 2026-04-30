@@ -16,7 +16,6 @@ import "yet-another-react-lightbox/styles.css";
 import Zoom from "yet-another-react-lightbox/plugins/zoom";
 import Fullscreen from "yet-another-react-lightbox/plugins/fullscreen";
 
-import Header from "../../../components/Header";
 import ShareBar from "../../../components/ShareBar";
 import NewsNarrator from "../../../components/NewsNarrator";
 import CommentsSection from "../../../components/noticias/CommentsSection";
@@ -217,13 +216,6 @@ export default function NoticiaClient({ slug, initialData }: { slug: string, ini
 
   return (
     <div className="min-h-screen bg-white">
-      <Header 
-        isLive={isLive} 
-        config={config} 
-        categoriaAtiva={getVisualCategory(noticia?.categoria)}
-        setCategoriaAtiva={() => {}} 
-      />
-
       <main className="container mx-auto px-4 py-4 max-w-7xl">
         <div className="mb-4">
           <Link href="/" className="text-zinc-500 hover:text-blue-600 flex items-center gap-1 text-sm font-medium transition-colors">
@@ -349,13 +341,13 @@ export default function NoticiaClient({ slug, initialData }: { slug: string, ini
               </h3>
               <div className="flex flex-wrap gap-2">
                 {["Entretenimento", "Educação", "Saúde", "Esportes", "Arapongas", "Polícia", "Política", "Geral"].map(cat => (
-                  <span 
+                  <Link 
                     key={cat} 
-                    onClick={() => window.location.href = `/${normalizeCategory(cat)}`}
+                    href={`/${normalizeCategory(cat)}`}
                     className="px-3 py-1 bg-zinc-100 text-zinc-600 text-xs font-bold rounded-full hover:bg-blue-600 hover:text-white transition-colors cursor-pointer uppercase"
                   >
                     {cat}
-                  </span>
+                  </Link>
                 ))}
               </div>
             </div>

@@ -81,6 +81,7 @@ export const metadata: Metadata = {
 
 import { Providers } from "../components/Providers";
 import PushPrompt from "../components/PushPrompt";
+import MainLayout from "../components/MainLayout";
 
 export default function RootLayout({
   children,
@@ -127,7 +128,9 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col font-sans overflow-x-hidden" suppressHydrationWarning>
         <Providers>
-          {children}
+          <MainLayout>
+            {children}
+          </MainLayout>
           <PushPrompt />
         </Providers>
       </body>

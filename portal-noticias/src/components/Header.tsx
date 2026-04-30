@@ -13,6 +13,7 @@ import { normalizeCategory } from "../lib/category-utils";
 import { useRouter, usePathname } from "next/navigation";
 import { useLiveStatus } from "../hooks/useLiveStatus";
 import BreakingNewsMarquee from "./BreakingNewsMarquee";
+import { useNavigationStore } from "../store/navigationStore";
 
 interface HeaderProps {
   isLive?: boolean; // Mantido para compatibilidade, mas useLiveStatus tem precedência
@@ -33,6 +34,11 @@ export default function Header({
   const pathname = usePathname();
   const { ui } = useSettingsStore();
   const { status: liveStatus } = useLiveStatus();
+  const { categoriaAtiva: storeCategoria, setCategoriaAtiva: setStoreCategoria } = useNavigationStore();
+
+  // Detecção automática de categoria ativa baseada na URL para uso global no layout
+  const inferredCategory = pathname === "/" ? "Início" : getVisualCategory(pathname.replace(/^\//, '').split('/')[0]);
+  const activeVisualCategory = categoriaAtiva || storeCategoria || inferredCategory;
   
   const [session, setSession] = useState<any>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -45,6 +51,12 @@ export default function Header({
     supabase.auth.getSession().then(({ data: { session } }: any) => setSession(session));
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e: any, s: any) => setSession(s));
 
+    // Fetch Config se não vier por prop
+    if (!config) {
+      supabase.from("configuracao_portal").select("*").eq("id", 1).maybeSingle()
+        .then(({ data }) => { if (data) setInternalConfig(data); });
+    }
+
     // Fetch Categorias
     const allowedNormalized = ['geral', 'arapongas', 'esportes', 'policia', 'politica', 'economia', 'entretenimento'];
     supabase.from("categorias").select("id, nome, slug").eq("ativa", true).order("ordem")
@@ -53,40 +65,49 @@ export default function Header({
           const filtered = data.filter((cat: any) => {
             const normalized = cat.nome.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
             return allowedNormalized.includes(normalized);
-          });
-          const base = [{ id: "inicio", nome: "Início", slug: "inicio" }, ...filtered];
+          }).map(cat => ({
+            ...cat,
+            // Garante que o slug comece com barra
+            slug: cat.slug ? (cat.slug.startsWith('/') ? cat.slug : `/${cat.slug}`) : `/${normalizeCategory(cat.nome)}`
+          }));
+
+          const base = [{ id: "inicio", nome: "Início", slug: "/" }, ...filtered];
           setCategorias(base);
         }
       });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [config]);
+
+  const [internalConfig, setInternalConfig] = useState<any>(null);
+  const activeConfig = config || internalConfig;
 
   const activeIsLive = liveStatus?.is_live ?? false;
 
-  const handleCategoryClick = (cat: string) => {
-    const isInicio = cat === "Início" || cat === "inicio";
-    const targetPath = isInicio ? "/" : `/${normalizeCategory(cat)}`;
+  const handleCategoryClick = (catName: string, catSlug?: string) => {
+    const isInicio = catName === "Início" || catSlug === "/" || catSlug === "inicio";
+    const targetPath = isInicio ? "/" : (catSlug?.startsWith('/') ? catSlug : `/${catSlug || normalizeCategory(catName)}`);
 
     // Se estivermos na Home, usamos o filtro de estado para não recarregar
-    if (pathname === "/" && setCategoriaAtiva) {
-      setCategoriaAtiva(isInicio ? "Início" : cat);
+    if (pathname === "/") {
+      const finalSet = setCategoriaAtiva || setStoreCategoria;
+      finalSet(isInicio ? "Início" : catName);
       window.scrollTo({ top: 0, behavior: 'smooth' });
       setIsMobileMenuOpen(false);
       return;
     }
 
-    // Caso contrário (estamos em /noticia/... ou outra página), navegamos para a rota absoluta
+    // Caso contrário, navegamos para a rota absoluta forçada
     router.push(targetPath);
     setIsMobileMenuOpen(false);
   };
 
-  const brandName = config?.nome_plataforma || config?.ui_settings?.brand_name || ui.siteName || "NOSSA WEB TV";
-  const rawLogoUrl = config?.logo_url || config?.ui_settings?.logo_url || ui.logoUrl;
+  const brandName = activeConfig?.nome_plataforma || activeConfig?.ui_settings?.brand_name || ui.siteName || "NOSSA WEB TV";
+  const rawLogoUrl = activeConfig?.logo_url || activeConfig?.ui_settings?.logo_url || ui.logoUrl;
   const logoUrl = getPublicUrl(rawLogoUrl);
-  const logoTextoUrl = getPublicUrl(config?.logo_texto_url || ui.logoTextoUrl);
-  const primaryColor = config?.ui_settings?.primary_color || ui.primaryColor || "#00AEE0";
-  const fontFamily = config?.ui_settings?.font_family || ui.fontFamily || "Inter, sans-serif";
+  const logoTextoUrl = getPublicUrl(activeConfig?.logo_texto_url || ui.logoTextoUrl);
+  const primaryColor = activeConfig?.ui_settings?.primary_color || ui.primaryColor || "#00AEE0";
+  const fontFamily = activeConfig?.ui_settings?.font_family || ui.fontFamily || "Inter, sans-serif";
 
   // Se não montou, renderizamos uma versão estática mínima para evitar Erro #418
   if (!mounted) {
@@ -94,11 +115,11 @@ export default function Header({
   }
 
   const breakingNews = {
-    active: config?.alerta_urgente_ativo,
-    text: config?.alerta_urgente_texto,
-    speed: config?.ticker_speed || "normal",
-    fontSize: config?.ticker_font_size || 14,
-    textColor: config?.ticker_font_color || "#ffffff"
+    active: activeConfig?.alerta_urgente_ativo,
+    text: activeConfig?.alerta_urgente_texto,
+    speed: activeConfig?.ticker_speed || "normal",
+    fontSize: activeConfig?.ticker_font_size || 14,
+    textColor: activeConfig?.ticker_font_color || "#ffffff"
   };
 
   return (
@@ -118,7 +139,10 @@ export default function Header({
             <div className="flex items-center min-w-0 flex-1 mr-4">
               <Link 
                 href="/" 
-                onClick={() => setCategoriaAtiva?.("Início")} 
+                onClick={() => {
+                  setCategoriaAtiva?.("Início");
+                  setStoreCategoria("Início");
+                }} 
                 className="relative cursor-pointer group flex items-center gap-3 min-w-0"
               >
                 {logoUrl ? (
@@ -195,19 +219,18 @@ export default function Header({
           <nav className="hidden lg:flex bg-zinc-950 border-b border-zinc-800/80 w-full overflow-x-auto">
             <div className="container mx-auto px-4 lg:px-8 flex items-center">
               {categorias.map((cat) => {
-                const isInicio = cat.nome === "Início";
-                const slug = normalizeCategory(cat.nome);
-                const href = isInicio ? "/" : `/${slug}`;
-                const isActive = categoriaAtiva === cat.nome || (pathname === href) || (isInicio && pathname === "/");
+                const isInicio = cat.nome === "Início" || cat.slug === "/";
+                const href = isInicio ? "/" : (cat.slug.startsWith('/') ? cat.slug : `/${cat.slug}`);
+                const isActive = activeVisualCategory === cat.nome || (pathname === href) || (isInicio && pathname === "/");
 
                 return (
                   <Link
                     key={cat.id || cat.nome}
                     href={href}
                     onClick={(e) => {
-                      if (pathname === "/" && setCategoriaAtiva) {
+                      if (pathname === "/") {
                         e.preventDefault();
-                        handleCategoryClick(cat.nome);
+                        handleCategoryClick(cat.nome, cat.slug);
                       }
                     }}
                     className={`text-[10px] font-black uppercase tracking-widest px-4 py-3 whitespace-nowrap transition-all border-b-2 ${
@@ -233,19 +256,18 @@ export default function Header({
           <button onClick={() => setIsMobileMenuOpen(false)} className="absolute top-6 right-6 text-white"><X size={32} /></button>
           <div className="flex flex-col gap-6 mt-12 overflow-y-auto max-h-[70vh] pr-4">
             {categorias.map((cat) => {
-              const isInicio = cat.nome === "Início";
-              const slug = normalizeCategory(cat.nome);
-              const href = isInicio ? "/" : `/${slug}`;
-              const isActive = categoriaAtiva === cat.nome || (pathname === href) || (isInicio && pathname === "/");
+              const isInicio = cat.nome === "Início" || cat.slug === "/";
+              const href = isInicio ? "/" : (cat.slug.startsWith('/') ? cat.slug : `/${cat.slug}`);
+              const isActive = activeVisualCategory === cat.nome || (pathname === href) || (isInicio && pathname === "/");
 
               return (
                 <Link 
                   key={cat.id || cat.nome} 
                   href={href}
                   onClick={(e) => {
-                    if (pathname === "/" && setCategoriaAtiva) {
+                    if (pathname === "/") {
                       e.preventDefault();
-                      handleCategoryClick(cat.nome);
+                      handleCategoryClick(cat.nome, cat.slug);
                     }
                     setIsMobileMenuOpen(false);
                   }} 

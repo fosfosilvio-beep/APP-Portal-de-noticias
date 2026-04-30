@@ -1,5 +1,4 @@
 import { createClient } from "@/lib/supabase-server";
-import Header from "@/components/Header";
 import NewsGrid from "@/components/home/NewsGrid";
 import { getVisualCategory } from "@/lib/category-utils";
 import BreakingNewsMarquee from "@/components/BreakingNewsMarquee";
@@ -44,12 +43,6 @@ export default async function CategoryPage({ params }: { params: { categoria: st
 
   return (
     <div className="min-h-screen bg-white">
-      <Header 
-        isLive={configData?.is_live} 
-        config={configData} 
-        categoriaAtiva={visualTitle}
-      />
-      
       {configData?.ui_settings?.breaking_news_alert?.active && (
         <BreakingNewsMarquee 
           text={configData.ui_settings.breaking_news_alert.text}

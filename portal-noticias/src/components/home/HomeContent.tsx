@@ -19,6 +19,7 @@ import Footer from "../Footer";
 import ErrorBoundary from "../ErrorBoundary";
 import { createClient } from "@/lib/supabase-browser";
 import { getVisualCategory } from "@/lib/category-utils";
+import { useNavigationStore } from "../../store/navigationStore";
 
 interface HomeContentProps {
   initialConfig: any;
@@ -30,7 +31,7 @@ interface HomeContentProps {
 
 export default function HomeContent({ initialConfig, liveStatus, todasNoticias, bibliotecaLives, initialAds }: HomeContentProps) {
   const [isMounted, setIsMounted] = useState(false);
-  const [categoriaAtiva, setCategoriaAtiva] = useState("Início");
+  const { categoriaAtiva, setCategoriaAtiva } = useNavigationStore();
   const [searchBiblioteca, setSearchBiblioteca] = useState("");
   const [categorias, setCategorias] = useState<any[]>([]);
   const [noticiasCategoria, setNoticiasCategoria] = useState<any[]>([]);
@@ -125,12 +126,6 @@ export default function HomeContent({ initialConfig, liveStatus, todasNoticias, 
 
   return (
     <div className="min-h-screen bg-white text-slate-900 flex flex-col font-sans overflow-x-hidden">
-      <Header 
-        isLive={isLive} 
-        config={config}
-        categoriaAtiva={categoriaAtiva} 
-        setCategoriaAtiva={setCategoriaAtiva}
-      />
       <CategoryNav 
         categoriaAtiva={categoriaAtiva} 
         setCategoriaAtiva={setCategoriaAtiva} 
