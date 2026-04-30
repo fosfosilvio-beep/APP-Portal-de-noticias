@@ -28,12 +28,12 @@ export async function analyzeVideo(
       displayName: "Análise Multimodal IA NEWS",
     });
 
-    console.log(`[ai-provider] Vídeo carregado: ${uploadResult.file.uri}. Analisando com 1.5 Flash...`);
+    console.log(`[ai-provider] Vídeo carregado: ${uploadResult.file.uri}. Analisando com 1.5 Flash (v1beta)...`);
 
-    // Usamos gemini-1.5-flash para velocidade e eficiência multimodal
+    // Mudança para v1beta para suportar fileData corretamente
     const model = genAI.getGenerativeModel(
       { model: "gemini-1.5-flash" },
-      { apiVersion: 'v1' }
+      { apiVersion: 'v1beta' }
     );
     
     const result = await model.generateContent([
@@ -49,8 +49,8 @@ export async function analyzeVideo(
     const text = result.response.text();
     return { text, provider: "gemini" };
   } catch (err: any) {
-    console.error("[ai-provider] Falha Crítica na File API/Gemini:", err);
-    throw new Error(`IA Error (File API): ${err.message || "Falha na comunicação com o modelo 1.5 Flash"}`);
+    console.error("[ai-provider] Falha Crítica na File API (v1beta):", err);
+    throw new Error(`IA Error (v1beta): ${err.message || "Falha na análise do vídeo"}`);
   }
 }
 
@@ -66,13 +66,13 @@ export async function generateWithFallback(
 
   if (geminiKey) {
     const genAI = new GoogleGenerativeAI(geminiKey);
-    // Ordem de preferência: 1.5 Flash (veloz) -> 1.5 Pro (denso)
+    // Usamos v1beta aqui também para consistência
     const models = ["gemini-1.5-flash", "gemini-1.5-pro"];
 
     for (const modelName of models) {
       try {
-        console.log(`[ai-provider] Tentando ${modelName} (v1)...`);
-        const model = genAI.getGenerativeModel({ model: modelName }, { apiVersion: 'v1' });
+        console.log(`[ai-provider] Tentando ${modelName} (v1beta)...`);
+        const model = genAI.getGenerativeModel({ model: modelName }, { apiVersion: 'v1beta' });
         const result = await model.generateContent(prompt);
         const text = result.response.text();
         if (text) return { text, provider: "gemini" };
