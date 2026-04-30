@@ -9,7 +9,7 @@ import { supabase } from "../lib/supabase";
 import { useEffect, useState } from "react";
 import { User, LogOut, Menu, X, ChevronRight, Headset } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
-import { normalizeCategory } from "../lib/category-utils";
+import { normalizeCategory, getVisualCategory } from "../lib/category-utils";
 import { useRouter, usePathname } from "next/navigation";
 import { useLiveStatus } from "../hooks/useLiveStatus";
 import BreakingNewsMarquee from "./BreakingNewsMarquee";
@@ -54,7 +54,7 @@ export default function Header({
     // Fetch Config se não vier por prop
     if (!config) {
       supabase.from("configuracao_portal").select("*").eq("id", 1).maybeSingle()
-        .then(({ data }) => { if (data) setInternalConfig(data); });
+        .then(({ data }: { data: any }) => { if (data) setInternalConfig(data); });
     }
 
     // Fetch Categorias
