@@ -65,7 +65,7 @@ export default function Header({
     }
 
     // Fetch Categorias
-    const allowedNormalized = ['geral', 'arapongas', 'esportes', 'policia', 'politica', 'economia', 'entretenimento'];
+    const allowedNormalized = ['geral', 'arapongas', 'esportes', 'policia', 'politica', 'entretenimento'];
     supabase.from("categorias").select("id, nome, slug").eq("ativa", true).order("ordem")
       .then(({ data }: { data: any[] | null }) => {
         if (data) {

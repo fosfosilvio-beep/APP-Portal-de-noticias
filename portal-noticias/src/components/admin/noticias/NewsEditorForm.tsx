@@ -137,29 +137,39 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
     }
     if (colRes.data) setColunistas(colRes.data);
     if (catRes.data) {
-      const allowedNames = ["Geral", "Arapongas", "Esportes", "Polícia", "Policia", "Economia", "Política", "Politica", "Entretenimento"];
+      const allowedNames = ["Geral", "Arapongas", "Esportes", "Polícia", "Política", "Entretenimento"];
       
       const defaultCats = [
         { id: "geral", nome: "Geral" },
         { id: "arapongas", nome: "Arapongas" },
         { id: "esportes", nome: "Esportes" },
         { id: "policia", nome: "Polícia" },
-        { id: "economia", nome: "Economia" },
         { id: "politica", nome: "Política" },
         { id: "entretenimento", nome: "Entretenimento" }
       ];
       
       const merged = [...catRes.data];
+      
+      // Helper para normalizar nome (remove acentos para comparação)
+      const normalize = (str: string) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
       defaultCats.forEach(d => {
-        if (!merged.find(m => m.nome.toLowerCase() === d.nome.toLowerCase())) {
+        const dNorm = normalize(d.nome);
+        if (!merged.find(m => normalize(m.nome) === dNorm)) {
           merged.push(d);
         }
       });
 
-      // Filtro final rigoroso
-      const finalFiltered = merged.filter(c => 
-        allowedNames.some(a => a.toLowerCase() === c.nome.toLowerCase())
-      );
+      // Filtro final rigoroso e remoção de duplicados residuais
+      const seen = new Set();
+      const finalFiltered = merged
+        .filter(c => allowedNames.some(a => normalize(a) === normalize(c.nome)))
+        .filter(c => {
+          const norm = normalize(c.nome);
+          const duplicate = seen.has(norm);
+          seen.add(norm);
+          return !duplicate;
+        });
 
       setCategorias(finalFiltered);
     }

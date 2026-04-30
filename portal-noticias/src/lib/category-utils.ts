@@ -3,7 +3,6 @@ export const categoryMap: Record<string, string> = {
   "Arapongas": "Arapongas",
   "Esportes": "Esportes",
   "Policia": "Polícia",
-  "Economia": "Economia",
   "Politica": "Política",
   "Entretenimento": "Entretenimento",
 };
