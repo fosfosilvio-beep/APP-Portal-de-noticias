@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     if (isVideo) {
       console.log(`[generate-news] Iniciando Fluxo Direto Twelve Labs para: ${videoUrl}`);
       provider = "twelve-labs-pegasus";
-      
+      try {
         // 1. Garantir Index (Auto-Index Dinâmico)
         const indexId = await twelveLabs.getOrCreateIndex("Portal_NossaWeb");
         
