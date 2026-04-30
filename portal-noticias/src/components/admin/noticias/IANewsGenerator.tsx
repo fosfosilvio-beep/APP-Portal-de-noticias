@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { 
   Sparkles, Loader2, Send, PenTool, Image as ImageIcon, 
-  Zap, ArrowRight, RefreshCw, Check, Copy, Wand2
+  Zap, ArrowRight, RefreshCw, Check, Copy, Wand2,
+  Video, Upload, PlayCircle
 } from "lucide-react";
 import { toast } from "@/lib/toast";
+import { createClient } from "@/lib/supabase-browser";
 
 interface IANewsGeneratorProps {
   onGenerated: (data: { titulo: string; subtitulo: string; conteudo: string; seo_tags?: string }) => void;
@@ -16,9 +18,11 @@ interface IANewsGeneratorProps {
 export default function IANewsGenerator({ onGenerated, onImageGenerated, currentContent }: IANewsGeneratorProps) {
   const [topic, setTopic] = useState("");
   const [linkUrl, setLinkUrl] = useState("");
-  const [loading, setLoading] = useState<"news" | "image" | "improve" | "link" | null>(null);
+  const [loading, setLoading] = useState<"news" | "image" | "improve" | "link" | "video" | null>(null);
   const [progress, setProgress] = useState(0);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [insights, setInsights] = useState<{ instagram?: string; tags?: string } | null>(null);
+  const supabase = createClient();
 
   // Simulação de progresso para a sensação de tecnologia
   const startProgress = () => {
@@ -114,6 +118,76 @@ export default function IANewsGenerator({ onGenerated, onImageGenerated, current
     }
   };
 
+  const handleVideoUpload = async (file: File) => {
+    if (!file.type.startsWith("video/")) {
+      toast.error("Por favor, selecione um ficheiro de vídeo válido.");
+      return;
+    }
+
+    setLoading("video");
+    setUploadProgress(0);
+    setProgress(0);
+
+    try {
+      // 1. Upload para Supabase Storage
+      const ext = file.name.split(".").pop();
+      const path = `temp_ai_videos/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("media")
+        .upload(path, file, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage.from("media").getPublicUrl(path);
+      setUploadProgress(100);
+      
+      // 2. Chamada para API de Processamento de Vídeo
+      const interval = startProgress();
+      const res = await fetch("/api/generate-news", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ videoUrl: publicUrl }),
+      });
+
+      const data = await res.json();
+      clearInterval(interval);
+
+      if (!res.ok) throw new Error(data.error || "Erro ao analisar o vídeo.");
+
+      onGenerated({
+        titulo: data.titulo || "",
+        subtitulo: data.subtitulo || "",
+        conteudo: data.conteudo || "",
+        seo_tags: data.seo_tags || ""
+      });
+
+      if (data.instagram_suggestion || data.seo_tags) {
+        setInsights({
+          instagram: data.instagram_suggestion,
+          tags: data.seo_tags
+        });
+      }
+
+      setProgress(100);
+      toast.success("IA NEWS: Vídeo analisado e matéria gerada!");
+      
+      // Limpeza opcional: deletar vídeo temporário do storage
+      // await supabase.storage.from("media").remove([path]);
+
+    } catch (err: any) {
+      toast.error("IA NEWS Erro no Vídeo: " + err.message);
+    } finally {
+      setTimeout(() => {
+        setLoading(null);
+        setUploadProgress(0);
+      }, 500);
+    }
+  };
+
   const handleImproveText = async () => {
     if (!currentContent || currentContent.length < 20) {
       toast.error("Escreva um texto no editor primeiro para que a IA possa melhorar.");
@@ -192,6 +266,23 @@ export default function IANewsGenerator({ onGenerated, onImageGenerated, current
                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-xs text-white font-bold placeholder:text-white/20 focus:ring-2 focus:ring-red-500/50 outline-none transition-all"
              />
           </div>
+
+          <label className="flex flex-col items-center justify-center w-full h-32 bg-white/5 border-2 border-dashed border-white/10 rounded-3xl cursor-pointer hover:bg-white/[0.07] hover:border-red-500/30 transition-all group/upload">
+            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+              <Video className="w-8 h-8 mb-2 text-white/20 group-hover/upload:text-red-500 transition-colors" />
+              <p className="text-[10px] font-black text-white/40 uppercase tracking-widest group-hover/upload:text-white/60">Arraste ou clique para Upload de Vídeo</p>
+              <p className="text-[8px] text-white/20 uppercase mt-1">MP4, MOV ou AVI (IA NEWS 2.0)</p>
+            </div>
+            <input 
+              type="file" 
+              accept="video/*" 
+              className="hidden" 
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleVideoUpload(file);
+              }}
+            />
+          </label>
           {loading && (
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm rounded-3xl flex flex-col items-center justify-center p-8">
               <Loader2 size={32} className="animate-spin text-red-500 mb-4" />
@@ -204,6 +295,8 @@ export default function IANewsGenerator({ onGenerated, onImageGenerated, current
               <p className="text-[10px] font-black text-white uppercase tracking-[0.3em] animate-pulse text-center">
                 {loading === 'news' ? 'Tecendo Matéria...' : 
                  loading === 'improve' ? 'Refinando Texto...' : 
+                 loading === 'video' && uploadProgress < 100 ? `Fazendo Upload do Vídeo (${uploadProgress}%)...` :
+                 loading === 'video' ? 'IA a assistir e analisar o vídeo...' :
                  'Lendo e Adaptando Matéria...'}
               </p>
             </div>

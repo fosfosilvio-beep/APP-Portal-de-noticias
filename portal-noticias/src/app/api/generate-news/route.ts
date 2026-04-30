@@ -3,11 +3,11 @@ import { generateWithFallback } from "@/lib/ai-provider";
 
 export async function POST(req: NextRequest) {
   try {
-    const { prompt, content, guidelines, linkUrl } = await req.json();
+    const { prompt, content, guidelines, linkUrl, videoUrl } = await req.json();
 
-    if (!prompt && !content && !linkUrl) {
+    if (!prompt && !content && !linkUrl && !videoUrl) {
       return NextResponse.json(
-        { error: "É necessário um prompt, conteúdo ou link para processar." },
+        { error: "É necessário um prompt, conteúdo, link ou vídeo para processar." },
         { status: 400 }
       );
     }
@@ -45,11 +45,15 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Define o modo: reescrita, link ou geração nova
+    // Define o modo: reescrita, link, vídeo ou geração nova
+    const isVideo = !!videoUrl;
     const isLink = !!linkUrl;
     const isRewrite = !!content;
 
-    const systemContext = isLink
+    const systemContext = isVideo
+      ? `Você é o Agente de IA NEWS 2.0 com visão computacional. Sua tarefa é ASSISTIR e ANALISAR o vídeo fornecido.
+         Extraia os factos, transcreva falas importantes e crie uma matéria jornalística completa para o portal Nossa Web TV.`
+      : isLink
       ? `Você é um Jornalista Sênior do portal Nossa Web TV. 
          DIRETRIZ CRÍTICA: Extraia apenas os factos do link fornecido. Se não conseguir aceder ao conteúdo real (ex: cair em tela de login ou erro), responda APENAS e EXATAMENTE: [ERRO: CONTEÚDO INACESSÍVEL]. 
          Se conseguir, reescreva a matéria integralmente, mudando estrutura e tom para originalidade absoluta (Anti-Plágio).`
@@ -58,7 +62,9 @@ export async function POST(req: NextRequest) {
          Foque em: SEO Avançado, Correção Gramatical Impecável, Tom Jornalístico Profissional (Imparcial e Informativo) e prontidão para o Google News.`
       : `Você é o Agente IA NEWS, um Especialista em Jornalismo Profissional e SEO. Sua tarefa é gerar notícias completas, éticas e atraentes, otimizadas para ranqueamento no Google News.`;
 
-    const userRequest = isLink
+    const userRequest = isVideo
+      ? `Assista ao vídeo no link: "${videoUrl}". Crie uma matéria jornalística estruturada baseada no áudio e cenas do vídeo.`
+      : isLink
       ? `Abaixo está o conteúdo extraído do link "${linkUrl}". Analise as informações e crie uma matéria original.\n\nCONTEÚDO EXTRAÍDO:\n${linkContext || "Não foi possível extrair o texto."}`
       : isRewrite
       ? `REESCREVA e OTIMIZE este texto jornalístico: "${content}"\n\nDIRETRIZES: ${guidelines || "Profissionalismo e SEO."}`
