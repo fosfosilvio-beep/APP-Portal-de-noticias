@@ -24,9 +24,8 @@ export async function POST(req: NextRequest) {
       console.log(`[generate-news] Iniciando Fluxo Direto Twelve Labs para: ${videoUrl}`);
       provider = "twelve-labs-pegasus";
       
-      try {
-        // 1. Garantir Index (Auto-Index)
-        const indexId = await twelveLabs.getOrCreateIndex("PortalNoticias");
+        // 1. Garantir Index (Auto-Index Dinâmico)
+        const indexId = await twelveLabs.getOrCreateIndex("Portal_NossaWeb");
         
         // 2. Baixar o vídeo do Supabase para Buffer (para upload direto)
         console.log(`[generate-news] Baixando vídeo do Supabase...`);

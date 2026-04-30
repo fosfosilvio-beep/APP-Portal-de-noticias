@@ -12,20 +12,23 @@ export const twelveLabs = {
   /**
    * Obtém ou cria um Index padrão para o portal.
    */
-  async getOrCreateIndex(indexName = "PortalNoticias") {
+  async getOrCreateIndex(indexName = "Portal_NossaWeb") {
     try {
-      console.log(`[TwelveLabs] Verificando existência do Index: ${indexName}`);
+      console.log(`[TwelveLabs] Listando indexes para encontrar: ${indexName}`);
       const res = await axios.get(`${BASE_URL}/indexes`, {
         headers: { "x-api-key": API_KEY }
       });
       
-      const existing = res.data.data.find((idx: any) => idx.index_name === indexName);
+      // A v1.2 retorna a lista em res.data.data
+      const indexes = res.data.data || [];
+      const existing = indexes.find((idx: any) => idx.index_name === indexName);
+      
       if (existing) {
-        console.log(`[TwelveLabs] Index encontrado ID: ${existing._id}`);
+        console.log(`[TwelveLabs] Index encontrado! ID: ${existing._id}`);
         return existing._id;
       }
 
-      console.log(`[TwelveLabs] Criando novo Index: ${indexName}`);
+      console.log(`[TwelveLabs] Index não encontrado. Criando 'Portal_NossaWeb'...`);
       const createRes = await axios.post(`${BASE_URL}/indexes`, {
         index_name: indexName,
         engines: [
@@ -36,11 +39,12 @@ export const twelveLabs = {
         headers: { "x-api-key": API_KEY }
       });
 
-      console.log(`[TwelveLabs] Index criado com sucesso ID: ${createRes.data._id}`);
-      return createRes.data._id;
+      const newId = createRes.data._id;
+      console.log(`[TwelveLabs] Index criado com sucesso! ID: ${newId}`);
+      return newId;
     } catch (err: any) {
-      console.error("[TwelveLabs] Erro Index (CRÍTICO):", err.response?.data || err.message);
-      throw new Error(`Erro na Twelve Labs (Index): ${JSON.stringify(err.response?.data || err.message)}`);
+      console.error("[TwelveLabs] Falha na gestão de Index:", err.response?.data || err.message);
+      throw new Error(`TwelveLabs Config Error: ${JSON.stringify(err.response?.data || err.message)}`);
     }
   },
 
