@@ -24,16 +24,20 @@ export async function POST(req: NextRequest) {
     let provider = "";
 
     if (isVideo) {
-      console.log(`[generate-news] Fluxo de Vídeo ativado: ${videoUrl}`);
+      console.log(`[generate-news] Rastreio de Vídeo: ${videoUrl}`);
       
-      // 1. Baixar o vídeo antecipadamente (usado tanto por Twelve Labs quanto por Fallback Gemini)
+      // 1. Baixar o vídeo antecipadamente
       let videoBuffer: Buffer;
       try {
-        console.log(`[generate-news] Baixando vídeo para buffer...`);
+        console.log(`[generate-news] Iniciando download do Supabase...`);
         const videoRes = await axios.get(videoUrl, { responseType: 'arraybuffer' });
         videoBuffer = Buffer.from(videoRes.data);
+        console.log(`[generate-news] Sucesso no download. Tamanho: ${videoBuffer.length} bytes`);
       } catch (err: any) {
-        return NextResponse.json({ error: `Falha ao acessar o vídeo: ${err.message}` }, { status: 500 });
+        console.error(`[generate-news] ERRO NO ACESSO AO VÍDEO (Supabase):`, err.message);
+        return NextResponse.json({ 
+          error: `Falha ao baixar vídeo do Supabase: ${err.message}. Verifique se o bucket é público.` 
+        }, { status: 500 });
       }
 
       const pegasusPrompt = `Você é um editor sênior da Nossa Web TV. Assista a este vídeo e escreva uma matéria jornalística completa. 
@@ -41,24 +45,28 @@ export async function POST(req: NextRequest) {
       Use um tom profissional e informativo. Não inclua textos fora do JSON.`;
 
       try {
-        // TENTATIVA 1: Twelve Labs (Especialista em Vídeo)
+        // TENTATIVA 1: Twelve Labs
+        console.log(`[generate-news] Tentativa 1: Twelve Labs...`);
         provider = "twelve-labs-pegasus";
         const { indexId, version } = await twelveLabs.getOrCreateIndex("Portal_NossaWeb");
         const taskId = await twelveLabs.submitTaskDirect(indexId, videoBuffer, "noticia-video.mp4", version);
         const videoId = await twelveLabs.waitForTask(taskId, version);
         responseText = await twelveLabs.generateContent(videoId, pegasusPrompt, version);
+        console.log(`[generate-news] Sucesso via Twelve Labs.`);
       } catch (err: any) {
-        console.error("[generate-news] Twelve Labs falhou, ativando Fallback Gemini Multimodal...", err.message);
+        console.warn(`[generate-news] Twelve Labs falhou (Status: ${err.response?.status || "desc"}), migrando para Gemini...`);
         
-        // TENTATIVA 2: Gemini 1.5 (Análise Multimodal Nativa)
+        // TENTATIVA 2: Gemini 1.5
         const tempPath = path.join(os.tmpdir(), `temp-video-${Date.now()}.mp4`);
         try {
+          console.log(`[generate-news] Tentativa 2: Gemini Multimodal (Local Temp: ${tempPath})`);
           fs.writeFileSync(tempPath, videoBuffer);
           const result = await analyzeVideo(tempPath, "video/mp4", pegasusPrompt);
           responseText = result.text;
           provider = `gemini-multimodal-fallback`;
+          console.log(`[generate-news] Sucesso via Gemini.`);
         } catch (fallbackErr: any) {
-          console.error("[generate-news] Falha total no processamento de vídeo (Twelve Labs + Gemini):", fallbackErr.message);
+          console.error("[generate-news] FALHA TOTAL NO VÍDEO:", fallbackErr.message);
           return NextResponse.json({ 
             error: `Não foi possível analisar o vídeo. (Detalhe Gemini: ${fallbackErr.message})` 
           }, { status: 500 });
@@ -66,7 +74,8 @@ export async function POST(req: NextRequest) {
           if (fs.existsSync(tempPath)) fs.unlinkSync(tempPath);
         }
       }
-    } else {
+    }
+ else {
       // Fluxo Normal (Links/Temas)
       let linkContext = "";
       if (linkUrl) {
