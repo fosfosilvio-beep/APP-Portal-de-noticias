@@ -6,6 +6,7 @@ const VERSIONS = ["v1.2", "v1.1"];
 
 /**
  * Módulo de Integração Twelve Labs (Pegasus-1)
+ * NOTA: Requer TWELVE_LABS_API_KEY configurada nas Environment Variables da Vercel.
  */
 export const twelveLabs = {
   /**
