@@ -74,14 +74,18 @@ export default function TransmissaoClient({ initialConfig }: { initialConfig: an
         newLiveId = null; // Limpa o ID quando desativa
       }
 
-      // 2. Update the NEW table (portal_live_status)
+      // 2. Definir URLs (limpa se não estiver ao vivo)
+      const urlYoutube = data.is_live ? data.url_live_youtube : null;
+      const urlFacebook = data.is_live ? data.url_live_facebook : null;
+
+      // 3. Update the NEW table (portal_live_status)
       const { error: newTableError } = await supabase
         .from("portal_live_status")
         .upsert({
           id: 1,
           is_live: data.is_live,
-          url_youtube: data.url_live_youtube,
-          url_facebook: data.url_live_facebook,
+          url_youtube: urlYoutube,
+          url_facebook: urlFacebook,
           titulo: data.titulo_live,
           descricao: data.descricao_live,
           fake_viewers_boost: data.fake_viewers_boost,
@@ -91,13 +95,13 @@ export default function TransmissaoClient({ initialConfig }: { initialConfig: an
 
       if (newTableError) throw newTableError;
 
-      // 3. Update the LEGACY table (configuracao_portal) for backward compatibility
+      // 4. Update the LEGACY table (configuracao_portal) for backward compatibility
       await supabase.from("configuracao_portal").update({
         is_live: data.is_live,
         titulo_live: data.titulo_live,
         descricao_live: data.descricao_live,
-        url_live_youtube: data.url_live_youtube,
-        url_live_facebook: data.url_live_facebook,
+        url_live_youtube: urlYoutube,
+        url_live_facebook: urlFacebook,
         live_id: newLiveId
       }).eq("id", 1);
         
