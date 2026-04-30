@@ -28,14 +28,19 @@ export async function analyzeVideo(
       displayName: "Análise Multimodal IA NEWS",
     });
 
-    // Ordem de tentativa para vídeo em v1beta: Flash (mais rápido) -> Pro (mais potente)
-    const videoModels = ["gemini-1.5-flash", "gemini-1.5-pro"];
+    // Ordem de tentativa conforme diagnóstico técnico
+    const videoConfigs = [
+      { model: "gemini-1.5-pro-latest", version: "v1" },
+      { model: "gemini-1.5-flash", version: "v1" },
+      { model: "gemini-1.5-pro", version: "v1beta" },
+      { model: "gemini-1.5-flash", version: "v1beta" }
+    ];
     let lastError = null;
 
-    for (const modelName of videoModels) {
+    for (const config of videoConfigs) {
       try {
-        console.log(`[ai-provider] Tentando análise com ${modelName} (v1beta)...`);
-        const model = genAI.getGenerativeModel({ model: modelName }, { apiVersion: 'v1beta' });
+        console.log(`[ai-provider] Tentando análise com ${config.model} (${config.version})...`);
+        const model = genAI.getGenerativeModel({ model: config.model }, { apiVersion: config.version as any });
         
         const result = await model.generateContent([
           {
@@ -77,25 +82,25 @@ export async function generateWithFallback(
 
   if (geminiKey) {
     const genAI = new GoogleGenerativeAI(geminiKey);
-    // Modelos oficiais estáveis para v1beta
-    const models = ["gemini-1.5-flash", "gemini-1.5-pro"];
-
-    for (const modelName of models) {
+    // Versões e modelos conforme diagnóstico técnico (Prioridade v1)
+    const configurations = [
+      { model: "gemini-1.5-pro-latest", version: "v1" },
+      { model: "gemini-1.5-flash", version: "v1" },
+      { model: "gemini-1.5-pro", version: "v1beta" },
+      { model: "gemini-1.5-flash", version: "v1beta" }
+    ];
+    
+    for (const config of configurations) {
       try {
-        console.log(`[ai-provider] Tentando ${modelName} (v1beta)...`);
-        const model = genAI.getGenerativeModel({ model: modelName }, { apiVersion: 'v1beta' });
+        console.log(`[ai-provider] Tentando ${config.model} (${config.version})...`);
+        const model = genAI.getGenerativeModel({ model: config.model }, { apiVersion: config.version as any });
         const result = await model.generateContent(prompt);
         const text = result.response.text();
         if (text) return { text, provider: "gemini" };
       } catch (err: any) {
-        if (err.message?.includes("429") || err.message?.includes("quota")) {
-          console.warn(`[ai-provider] Limite atingido em ${modelName}.`);
-          continue;
-        }
-        if (err.message?.includes("404") || err.message?.includes("not found")) {
-          console.warn(`[ai-provider] Modelo ${modelName} não encontrado em v1beta. Pulando...`);
-          continue;
-        }
+        console.warn(`[ai-provider] Falha em ${config.model} (${config.version}): ${err.message}`);
+        if (err.message?.includes("429") || err.message?.includes("quota")) continue;
+        if (err.message?.includes("404") || err.message?.includes("not found")) continue;
       }
     }
   }
