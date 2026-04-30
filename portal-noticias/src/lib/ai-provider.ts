@@ -1,68 +1,41 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { GoogleAIFileManager } from "@google/generative-ai/server";
 
 export interface AIProviderResult {
   text: string;
   provider: "openrouter" | "gemini";
 }
 
+import { twelveLabs } from "./twelve-labs";
+import fs from "fs";
+
 /**
- * Motor de IA para análise profunda de vídeo via Google AI File API.
+ * Motor de IA para análise profunda de vídeo via Twelve Labs (Pegasus-1).
  */
 export async function analyzeVideo(
   filePath: string,
   mimeType: string,
   prompt: string
 ): Promise<AIProviderResult> {
-  const geminiKey = process.env.GEMINI_API_KEY;
-  if (!geminiKey) throw new Error("GEMINI_API_KEY não configurada.");
-
-  const fileManager = new GoogleAIFileManager(geminiKey);
-  const genAI = new GoogleGenerativeAI(geminiKey);
-
-  console.log(`[ai-provider] Ingestão File API: ${filePath} (${mimeType})`);
+  console.log(`[ai-provider] Análise Profunda (Twelve Labs Pegasus): ${filePath}`);
   
   try {
-    const uploadResult = await fileManager.uploadFile(filePath, {
-      mimeType,
-      displayName: "Análise Multimodal IA NEWS",
-    });
-
-    // Para análise de vídeo (File API), v1beta é OBRIGATÓRIO.
-    // v1 ainda não suporta o campo 'fileData' para vídeos.
-    const videoModels = ["gemini-1.5-pro", "gemini-1.5-flash"];
-    let lastError = null;
-
-    for (const modelName of videoModels) {
-      try {
-        console.log(`[ai-provider] Tentando análise de vídeo com ${modelName} (v1beta)...`);
-        const model = genAI.getGenerativeModel({ model: modelName }, { apiVersion: 'v1beta' });
-        
-        const result = await model.generateContent([
-          {
-            fileData: {
-              mimeType: uploadResult.file.mimeType,
-              fileUri: uploadResult.file.uri,
-            },
-          },
-          { text: prompt },
-        ]);
-
-        const text = result.response.text();
-        return { text, provider: "gemini" };
-      } catch (err: any) {
-        lastError = err;
-        if (err.message?.includes("404") || err.message?.includes("not found")) {
-          console.warn(`[ai-provider] Modelo ${modelName} indisponível. Tentando próximo...`);
-          continue;
-        }
-        break; 
-      }
-    }
-    throw lastError;
+    // 1. Ler o arquivo para Buffer
+    const videoBuffer = fs.readFileSync(filePath);
+    
+    // 2. Fluxo Twelve Labs (Auto-Index -> Submit -> Poll -> Generate)
+    const { indexId, version } = await twelveLabs.getOrCreateIndex("Portal_NossaWeb");
+    const taskId = await twelveLabs.submitTaskDirect(indexId, videoBuffer, "analise-video.mp4", version);
+    const videoId = await twelveLabs.waitForTask(taskId, version);
+    
+    const text = await twelveLabs.generateContent(videoId, prompt, version);
+    
+    return { 
+      text: typeof text === 'string' ? text : JSON.stringify(text), 
+      provider: "gemini" // Mantemos o tipo do retorno por compatibilidade de interface, mas o motor é Twelve
+    };
   } catch (err: any) {
-    console.error("[ai-provider] Falha Crítica na File API (v1beta):", err);
-    throw new Error(`IA Error (v1beta): ${err.message || "Falha na análise do vídeo"}`);
+    console.error("[ai-provider] Falha Crítica Twelve Labs:", err);
+    throw new Error(`Twelve Labs Error: ${err.message || "Falha na análise do vídeo"}`);
   }
 }
 

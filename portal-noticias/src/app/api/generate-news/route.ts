@@ -45,34 +45,21 @@ export async function POST(req: NextRequest) {
       Use um tom profissional e informativo. Não inclua textos fora do JSON.`;
 
       try {
-        // TENTATIVA 1: Twelve Labs
-        console.log(`[generate-news] Tentativa 1: Twelve Labs...`);
+        // MOTOR EXCLUSIVO: Twelve Labs (Pegasus-1)
+        console.log(`[generate-news] Processando via Twelve Labs Pegasus...`);
         provider = "twelve-labs-pegasus";
+        
         const { indexId, version } = await twelveLabs.getOrCreateIndex("Portal_NossaWeb");
         const taskId = await twelveLabs.submitTaskDirect(indexId, videoBuffer, "noticia-video.mp4", version);
         const videoId = await twelveLabs.waitForTask(taskId, version);
-        responseText = await twelveLabs.generateContent(videoId, pegasusPrompt, version);
-        console.log(`[generate-news] Sucesso via Twelve Labs.`);
-      } catch (err: any) {
-        console.warn(`[generate-news] Twelve Labs falhou (Status: ${err.response?.status || "desc"}), migrando para Gemini...`);
         
-        // TENTATIVA 2: Gemini 1.5
-        const tempPath = path.join(os.tmpdir(), `temp-video-${Date.now()}.mp4`);
-        try {
-          console.log(`[generate-news] Tentativa 2: Gemini Multimodal (Local Temp: ${tempPath})`);
-          fs.writeFileSync(tempPath, videoBuffer);
-          const result = await analyzeVideo(tempPath, "video/mp4", pegasusPrompt);
-          responseText = result.text;
-          provider = `gemini-multimodal-fallback`;
-          console.log(`[generate-news] Sucesso via Gemini.`);
-        } catch (fallbackErr: any) {
-          console.error("[generate-news] FALHA TOTAL NO VÍDEO:", fallbackErr.message);
-          return NextResponse.json({ 
-            error: `Não foi possível analisar o vídeo. (Detalhe Gemini: ${fallbackErr.message})` 
-          }, { status: 500 });
-        } finally {
-          if (fs.existsSync(tempPath)) fs.unlinkSync(tempPath);
-        }
+        responseText = await twelveLabs.generateContent(videoId, pegasusPrompt, version);
+        console.log(`[generate-news] Sucesso total na geração via Pegasus.`);
+      } catch (err: any) {
+        console.error("[generate-news] ERRO CRÍTICO TWELVE LABS:", err.message);
+        return NextResponse.json({ 
+          error: `Erro na Twelve Labs (Pegasus): ${err.message}. Verifique a API Key e o status do serviço.` 
+        }, { status: 500 });
       }
     }
  else {
