@@ -53,10 +53,12 @@ export async function POST(req: NextRequest) {
 
     const { text } = await analyzeVideo(tempFilePath, fileType, prompt);
 
-    // Limpeza rigorosa do JSON
+    // Limpeza rigorosa e multi-camadas do JSON para evitar erros de parse
     const cleaned = text
-      .replace(/^```(?:json)?\s*/i, "")
-      .replace(/```\s*$/i, "")
+      .replace(/```json/gi, "")
+      .replace(/```/g, "")
+      .replace(/^[^{]*/, "") // Remove qualquer texto antes do primeiro {
+      .replace(/[^}]*$/, "") // Remove qualquer texto depois do último {
       .replace(/[\u0000-\u001F\u007F-\u009F]/g, "") // Remove caracteres de controle
       .trim();
 

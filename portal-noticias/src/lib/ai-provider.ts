@@ -29,9 +29,9 @@ export async function analyzeVideo(
   console.log(`[ai-provider] Arquivo enviado: ${uploadResult.file.uri}. Processando...`);
 
   try {
-    // Forçamos a versão 'v1' estável para evitar o erro de v1beta com o 1.5 Pro
+    // Usamos a versão estável 002 para evitar ambiguidades de versão
     const model = genAI.getGenerativeModel(
-      { model: "gemini-1.5-pro" },
+      { model: "gemini-1.5-pro-002" },
       { apiVersion: 'v1' }
     );
     
@@ -82,7 +82,17 @@ export async function generateWithFallback(
       if (res.ok) {
         const data = await res.json();
         const text = data.choices?.[0]?.message?.content ?? "";
-        if (text) return { text, provider: "openrouter" };
+        
+        // Limpeza rigorosa e multi-camadas do JSON
+        const cleaned = text
+          .replace(/```json/gi, "")
+          .replace(/```/g, "")
+          .replace(/^[^{]*/, "") // Remove qualquer texto antes do primeiro {
+          .replace(/[^}]*$/, "") // Remove qualquer texto depois do último }
+          .replace(/[\u0000-\u001F\u007F-\u009F]/g, "") // Remove caracteres de controle
+          .trim();
+          
+        if (cleaned) return { text: cleaned, provider: "openrouter" };
       }
     } catch (err) {
       console.warn("[ai-provider] Fallback para Gemini ativo.");
