@@ -2,11 +2,10 @@ import axios from "axios";
 import FormData from "form-data";
 
 const API_KEY = process.env.TWELVE_LABS_API_KEY;
-const VERSIONS = ["v1.2", "v1.1"];
+const VERSIONS = ["v1.2", "v1.1", "v1"];
 
 /**
  * Módulo de Integração Twelve Labs (Pegasus-1)
- * NOTA: Requer TWELVE_LABS_API_KEY configurada nas Environment Variables da Vercel.
  */
 export const twelveLabs = {
   /**
@@ -14,24 +13,29 @@ export const twelveLabs = {
    */
   async getOrCreateIndex(indexName = "Portal_NossaWeb") {
     if (!API_KEY) {
-      throw new Error("TWELVE_LABS_API_KEY não encontrada no ambiente .env");
+      console.error("[TwelveLabs] CRÍTICO: Chave não encontrada no process.env");
+      throw new Error("TWELVE_LABS_API_KEY não encontrada no ambiente .env. Cadastre na Vercel.");
     }
+
+    // Log de segurança para conferência (primeiros/últimos caracteres)
+    const maskedKey = `${API_KEY.substring(0, 4)}...${API_KEY.substring(API_KEY.length - 4)}`;
+    console.log(`[TwelveLabs] Iniciando com chave: ${maskedKey}`);
 
     let lastErr = null;
 
     for (const version of VERSIONS) {
       const baseUrl = `https://api.twelvelabs.io/${version}`;
       try {
-        console.log(`[TwelveLabs] Tentando listar indexes via ${version}...`);
+        console.log(`[TwelveLabs] Testando endpoint: ${baseUrl}/indexes`);
         const res = await axios.get(`${baseUrl}/indexes`, {
-          headers: { "x-api-key": API_KEY }
+          headers: { "x-api-key": API_KEY.trim() }
         });
         
         const indexes = res.data.data || [];
         const existing = indexes.find((idx: any) => idx.index_name === indexName);
         
         if (existing) {
-          console.log(`[TwelveLabs] Index encontrado em ${version}! ID: ${existing._id}`);
+          console.log(`[TwelveLabs] Sucesso em ${version}! ID: ${existing._id}`);
           return { indexId: existing._id, version };
         }
 
@@ -43,23 +47,21 @@ export const twelveLabs = {
             { engine_name: "pegasus1", engine_options: ["visual", "conversation"] }
           ]
         }, {
-          headers: { "x-api-key": API_KEY }
+          headers: { "x-api-key": API_KEY.trim() }
         });
 
         return { indexId: createRes.data._id, version };
       } catch (err: any) {
         lastErr = err;
-        if (err.response?.status === 404) {
-          console.warn(`[TwelveLabs] Versão ${version} não disponível ou retornou 404. Tentando próxima...`);
+        console.warn(`[TwelveLabs] Falha em ${version}: Status ${err.response?.status}`);
+        if (err.response?.status === 404 || err.response?.status === 401) {
           continue;
         }
         break; 
       }
     }
     
-    const errorData = lastErr?.response?.data;
-    console.error("[TwelveLabs] Falha Final na Gestão de Index:", JSON.stringify(errorData, null, 2));
-    throw new Error(`TwelveLabs Error: ${errorData?.message || lastErr?.message || "Erro de conexão"}`);
+    throw lastErr;
   },
 
   /**

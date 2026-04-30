@@ -45,11 +45,22 @@ export async function POST(req: NextRequest) {
 
         responseText = await twelveLabs.generateContent(videoId, pegasusPrompt, version);
       } catch (err: any) {
-        console.error("[generate-news] Falha no fluxo Twelve Labs:", err.message);
-        // Fallback: Se Twelve Labs falhar, avisamos o usuário com erro detalhado
-        return NextResponse.json({ 
-          error: `Erro na análise de vídeo (Twelve Labs): ${err.message}. Verifique o tamanho do arquivo ou a conexão.` 
-        }, { status: 500 });
+        console.error("[generate-news] Falha na Twelve Labs, tentando Fallback Gemini...", err.message);
+        
+        try {
+          // Fallback: Gemini 1.5 Flash (lê vídeo também)
+          provider = "gemini-fallback-multimodal";
+          const fallbackPrompt = `Você é um editor sênior. Assista ao vídeo e crie uma matéria jornalística completa. 
+          Responda com JSON: {"titulo": "...", "subtitulo": "...", "conteudo": "..."}`;
+          
+          const result = await generateWithFallback(fallbackPrompt); // Aqui o generateWithFallback já lida com o modelo
+          responseText = result.text;
+          provider = result.provider;
+        } catch (fallbackErr: any) {
+          return NextResponse.json({ 
+            error: `Falha total no processamento de vídeo: ${err.message}. Tente novamente.` 
+          }, { status: 500 });
+        }
       }
     } else {
       // Fluxo Normal (Links/Temas)
