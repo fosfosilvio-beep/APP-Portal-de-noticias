@@ -36,9 +36,8 @@ export default function IANewsGenerator({ onGenerated, onImageGenerated, current
     try {
       let payload: any = {};
       
-      // 1. Prioridade: VÍDEO LOCAL
       if (videoFile) {
-        toast.info("Fazendo upload do vídeo para análise...");
+        toast.info("Fazendo upload do vídeo para a Twelve Labs...");
         const ext = videoFile.name.split(".").pop();
         const path = `temp_ai_videos/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
         
@@ -52,18 +51,15 @@ export default function IANewsGenerator({ onGenerated, onImageGenerated, current
         payload = { videoUrl: publicUrl };
         setProgress(40);
       } 
-      // 2. Segunda Prioridade: LINK
       else if (linkUrl.trim()) {
         payload = { linkUrl: linkUrl.trim() };
         setProgress(30);
       } 
-      // 3. Terceira Prioridade: TEMA
       else {
         payload = { prompt: topic.trim() };
         setProgress(30);
       }
 
-      // Chamada para a API Unificada
       const res = await fetch("/api/generate-news", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -90,7 +86,6 @@ export default function IANewsGenerator({ onGenerated, onImageGenerated, current
       setProgress(100);
       toast.success("IA NEWS: Matéria gerada com sucesso!");
       
-      // Limpa após sucesso
       setLinkUrl("");
       setVideoFile(null);
       setTopic("");
@@ -172,22 +167,32 @@ export default function IANewsGenerator({ onGenerated, onImageGenerated, current
         {/* 3. VÍDEO */}
         <div>
           <label className="block text-[11px] font-black text-white/40 uppercase tracking-[0.2em] mb-3 ml-1">Opção 3: Vídeo Local</label>
-          <label className={`flex items-center gap-3 p-4 border-2 border-dashed rounded-2xl cursor-pointer transition-all ${videoFile ? 'bg-red-500/10 border-red-500/50' : 'bg-white/5 border-white/10 hover:border-red-500/30'}`}>
-            <Video size={20} className={videoFile ? 'text-red-500' : 'text-white/40'} />
-            <div className="flex-1">
-              <p className="text-[11px] font-black text-white uppercase tracking-widest">
-                {videoFile ? videoFile.name : 'Selecionar Vídeo do PC'}
-              </p>
-              {!videoFile && <p className="text-[9px] text-white/20 font-bold uppercase tracking-widest">MP4, MOV, AVI</p>}
-            </div>
-            {videoFile && <RefreshCw size={14} className="text-white/40" onClick={(e) => { e.preventDefault(); setVideoFile(null); }} />}
-            <input 
-              type="file" 
-              accept="video/*" 
-              className="hidden" 
-              onChange={(e) => setVideoFile(e.target.files?.[0] || null)}
-            />
-          </label>
+          <div className="relative">
+            <label className={`flex items-center gap-3 p-4 border-2 border-dashed rounded-2xl cursor-pointer transition-all ${videoFile ? 'bg-red-500/10 border-red-500/50' : 'bg-white/5 border-white/10 hover:border-red-500/30'}`}>
+              <Video size={20} className={videoFile ? 'text-red-500' : 'text-white/40'} />
+              <div className="flex-1">
+                <p className="text-[11px] font-black text-white uppercase tracking-widest">
+                  {videoFile ? videoFile.name : 'Selecionar Vídeo do PC'}
+                </p>
+                {!videoFile && <p className="text-[9px] text-white/20 font-bold uppercase tracking-widest">MP4, MOV, AVI</p>}
+              </div>
+              <input 
+                type="file" 
+                accept="video/*" 
+                className="hidden" 
+                onChange={(e) => setVideoFile(e.target.files?.[0] || null)}
+              />
+            </label>
+
+            {loading && videoFile && (
+              <div className="absolute inset-0 bg-black/90 backdrop-blur-md rounded-2xl flex flex-col items-center justify-center p-4 z-20">
+                <Loader2 size={24} className="animate-spin text-red-500 mb-2" />
+                <p className="text-[9px] font-black text-white uppercase tracking-widest text-center animate-pulse">
+                  Twelve Labs analisando as cenas...
+                </p>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* BOTÃO ÚNICO MESTRE */}
