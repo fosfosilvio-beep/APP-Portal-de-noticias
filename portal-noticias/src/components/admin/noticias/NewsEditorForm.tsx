@@ -137,12 +137,16 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
     }
     if (colRes.data) setColunistas(colRes.data);
     if (catRes.data) {
+      const allowedNames = ["Geral", "Arapongas", "Esportes", "Polícia", "Policia", "Economia", "Política", "Politica", "Entretenimento"];
+      
       const defaultCats = [
         { id: "geral", nome: "Geral" },
-        { id: "entretenimento", nome: "Entretenimento" },
-        { id: "educacao", nome: "Educação" },
-        { id: "saude", nome: "Saúde" },
-        { id: "esportes", nome: "Esportes" }
+        { id: "arapongas", nome: "Arapongas" },
+        { id: "esportes", nome: "Esportes" },
+        { id: "policia", nome: "Polícia" },
+        { id: "economia", nome: "Economia" },
+        { id: "politica", nome: "Política" },
+        { id: "entretenimento", nome: "Entretenimento" }
       ];
       
       const merged = [...catRes.data];
@@ -151,7 +155,13 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
           merged.push(d);
         }
       });
-      setCategorias(merged);
+
+      // Filtro final rigoroso
+      const finalFiltered = merged.filter(c => 
+        allowedNames.some(a => a.toLowerCase() === c.nome.toLowerCase())
+      );
+
+      setCategorias(finalFiltered);
     }
   };
 

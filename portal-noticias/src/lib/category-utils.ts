@@ -1,12 +1,11 @@
 export const categoryMap: Record<string, string> = {
-  "Politica": "Política",
-  "Educacao": "Educação",
-  "Saude": "Saúde",
-  "Policia": "Polícia",
-  "Entretenimento": "Entretenimento",
-  "Esportes": "Esportes",
   "Geral": "Geral",
   "Arapongas": "Arapongas",
+  "Esportes": "Esportes",
+  "Policia": "Polícia",
+  "Economia": "Economia",
+  "Politica": "Política",
+  "Entretenimento": "Entretenimento",
 };
 
 /**
