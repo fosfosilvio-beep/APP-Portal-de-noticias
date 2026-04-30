@@ -2,7 +2,7 @@ import axios from "axios";
 import FormData from "form-data";
 
 const API_KEY = process.env.TWELVE_LABS_API_KEY;
-const VERSIONS = ["v1.2", "v1.1", "v1"];
+const VERSIONS = ["v1", "v1.2", "v1.1"];
 
 /**
  * Módulo de Integração Twelve Labs (Pegasus-1)
@@ -17,7 +17,7 @@ export const twelveLabs = {
       throw new Error("TWELVE_LABS_API_KEY não encontrada no ambiente .env. Cadastre na Vercel.");
     }
 
-    // Log de segurança para conferência (primeiros/últimos caracteres)
+    // Log de segurança para conferência
     const maskedKey = `${API_KEY.substring(0, 4)}...${API_KEY.substring(API_KEY.length - 4)}`;
     console.log(`[TwelveLabs] Iniciando com chave: ${maskedKey}`);
 
@@ -43,8 +43,8 @@ export const twelveLabs = {
         const createRes = await axios.post(`${baseUrl}/indexes`, {
           index_name: indexName,
           engines: [
-            { engine_name: "marengo2.6", engine_options: ["visual", "conversation"] },
-            { engine_name: "pegasus1", engine_options: ["visual", "conversation"] }
+            { engine_name: "marengo-2.6", engine_options: ["visual", "conversation"] },
+            { engine_name: "pegasus-1", engine_options: ["visual", "conversation"] }
           ]
         }, {
           headers: { "x-api-key": API_KEY.trim() }
@@ -70,7 +70,7 @@ export const twelveLabs = {
    * @param videoBuffer Buffer do vídeo baixado
    * @param fileName Nome do arquivo
    */
-  async submitTaskDirect(indexId: string, videoBuffer: Buffer, fileName: string, version = "v1.2") {
+  async submitTaskDirect(indexId: string, videoBuffer: Buffer, fileName: string, version = "v1") {
     const baseUrl = `https://api.twelvelabs.io/${version}`;
     try {
       console.log(`[TwelveLabs] Upload direto (${version}) para Index: ${indexId}`);
@@ -96,7 +96,7 @@ export const twelveLabs = {
   /**
    * Aguarda a conclusão da indexação (Polling).
    */
-  async waitForTask(taskId: string, version = "v1.2") {
+  async waitForTask(taskId: string, version = "v1") {
     const baseUrl = `https://api.twelvelabs.io/${version}`;
     let status = "pending";
     
@@ -119,7 +119,7 @@ export const twelveLabs = {
   /**
    * Gera o conteúdo jornalístico usando Pegasus.
    */
-  async generateContent(videoId: string, prompt: string, version = "v1.2") {
+  async generateContent(videoId: string, prompt: string, version = "v1") {
     const baseUrl = `https://api.twelvelabs.io/${version}`;
     try {
       console.log(`[TwelveLabs] Pegasus (${version}) para VideoID: ${videoId}`);
