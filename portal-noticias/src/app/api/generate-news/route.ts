@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateWithFallback } from "@/lib/ai-provider";
+import { generateWithFallback, analyzeVideo } from "@/lib/ai-provider";
+import fs from "fs";
+import path from "path";
+import os from "os";
+
+export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
   try {
@@ -24,12 +29,10 @@ export async function POST(req: NextRequest) {
         });
         const html = await response.text();
         
-        // Tenta extrair das tags Meta (mais estável para Instagram/YouTube)
         const ogDesc = html.match(/<meta[^>]*property=["']og:description["'][^>]*content=["']([^"']*)["']/i)?.[1] ||
                        html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']*)["']/i)?.[1] ||
                        html.match(/<title>([^<]*)<\/title>/i)?.[1];
 
-        // Limpeza básica de HTML para extrair texto
         const bodyText = html
           .replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gim, "")
           .replace(/<style\b[^>]*>([\s\S]*?)<\/style>/gim, "")
@@ -38,14 +41,11 @@ export async function POST(req: NextRequest) {
           .trim();
 
         linkContext = `DESCRICAO OG: ${ogDesc || 'N/A'}\n\nCONTEUDO: ${bodyText.slice(0, 8000)}`;
-          
-        console.log(`[generate-news] Metadados extraídos. Descrição OG encontrada: ${!!ogDesc}`);
       } catch (err) {
         console.error("[generate-news] Erro ao ler link:", err);
       }
     }
 
-    // Define o modo: reescrita, link, vídeo ou geração nova
     const isVideo = !!videoUrl;
     const isLink = !!linkUrl;
     const isRewrite = !!content;
@@ -83,33 +83,46 @@ REGRAS:
 
 ${userRequest}`;
 
-    // ── Motor com fallback automático: OpenRouter → Gemini ──────────────────
-    const { text: responseText, provider } = await generateWithFallback(fullPrompt);
+    let responseText = "";
+    let provider = "";
 
-    // [CORREÇÃO CRÍTICA] Sanitização e Verificação de Erro de Acesso
-    if (responseText.includes("[ERRO: CONTEÚDO INACESSÍVEL]")) {
-      return NextResponse.json(
-        { error: "O conteúdo deste link está protegido ou inacessível no momento." },
-        { status: 403 }
-      );
+    if (isVideo) {
+      const response = await fetch(videoUrl);
+      if (!response.ok) throw new Error("Falha ao baixar vídeo para análise.");
+      const buffer = Buffer.from(await response.arrayBuffer());
+      const tempFilePath = path.join(os.tmpdir(), `ai-video-${Date.now()}.mp4`);
+      fs.writeFileSync(tempFilePath, buffer);
+      
+      const result = await analyzeVideo(tempFilePath, "video/mp4", fullPrompt);
+      responseText = result.text;
+      provider = result.provider;
+      
+      try { fs.unlinkSync(tempFilePath); } catch (e) {}
+    } else {
+      const result = await generateWithFallback(fullPrompt);
+      responseText = result.text;
+      provider = result.provider;
     }
 
-    // Limpa resíduos e sanitiza caracteres que quebram JSON
+    if (responseText.includes("[ERRO: CONTEÚDO INACESSÍVEL]")) {
+      return NextResponse.json({ error: "O conteúdo deste link está inacessível." }, { status: 403 });
+    }
+
     const cleaned = responseText
-      .replace(/^```(?:json)?\s*/i, "")
-      .replace(/```\s*$/i, "")
+      .replace(/```json/gi, "")
+      .replace(/```/g, "")
+      .replace(/^[^{]*/, "") // Remove qualquer texto antes do primeiro {
+      .replace(/[^}]*$/, "") // Remove qualquer texto depois do último }
       .replace(/[\u0000-\u001F\u007F-\u009F]/g, "") // Remove caracteres de controle
       .trim();
 
-    let parsed: Record<string, string>;
     try {
-      parsed = JSON.parse(cleaned);
-    } catch {
-      console.error(`[generate-news] Falha no parse JSON (provider: ${provider}):`, responseText);
-      return NextResponse.json(
-        { error: "A IA retornou uma resposta em formato inesperado. Tente novamente." },
-        { status: 500 }
-      );
+      const parsed = JSON.parse(cleaned);
+      if (!parsed.titulo || !parsed.conteudo) throw new Error("JSON incompleto");
+      return NextResponse.json({ ...parsed, _provider: provider });
+    } catch (err) {
+      console.error(`[generate-news] Falha no parse JSON (provider: ${provider}):`, cleaned);
+      return NextResponse.json({ error: "Erro de estrutura da IA. Tente novamente." }, { status: 500 });
     }
 
     if (!parsed.titulo || !parsed.conteudo) {
