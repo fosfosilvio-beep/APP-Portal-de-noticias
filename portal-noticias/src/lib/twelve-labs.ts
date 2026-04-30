@@ -28,12 +28,12 @@ export const twelveLabs = {
         return existing._id;
       }
 
-      console.log(`[TwelveLabs] Index não encontrado. Criando 'Portal_NossaWeb'...`);
+      console.log(`[TwelveLabs] Criando novo Index: ${indexName} com pegasus-1 e marengo-2.6`);
       const createRes = await axios.post(`${BASE_URL}/indexes`, {
         index_name: indexName,
         engines: [
-          { engine_name: "marengo2.6", engine_options: ["visual", "conversation"] },
-          { engine_name: "pegasus1", engine_options: ["visual", "conversation"] }
+          { engine_name: "marengo-2.6", engine_options: ["visual", "conversation"] },
+          { engine_name: "pegasus-1", engine_options: ["visual", "conversation"] }
         ]
       }, {
         headers: { "x-api-key": API_KEY }
@@ -43,8 +43,9 @@ export const twelveLabs = {
       console.log(`[TwelveLabs] Index criado com sucesso! ID: ${newId}`);
       return newId;
     } catch (err: any) {
-      console.error("[TwelveLabs] Falha na gestão de Index:", err.response?.data || err.message);
-      throw new Error(`TwelveLabs Config Error: ${JSON.stringify(err.response?.data || err.message)}`);
+      const errorData = err.response?.data;
+      console.error("[TwelveLabs] Falha na gestão de Index (RESPOSTA API):", JSON.stringify(errorData, null, 2));
+      throw new Error(`TwelveLabs Config Error: ${errorData?.message || err.message}`);
     }
   },
 
@@ -72,8 +73,9 @@ export const twelveLabs = {
       console.log(`[TwelveLabs] Task de upload criada ID: ${res.data._id}`);
       return res.data._id;
     } catch (err: any) {
-      console.error("[TwelveLabs] Erro Task Upload (CRÍTICO):", err.response?.data || err.message);
-      throw new Error(`Erro na Twelve Labs (Upload): ${JSON.stringify(err.response?.data || err.message)}`);
+      const errorData = err.response?.data;
+      console.error("[TwelveLabs] Erro Task Upload (RESPOSTA API):", JSON.stringify(errorData, null, 2));
+      throw new Error(`Erro no Upload Twelve Labs: ${errorData?.message || err.message}`);
     }
   },
 
