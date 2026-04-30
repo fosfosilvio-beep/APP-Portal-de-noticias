@@ -10,7 +10,7 @@ import { useEffect, useState } from "react";
 import { User, LogOut, Menu, X, ChevronRight, Headset } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { normalizeCategory } from "../lib/category-utils";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useLiveStatus } from "../hooks/useLiveStatus";
 import BreakingNewsMarquee from "./BreakingNewsMarquee";
 
@@ -30,6 +30,7 @@ export default function Header({
   showNavigation = true,
 }: HeaderProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const { ui } = useSettingsStore();
   const { status: liveStatus } = useLiveStatus();
   
@@ -64,24 +65,19 @@ export default function Header({
   const activeIsLive = liveStatus?.is_live ?? false;
 
   const handleCategoryClick = (cat: string) => {
-    if (cat === "Início") {
-      if (setCategoriaAtiva) {
-        setCategoriaAtiva("Início");
-        window.history.pushState({}, '', '/');
-        window.scrollTo(0, 0);
-      } else {
-        router.push("/");
-      }
+    const isInicio = cat === "Início" || cat === "inicio";
+    const targetPath = isInicio ? "/" : `/${normalizeCategory(cat)}`;
+
+    // Se estivermos na Home, usamos o filtro de estado para não recarregar
+    if (pathname === "/" && setCategoriaAtiva) {
+      setCategoriaAtiva(isInicio ? "Início" : cat);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       setIsMobileMenuOpen(false);
       return;
     }
-    
-    if (setCategoriaAtiva) {
-      setCategoriaAtiva(cat);
-      window.scrollTo(0, 0);
-    } else {
-      router.push(`/${normalizeCategory(cat)}`);
-    }
+
+    // Caso contrário (estamos em /noticia/... ou outra página), navegamos para a rota absoluta
+    router.push(targetPath);
     setIsMobileMenuOpen(false);
   };
 
@@ -198,17 +194,32 @@ export default function Header({
         {showNavigation && (
           <nav className="hidden lg:flex bg-zinc-950 border-b border-zinc-800/80 w-full overflow-x-auto">
             <div className="container mx-auto px-4 lg:px-8 flex items-center">
-              {categorias.map((cat) => (
-                <button
-                  key={cat.id || cat.nome}
-                  onClick={() => handleCategoryClick(cat.nome)}
-                  className={`text-[10px] font-black uppercase tracking-widest px-4 py-3 whitespace-nowrap ${
-                    categoriaAtiva === cat.nome ? "text-white border-b-2 border-cyan-400" : "text-zinc-500 hover:text-zinc-200"
-                  }`}
-                >
-                  {cat.nome}
-                </button>
-              ))}
+              {categorias.map((cat) => {
+                const isInicio = cat.nome === "Início";
+                const slug = normalizeCategory(cat.nome);
+                const href = isInicio ? "/" : `/${slug}`;
+                const isActive = categoriaAtiva === cat.nome || (pathname === href) || (isInicio && pathname === "/");
+
+                return (
+                  <Link
+                    key={cat.id || cat.nome}
+                    href={href}
+                    onClick={(e) => {
+                      if (pathname === "/" && setCategoriaAtiva) {
+                        e.preventDefault();
+                        handleCategoryClick(cat.nome);
+                      }
+                    }}
+                    className={`text-[10px] font-black uppercase tracking-widest px-4 py-3 whitespace-nowrap transition-all border-b-2 ${
+                      isActive 
+                        ? "text-white border-cyan-400 bg-white/5" 
+                        : "text-zinc-500 border-transparent hover:text-zinc-200 hover:border-zinc-700"
+                    }`}
+                  >
+                    {cat.nome}
+                  </Link>
+                );
+              })}
             </div>
           </nav>
         )}
@@ -221,20 +232,31 @@ export default function Header({
         <div className="fixed inset-0 z-[100] bg-black/95 flex flex-col p-8 animate-in fade-in duration-300">
           <button onClick={() => setIsMobileMenuOpen(false)} className="absolute top-6 right-6 text-white"><X size={32} /></button>
           <div className="flex flex-col gap-6 mt-12 overflow-y-auto max-h-[70vh] pr-4">
-            {categorias.map((cat) => (
-              <button 
-                key={cat.id || cat.nome} 
-                onClick={() => {
-                  handleCategoryClick(cat.nome);
-                  setIsMobileMenuOpen(false);
-                }} 
-                className={`text-2xl font-black uppercase tracking-tighter text-left border-b border-white/10 pb-4 ${
-                  categoriaAtiva === cat.nome ? "text-cyan-400" : "text-white"
-                }`}
-              >
-                {cat.nome}
-              </button>
-            ))}
+            {categorias.map((cat) => {
+              const isInicio = cat.nome === "Início";
+              const slug = normalizeCategory(cat.nome);
+              const href = isInicio ? "/" : `/${slug}`;
+              const isActive = categoriaAtiva === cat.nome || (pathname === href) || (isInicio && pathname === "/");
+
+              return (
+                <Link 
+                  key={cat.id || cat.nome} 
+                  href={href}
+                  onClick={(e) => {
+                    if (pathname === "/" && setCategoriaAtiva) {
+                      e.preventDefault();
+                      handleCategoryClick(cat.nome);
+                    }
+                    setIsMobileMenuOpen(false);
+                  }} 
+                  className={`text-2xl font-black uppercase tracking-tighter text-left border-b border-white/10 pb-4 transition-colors ${
+                    isActive ? "text-cyan-400" : "text-white"
+                  }`}
+                >
+                  {cat.nome}
+                </Link>
+              );
+            })}
           </div>
         </div>
       )}
