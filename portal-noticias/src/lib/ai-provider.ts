@@ -28,26 +28,37 @@ export async function analyzeVideo(
       displayName: "Análise Multimodal IA NEWS",
     });
 
-    console.log(`[ai-provider] Vídeo carregado: ${uploadResult.file.uri}. Analisando com 1.5 Pro (v1beta)...`);
+    // Ordem de tentativa para vídeo em v1beta: Pro Latest -> Pro 002 -> Flash Latest
+    const videoModels = ["gemini-1.5-pro-latest", "gemini-1.5-pro-002", "gemini-1.5-flash-latest"];
+    let lastError = null;
 
-    // Usamos gemini-1.5-pro para análise multimodal por ser mais estável em v1beta com fileData
-    const model = genAI.getGenerativeModel(
-      { model: "gemini-1.5-pro" },
-      { apiVersion: 'v1beta' }
-    );
-    
-    const result = await model.generateContent([
-      {
-        fileData: {
-          mimeType: uploadResult.file.mimeType,
-          fileUri: uploadResult.file.uri,
-        },
-      },
-      { text: prompt },
-    ]);
+    for (const modelName of videoModels) {
+      try {
+        console.log(`[ai-provider] Tentando análise com ${modelName} (v1beta)...`);
+        const model = genAI.getGenerativeModel({ model: modelName }, { apiVersion: 'v1beta' });
+        
+        const result = await model.generateContent([
+          {
+            fileData: {
+              mimeType: uploadResult.file.mimeType,
+              fileUri: uploadResult.file.uri,
+            },
+          },
+          { text: prompt },
+        ]);
 
-    const text = result.response.text();
-    return { text, provider: "gemini" };
+        const text = result.response.text();
+        return { text, provider: "gemini" };
+      } catch (err: any) {
+        lastError = err;
+        if (err.message?.includes("404") || err.message?.includes("not found")) {
+          console.warn(`[ai-provider] Modelo ${modelName} indisponível. Tentando próximo...`);
+          continue;
+        }
+        break; // Se for outro erro (como quota), interrompe e joga para o catch externo
+      }
+    }
+    throw lastError;
   } catch (err: any) {
     console.error("[ai-provider] Falha Crítica na File API (v1beta):", err);
     throw new Error(`IA Error (v1beta): ${err.message || "Falha na análise do vídeo"}`);
@@ -66,8 +77,8 @@ export async function generateWithFallback(
 
   if (geminiKey) {
     const genAI = new GoogleGenerativeAI(geminiKey);
-    // Tentamos versões estáveis do flash primeiro
-    const models = ["gemini-1.5-flash-latest", "gemini-1.5-flash", "gemini-1.5-pro"];
+    // Tentamos aliases 'latest' para garantir compatibilidade em v1beta
+    const models = ["gemini-1.5-flash-latest", "gemini-1.5-pro-latest", "gemini-1.5-flash", "gemini-1.5-pro"];
 
     for (const modelName of models) {
       try {
@@ -81,7 +92,7 @@ export async function generateWithFallback(
           console.warn(`[ai-provider] Limite atingido em ${modelName}.`);
           continue;
         }
-        if (err.message?.includes("404")) {
+        if (err.message?.includes("404") || err.message?.includes("not found")) {
           console.warn(`[ai-provider] Modelo ${modelName} não encontrado em v1beta. Pulando...`);
           continue;
         }
