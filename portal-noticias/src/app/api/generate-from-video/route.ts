@@ -27,10 +27,16 @@ export async function POST(req: NextRequest) {
 
     console.log(`[API Video] Arquivo salvo temporariamente em: ${tempFilePath}`);
 
-    const prompt = `Assista a este vídeo local e crie uma matéria jornalística completa para o portal Nossa Web TV.
-      Mantenha os fatos, mude a estrutura e o vocabulário para garantir originalidade.
+    const prompt = `Você é um Jornalista Sênior do portal Nossa Web TV. 
+      ASSISTA a este vídeo local integralmente (imagens e áudio).
+      CRIE uma matéria jornalística profunda, profissional e completa.
+      REGRAS: 
+      1. ORIGINALIDADE: Mude a estrutura e vocabulário para evitar plágio.
+      2. Título chamativo e SEO.
+      3. Subtítulo (Lead) impactante.
+      4. Conteúdo fluido com parágrafos bem estruturados.
       Responda OBRIGATORIAMENTE com um JSON válido contendo EXATAMENTE estas 3 chaves: "titulo", "subtitulo" e "conteudo".
-      Não inclua textos adicionais ou blocos de código markdown.`;
+      Não inclua textos adicionais fora do JSON.`;
 
     const { text } = await analyzeVideo(tempFilePath, file.type, prompt);
 
