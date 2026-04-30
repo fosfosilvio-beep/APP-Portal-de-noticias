@@ -24,8 +24,8 @@ export async function POST(req: NextRequest) {
       console.log(`[generate-news] Iniciando Fluxo Direto Twelve Labs para: ${videoUrl}`);
       provider = "twelve-labs-pegasus";
       try {
-        // 1. Garantir Index (Auto-Index Dinâmico)
-        const indexId = await twelveLabs.getOrCreateIndex("Portal_NossaWeb");
+        // 1. Garantir Index (Auto-Index Dinâmico com detecção de versão)
+        const { indexId, version } = await twelveLabs.getOrCreateIndex("Portal_NossaWeb");
         
         // 2. Baixar o vídeo do Supabase para Buffer (para upload direto)
         console.log(`[generate-news] Baixando vídeo do Supabase...`);
@@ -33,17 +33,17 @@ export async function POST(req: NextRequest) {
         const videoBuffer = Buffer.from(videoRes.data);
         
         // 3. Upload Direto (Multipart/Form-Data)
-        const taskId = await twelveLabs.submitTaskDirect(indexId, videoBuffer, "noticia-video.mp4");
+        const taskId = await twelveLabs.submitTaskDirect(indexId, videoBuffer, "noticia-video.mp4", version);
         
         // 4. Aguardar Indexação (Polling)
-        const videoId = await twelveLabs.waitForTask(taskId);
+        const videoId = await twelveLabs.waitForTask(taskId, version);
         
         // 5. Geração Pegasus
         const pegasusPrompt = `Você é um editor sênior da Nossa Web TV. Assista a este vídeo e escreva uma matéria jornalística completa. 
         Retorne obrigatoriamente um JSON puro com os campos: "titulo", "subtitulo" e "corpo_materia". 
         Use um tom profissional e informativo. Não inclua textos fora do JSON.`;
 
-        responseText = await twelveLabs.generateContent(videoId, pegasusPrompt);
+        responseText = await twelveLabs.generateContent(videoId, pegasusPrompt, version);
       } catch (err: any) {
         console.error("[generate-news] Falha no fluxo Twelve Labs:", err.message);
         // Fallback: Se Twelve Labs falhar, avisamos o usuário com erro detalhado
