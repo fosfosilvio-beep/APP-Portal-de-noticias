@@ -28,11 +28,11 @@ export async function analyzeVideo(
       displayName: "Análise Multimodal IA NEWS",
     });
 
-    console.log(`[ai-provider] Vídeo carregado: ${uploadResult.file.uri}. Analisando com 1.5 Flash (v1beta)...`);
+    console.log(`[ai-provider] Vídeo carregado: ${uploadResult.file.uri}. Analisando com 1.5 Pro (v1beta)...`);
 
-    // Mudança para v1beta para suportar fileData corretamente
+    // Usamos gemini-1.5-pro para análise multimodal por ser mais estável em v1beta com fileData
     const model = genAI.getGenerativeModel(
-      { model: "gemini-1.5-flash" },
+      { model: "gemini-1.5-pro" },
       { apiVersion: 'v1beta' }
     );
     
@@ -66,8 +66,8 @@ export async function generateWithFallback(
 
   if (geminiKey) {
     const genAI = new GoogleGenerativeAI(geminiKey);
-    // Usamos v1beta aqui também para consistência
-    const models = ["gemini-1.5-flash", "gemini-1.5-pro"];
+    // Tentamos versões estáveis do flash primeiro
+    const models = ["gemini-1.5-flash-latest", "gemini-1.5-flash", "gemini-1.5-pro"];
 
     for (const modelName of models) {
       try {
@@ -79,6 +79,10 @@ export async function generateWithFallback(
       } catch (err: any) {
         if (err.message?.includes("429") || err.message?.includes("quota")) {
           console.warn(`[ai-provider] Limite atingido em ${modelName}.`);
+          continue;
+        }
+        if (err.message?.includes("404")) {
+          console.warn(`[ai-provider] Modelo ${modelName} não encontrado em v1beta. Pulando...`);
           continue;
         }
       }
