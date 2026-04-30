@@ -124,16 +124,6 @@ ${userRequest}`;
       console.error(`[generate-news] Falha no parse JSON (provider: ${provider}):`, cleaned);
       return NextResponse.json({ error: "Erro de estrutura da IA. Tente novamente." }, { status: 500 });
     }
-
-    if (!parsed.titulo || !parsed.conteudo) {
-      return NextResponse.json(
-        { error: "Estrutura JSON inválida retornada pela IA." },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json({ ...parsed, _provider: provider });
-
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Erro interno do servidor.";
     console.error("[generate-news] Erro geral:", error);
