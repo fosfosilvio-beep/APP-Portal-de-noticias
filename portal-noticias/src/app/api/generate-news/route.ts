@@ -58,9 +58,9 @@ export async function POST(req: NextRequest) {
           responseText = result.text;
           provider = `gemini-multimodal-fallback`;
         } catch (fallbackErr: any) {
-          console.error("[generate-news] Falha total no processamento de vídeo:", fallbackErr.message);
+          console.error("[generate-news] Falha total no processamento de vídeo (Twelve Labs + Gemini):", fallbackErr.message);
           return NextResponse.json({ 
-            error: `Não foi possível analisar o vídeo. (Erro: ${err.message})` 
+            error: `Não foi possível analisar o vídeo. (Detalhe Gemini: ${fallbackErr.message})` 
           }, { status: 500 });
         } finally {
           if (fs.existsSync(tempPath)) fs.unlinkSync(tempPath);
