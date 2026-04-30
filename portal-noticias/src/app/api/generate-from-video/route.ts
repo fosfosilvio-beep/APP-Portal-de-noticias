@@ -4,28 +4,41 @@ import fs from "fs";
 import path from "path";
 import os from "os";
 
-export const config = {
-  api: {
-    bodyParser: false, // Necessário para multipart/form-data
-  },
-};
+export const maxDuration = 60; // Aumenta o tempo para a IA "assistir" ao vídeo
 
 export async function POST(req: NextRequest) {
   try {
-    const formData = await req.formData();
-    const file = formData.get("video") as File;
+    let videoUrl = "";
+    let fileType = "video/mp4";
+    let tempFilePath = "";
 
-    if (!file) {
-      return NextResponse.json({ error: "Nenhum arquivo de vídeo enviado." }, { status: 400 });
+    // Tenta detectar se é um upload direto ou uma URL do Supabase
+    const contentType = req.headers.get("content-type") || "";
+    
+    if (contentType.includes("multipart/form-data")) {
+      const formData = await req.formData();
+      const file = formData.get("video") as File;
+      if (!file) throw new Error("Nenhum arquivo de vídeo enviado.");
+      
+      const buffer = Buffer.from(await file.arrayBuffer());
+      tempFilePath = path.join(os.tmpdir(), `upload-${Date.now()}-${file.name}`);
+      fs.writeFileSync(tempFilePath, buffer);
+      fileType = file.type;
+    } else {
+      const body = await req.json();
+      videoUrl = body.videoUrl;
+      if (!videoUrl) throw new Error("Nenhum vídeo ou URL fornecido.");
     }
 
-    // Salva temporariamente no disco para o Google AI File Manager
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const tempDir = os.tmpdir();
-    const tempFilePath = path.join(tempDir, `upload-${Date.now()}-${file.name}`);
-    fs.writeFileSync(tempFilePath, buffer);
-
-    console.log(`[API Video] Arquivo salvo temporariamente em: ${tempFilePath}`);
+    // Se recebemos uma URL, precisamos baixar o arquivo para o disco temporário para a File API
+    if (videoUrl && !tempFilePath) {
+      console.log(`[API Video] Baixando vídeo da URL: ${videoUrl}`);
+      const response = await fetch(videoUrl);
+      if (!response.ok) throw new Error("Falha ao baixar vídeo da URL.");
+      const buffer = Buffer.from(await response.arrayBuffer());
+      tempFilePath = path.join(os.tmpdir(), `download-${Date.now()}.mp4`);
+      fs.writeFileSync(tempFilePath, buffer);
+    }
 
     const prompt = `Você é um Jornalista Sênior do portal Nossa Web TV. 
       ASSISTA a este vídeo local integralmente (imagens e áudio).
@@ -38,7 +51,7 @@ export async function POST(req: NextRequest) {
       Responda OBRIGATORIAMENTE com um JSON válido contendo EXATAMENTE estas 3 chaves: "titulo", "subtitulo" e "conteudo".
       Não inclua textos adicionais fora do JSON.`;
 
-    const { text } = await analyzeVideo(tempFilePath, file.type, prompt);
+    const { text } = await analyzeVideo(tempFilePath, fileType, prompt);
 
     // Limpeza rigorosa do JSON
     const cleaned = text

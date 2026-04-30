@@ -129,13 +129,23 @@ export default function IANewsGenerator({ onGenerated, onImageGenerated, current
     setProgress(0);
 
     try {
-      const formData = new FormData();
-      formData.append("video", file);
+      // 1. Upload para Supabase Storage (evita limite de 4.5MB da Vercel)
+      const ext = file.name.split(".").pop();
+      const path = `temp_ai_videos/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("media")
+        .upload(path, file);
 
-      // Usamos a nova rota de vídeo especializada
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage.from("media").getPublicUrl(path);
+
+      // 2. Chamada para a API via JSON (URL em vez de arquivo gigante)
       const res = await fetch("/api/generate-from-video", {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ videoUrl: publicUrl }),
       });
 
       const data = await res.json();
