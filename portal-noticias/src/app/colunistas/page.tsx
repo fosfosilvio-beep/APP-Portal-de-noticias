@@ -31,7 +31,6 @@ export default function ColunistasPage() {
 
   return (
     <main className="min-h-screen bg-[#F8FAFC]">
-      <Header />
       
       <div className="max-w-7xl mx-auto px-4 py-12">
         <header className="mb-12 text-center space-y-4">

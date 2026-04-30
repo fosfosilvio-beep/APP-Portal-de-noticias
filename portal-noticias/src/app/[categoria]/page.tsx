@@ -5,8 +5,8 @@ import BreakingNewsMarquee from "@/components/BreakingNewsMarquee";
 
 export const dynamic = "force-dynamic";
 
-export default async function CategoryPage({ params }: { params: { categoria: string } }) {
-  const { categoria: slug } = params;
+export default async function CategoryPage({ params }: { params: Promise<{ categoria: string }> }) {
+  const { categoria: slug } = await params;
   const supabase = await createClient();
 
   if (!supabase) {
@@ -24,7 +24,8 @@ export default async function CategoryPage({ params }: { params: { categoria: st
   const { data: configData } = await supabase
     .from("configuracao_portal")
     .select("*")
-    .single();
+    .eq("id", 1)
+    .maybeSingle();
 
   // 2. Fetch news for this category
   // Normalizamos o slug para busca robusta removendo acentos do termo de busca 
@@ -43,11 +44,12 @@ export default async function CategoryPage({ params }: { params: { categoria: st
 
   return (
     <div className="min-h-screen bg-white">
-      {configData?.ui_settings?.breaking_news_alert?.active && (
+      {configData?.alerta_urgente_ativo && (
         <BreakingNewsMarquee 
-          text={configData.ui_settings.breaking_news_alert.text}
-          speed={configData.ui_settings.breaking_news_alert.speed}
-          visible={true}
+          text={configData.alerta_urgente_texto || ""}
+          speed={configData.ticker_speed || "normal"}
+          fontSize={configData.ticker_font_size || 14}
+          textColor={configData.ticker_font_color || "#ffffff"}
         />
       )}
 

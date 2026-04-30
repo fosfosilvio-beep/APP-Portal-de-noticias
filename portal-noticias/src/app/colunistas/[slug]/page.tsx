@@ -75,7 +75,6 @@ export default function ColunistaProfilePage({ params }: { params: Promise<{ slu
 
   return (
     <main className="min-h-screen bg-[#F8FAFC]">
-      <Header />
       
       {/* Bio Section */}
       <div className="bg-white border-b border-slate-100">

@@ -5,7 +5,6 @@ import { supabase } from "@/lib/supabase";
 import { Send, Upload, Camera, MapPin, CheckCircle2, User, Phone, Megaphone } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 export default function VoceNoPortalPage() {
@@ -68,7 +67,6 @@ export default function VoceNoPortalPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
-      <Header />
       
       <main className="flex-1 flex flex-col items-center justify-center py-12 px-4">
         <div className="w-full max-w-2xl bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden relative">

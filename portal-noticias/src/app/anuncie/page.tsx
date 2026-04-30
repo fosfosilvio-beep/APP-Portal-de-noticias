@@ -1,16 +1,18 @@
 "use client";
 
-import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useEffect, useState } from "react";
+import { useNavigationStore } from "@/store/navigationStore";
 import { supabase } from "@/lib/supabase";
 import { BarChart3, Users, LayoutTemplate, TrendingUp, Smartphone, MousePointerClick, MessageCircle } from "lucide-react";
 
 export default function MidiaKitPage() {
+  const { setShowNavigation } = useNavigationStore();
   const [config, setConfig] = useState<any>(null);
   const whatsappNumber = "5543999999999"; // Replace with real or fetch from config
 
   useEffect(() => {
+    setShowNavigation(true);
     const fetchConfig = async () => {
       const { data } = await supabase.from("configuracao_portal").select("*").limit(1).single();
       if (data) setConfig(data);
@@ -25,8 +27,6 @@ export default function MidiaKitPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
-      <Header config={config} />
-
       <main className="flex-grow">
         {/* HERO SECTION */}
         <section className="bg-slate-900 text-white pt-24 pb-32 px-4 relative overflow-hidden">

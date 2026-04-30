@@ -3,11 +3,11 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import Header from "@/components/Header";
 import { ChevronLeft, Loader2, BookOpen } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { getPublicUrl } from "@/components/FallbackImage";
+import { useNavigationStore } from "@/store/navigationStore";
 
 const FlipbookViewer = dynamic(() => import("@/components/edicoes/FlipbookViewer"), {
   ssr: false,
@@ -24,11 +24,15 @@ export default function EdicaoDigitalPage() {
   const router = useRouter();
   const id = params?.id as string;
   
+  const { setShowNavigation } = useNavigationStore();
+  
   const [edicao, setEdicao] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setShowNavigation(false);
     if (id) fetchEdicao();
+    return () => setShowNavigation(true);
   }, [id]);
 
   async function fetchEdicao() {
@@ -49,7 +53,6 @@ export default function EdicaoDigitalPage() {
   if (loading) {
     return (
       <main className="min-h-screen bg-slate-50">
-        <Header showNavigation={false} />
         <div className="flex justify-center items-center h-[70vh]">
           <Loader2 className="animate-spin text-blue-600" size={48} />
         </div>
@@ -61,8 +64,6 @@ export default function EdicaoDigitalPage() {
 
   return (
     <main className="min-h-screen bg-slate-50 selection:bg-blue-200 flex flex-col">
-      <Header showNavigation={false} />
-
       <div className="container mx-auto px-4 lg:px-8 py-8 flex-grow">
         <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>

@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { useNavigationStore } from "@/store/navigationStore";
 import { PlaySquare, ChevronLeft, Loader2, X } from "lucide-react";
 import Link from "next/link";
 import { getPublicUrl } from "@/components/FallbackImage";
@@ -16,8 +16,12 @@ export default function VideosPage() {
   const [loading, setLoading] = useState(true);
   const [activeVideo, setActiveVideo] = useState<any>(null);
 
+  const { setShowNavigation } = useNavigationStore();
+
   useEffect(() => {
+    setShowNavigation(false);
     fetchVideos();
+    return () => setShowNavigation(true);
   }, []);
 
   async function fetchVideos() {
@@ -33,7 +37,6 @@ export default function VideosPage() {
 
   return (
     <main className="min-h-screen bg-slate-50 selection:bg-blue-200">
-      <Header showNavigation={false} />
 
       <div className="container mx-auto px-4 lg:px-8 py-12">
         <div className="mb-12">

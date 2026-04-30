@@ -34,11 +34,18 @@ export default function Header({
   const pathname = usePathname();
   const { ui } = useSettingsStore();
   const { status: liveStatus } = useLiveStatus();
-  const { categoriaAtiva: storeCategoria, setCategoriaAtiva: setStoreCategoria } = useNavigationStore();
+  const { 
+    categoriaAtiva: storeCategoria, 
+    setCategoriaAtiva: setStoreCategoria,
+    showNavigation: storeShowNavigation 
+  } = useNavigationStore();
 
   // Detecção automática de categoria ativa baseada na URL para uso global no layout
   const inferredCategory = pathname === "/" ? "Início" : getVisualCategory(pathname.replace(/^\//, '').split('/')[0]);
   const activeVisualCategory = categoriaAtiva || storeCategoria || inferredCategory;
+  
+  // Prioridade: prop showNavigation -> storeShowNavigation
+  const finalShowNavigation = showNavigation && storeShowNavigation;
   
   const [session, setSession] = useState<any>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -218,7 +225,7 @@ export default function Header({
           </div>
         </header>
 
-        {showNavigation && (
+        {finalShowNavigation && (
           <nav className="hidden lg:flex bg-zinc-950 border-b border-zinc-800/80 w-full overflow-x-auto">
             <div className="container mx-auto px-4 lg:px-8 flex items-center">
               {categorias.map((cat) => {

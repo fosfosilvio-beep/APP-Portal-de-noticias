@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabase";
-import Header from "../../components/Header";
 import SmartPlayer from "../../components/SmartPlayer";
+import { useNavigationStore } from "@/store/navigationStore";
 import { 
   Video, Play, Calendar, User, Clock, 
   ChevronRight, Mic2, LayoutGrid, Info,
@@ -50,8 +50,11 @@ export default function BibliotecaPage() {
 
   const [initialEpId, setInitialEpId] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const { setShowNavigation, setCategoriaAtiva } = useNavigationStore();
 
   useEffect(() => {
+    setShowNavigation(true);
+    setCategoriaAtiva("Biblioteca");
     const params = new URLSearchParams(window.location.search);
     const ep = params.get('ep');
     if (ep) setInitialEpId(ep);
@@ -217,11 +220,6 @@ export default function BibliotecaPage() {
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white font-sans">
-      <Header 
-        isLive={config?.is_live || false} 
-        config={config} 
-        categoriaAtiva="Biblioteca"
-      />
 
       <style dangerouslySetInnerHTML={{ __html: `
         :root {
