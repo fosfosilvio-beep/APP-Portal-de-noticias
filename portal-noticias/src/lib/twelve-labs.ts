@@ -1,4 +1,5 @@
 import axios from "axios";
+import FormData from "form-data";
 
 const API_KEY = process.env.TWELVE_LABS_API_KEY;
 const BASE_URL = "https://api.twelvelabs.io/v1.2";
@@ -11,44 +12,64 @@ export const twelveLabs = {
   /**
    * Obtém ou cria um Index padrão para o portal.
    */
-  async getOrCreateIndex(indexName = "nossa-web-tv-index") {
+  async getOrCreateIndex(indexName = "PortalNoticias") {
     try {
+      console.log(`[TwelveLabs] Verificando existência do Index: ${indexName}`);
       const res = await axios.get(`${BASE_URL}/indexes`, {
         headers: { "x-api-key": API_KEY }
       });
       
       const existing = res.data.data.find((idx: any) => idx.index_name === indexName);
-      if (existing) return existing._id;
+      if (existing) {
+        console.log(`[TwelveLabs] Index encontrado ID: ${existing._id}`);
+        return existing._id;
+      }
 
+      console.log(`[TwelveLabs] Criando novo Index: ${indexName}`);
       const createRes = await axios.post(`${BASE_URL}/indexes`, {
         index_name: indexName,
-        engines: [{ engine_name: "pegasus", engine_options: ["visual", "conversation"] }]
+        engines: [
+          { engine_name: "marengo2.6", engine_options: ["visual", "conversation"] },
+          { engine_name: "pegasus1", engine_options: ["visual", "conversation"] }
+        ]
       }, {
         headers: { "x-api-key": API_KEY }
       });
 
+      console.log(`[TwelveLabs] Index criado com sucesso ID: ${createRes.data._id}`);
       return createRes.data._id;
     } catch (err: any) {
-      console.error("[TwelveLabs] Erro Index:", err.response?.data || err.message);
-      throw new Error("Falha ao configurar Index na Twelve Labs.");
+      console.error("[TwelveLabs] Erro Index (CRÍTICO):", err.response?.data || err.message);
+      throw new Error(`Erro na Twelve Labs (Index): ${JSON.stringify(err.response?.data || err.message)}`);
     }
   },
 
   /**
-   * Envia um vídeo via URL para indexação.
+   * Envia um vídeo via Multipart Form Data para indexação.
+   * @param indexId ID do Index
+   * @param videoBuffer Buffer do vídeo baixado
+   * @param fileName Nome do arquivo
    */
-  async submitTask(indexId: string, videoUrl: string) {
+  async submitTaskDirect(indexId: string, videoBuffer: Buffer, fileName: string) {
     try {
-      const res = await axios.post(`${BASE_URL}/tasks/external-provider`, {
-        index_id: indexId,
-        url: videoUrl
-      }, {
-        headers: { "x-api-key": API_KEY }
+      console.log(`[TwelveLabs] Iniciando upload direto (multipart/form-data) para Index: ${indexId}`);
+      const form = new FormData();
+      form.append("index_id", indexId);
+      form.append("video_file", videoBuffer, { filename: fileName });
+      form.append("language", "pt");
+
+      const res = await axios.post(`${BASE_URL}/tasks`, form, {
+        headers: { 
+          ...form.getHeaders(),
+          "x-api-key": API_KEY 
+        }
       });
+      
+      console.log(`[TwelveLabs] Task de upload criada ID: ${res.data._id}`);
       return res.data._id;
     } catch (err: any) {
-      console.error("[TwelveLabs] Erro Task:", err.response?.data || err.message);
-      throw new Error("Falha ao enviar vídeo para a Twelve Labs.");
+      console.error("[TwelveLabs] Erro Task Upload (CRÍTICO):", err.response?.data || err.message);
+      throw new Error(`Erro na Twelve Labs (Upload): ${JSON.stringify(err.response?.data || err.message)}`);
     }
   },
 
@@ -65,8 +86,11 @@ export const twelveLabs = {
         headers: { "x-api-key": API_KEY }
       });
       status = res.data.status;
-      console.log(`[TwelveLabs] Status Task: ${status}`);
-      if (status === "failed") throw new Error("A indexação do vídeo falhou na Twelve Labs.");
+      console.log(`[TwelveLabs] Status Task ${taskId}: ${status}`);
+      if (status === "failed") {
+        console.error("[TwelveLabs] Task falhou:", res.data);
+        throw new Error("A indexação do vídeo falhou na Twelve Labs.");
+      }
     }
 
     const resFinal = await axios.get(`${BASE_URL}/tasks/${taskId}`, {
@@ -80,6 +104,7 @@ export const twelveLabs = {
    */
   async generateContent(videoId: string, prompt: string) {
     try {
+      console.log(`[TwelveLabs] Solicitando geração de conteúdo para VideoID: ${videoId}`);
       const res = await axios.post(`${BASE_URL}/generate`, {
         video_id: videoId,
         prompt: prompt
@@ -88,8 +113,8 @@ export const twelveLabs = {
       });
       return res.data.data;
     } catch (err: any) {
-      console.error("[TwelveLabs] Erro Generate:", err.response?.data || err.message);
-      throw new Error("Falha ao gerar matéria com Pegasus-1.");
+      console.error("[TwelveLabs] Erro Pegasus (CRÍTICO):", err.response?.data || err.message);
+      throw new Error(`Erro na Twelve Labs (Pegasus): ${JSON.stringify(err.response?.data || err.message)}`);
     }
   }
 };

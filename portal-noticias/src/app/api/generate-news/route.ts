@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateWithFallback } from "@/lib/ai-provider";
 import { twelveLabs } from "@/lib/twelve-labs";
+import axios from "axios";
 
-export const maxDuration = 120; // Twelve Labs precisa de tempo para indexar
+export const maxDuration = 300; // Aumentado para 5 minutos devido ao upload + indexação
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,24 +21,39 @@ export async function POST(req: NextRequest) {
     let provider = "";
 
     if (isVideo) {
-      console.log(`[generate-news] Iniciando Twelve Labs para: ${videoUrl}`);
+      console.log(`[generate-news] Iniciando Fluxo Direto Twelve Labs para: ${videoUrl}`);
       provider = "twelve-labs-pegasus";
       
       try {
-        const indexId = await twelveLabs.getOrCreateIndex();
-        const taskId = await twelveLabs.submitTask(indexId, videoUrl);
+        // 1. Garantir Index (Auto-Index)
+        const indexId = await twelveLabs.getOrCreateIndex("PortalNoticias");
+        
+        // 2. Baixar o vídeo do Supabase para Buffer (para upload direto)
+        console.log(`[generate-news] Baixando vídeo do Supabase...`);
+        const videoRes = await axios.get(videoUrl, { responseType: 'arraybuffer' });
+        const videoBuffer = Buffer.from(videoRes.data);
+        
+        // 3. Upload Direto (Multipart/Form-Data)
+        const taskId = await twelveLabs.submitTaskDirect(indexId, videoBuffer, "noticia-video.mp4");
+        
+        // 4. Aguardar Indexação (Polling)
         const videoId = await twelveLabs.waitForTask(taskId);
         
+        // 5. Geração Pegasus
         const pegasusPrompt = `Você é um editor sênior da Nossa Web TV. Assista a este vídeo e escreva uma matéria jornalística completa. 
         Retorne obrigatoriamente um JSON puro com os campos: "titulo", "subtitulo" e "corpo_materia". 
         Use um tom profissional e informativo. Não inclua textos fora do JSON.`;
 
         responseText = await twelveLabs.generateContent(videoId, pegasusPrompt);
       } catch (err: any) {
-        console.error("[TwelveLabs] Falha no fluxo:", err.message);
-        return NextResponse.json({ error: "Falha na análise Twelve Labs: " + err.message }, { status: 500 });
+        console.error("[generate-news] Falha no fluxo Twelve Labs:", err.message);
+        // Fallback: Se Twelve Labs falhar, avisamos o usuário com erro detalhado
+        return NextResponse.json({ 
+          error: `Erro na análise de vídeo (Twelve Labs): ${err.message}. Verifique o tamanho do arquivo ou a conexão.` 
+        }, { status: 500 });
       }
     } else {
+      // Fluxo Normal (Links/Temas)
       let linkContext = "";
       if (linkUrl) {
         try {
