@@ -79,8 +79,8 @@ export default function PlantaoPolicialWidget() {
             <Siren size={18} className="text-white" />
           </div>
         </div>
-        <h3 className="font-black text-slate-900 uppercase tracking-tight text-sm">
-          Plantão <span className="text-red-600">Policial</span>
+        <h3 className="font-black text-red-600 uppercase tracking-tight text-sm">
+          Plantão Policial <span className="text-black">Arapongas</span>
         </h3>
       </div>
 
@@ -101,11 +101,6 @@ export default function PlantaoPolicialWidget() {
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-              <div className="absolute top-3 left-3">
-                <span className="bg-red-600 text-white text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded shadow-lg">
-                  URGENTE
-                </span>
-              </div>
             </>
           )}
         </div>
@@ -134,7 +129,7 @@ export default function PlantaoPolicialWidget() {
       </Link>
 
       <Link 
-        href="/categoria/plantao-policial-arapongas"
+        href="/?cat=Plantão Policial Arapongas"
         className="w-full py-3 bg-slate-900 hover:bg-red-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-slate-200 hover:shadow-red-200"
       >
         Ver Ocorrências <ExternalLink size={12} />
