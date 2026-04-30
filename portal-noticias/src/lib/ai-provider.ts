@@ -60,11 +60,35 @@ export async function generateWithFallback(
   prompt: string,
   openRouterModel = "openai/gpt-oss-20b:free"
 ): Promise<AIProviderResult> {
-  const openRouterKey = process.env.OPENROUTER_API_KEY;
   const geminiKey = process.env.GEMINI_API_KEY;
+  const openRouterKey = process.env.OPENROUTER_API_KEY;
 
+  // 1. TENTATIVA COM GEMINI (MODELOS FLASH)
+  if (geminiKey) {
+    const genAI = new GoogleGenerativeAI(geminiKey);
+    const models = ["gemini-2.0-flash", "gemini-1.5-flash"];
+
+    for (const modelName of models) {
+      try {
+        console.log(`[ai-provider] Tentando ${modelName}...`);
+        const model = genAI.getGenerativeModel({ model: modelName });
+        const result = await model.generateContent(prompt);
+        const text = result.response.text();
+        if (text) return { text, provider: "gemini" };
+      } catch (err: any) {
+        if (err.message?.includes("429") || err.message?.includes("quota")) {
+          console.warn(`[ai-provider] Quota excedida para ${modelName}. Tentando próximo...`);
+          continue;
+        }
+        console.error(`[ai-provider] Erro inesperado no ${modelName}:`, err.message);
+      }
+    }
+  }
+
+  // 2. TENTATIVA COM OPENROUTER (FALLBACK EXTERNO)
   if (openRouterKey) {
     try {
+      console.log(`[ai-provider] Tentando OpenRouter (${openRouterModel})...`);
       const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -95,7 +119,6 @@ export async function generateWithFallback(
         if (cleaned) return { text: cleaned, provider: "openrouter" };
       }
     } catch (err) {
-      console.warn("[ai-provider] Fallback para Gemini ativo.");
     }
   }
 
