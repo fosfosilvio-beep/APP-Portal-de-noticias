@@ -1,7 +1,6 @@
 import { createClient } from "@/lib/supabase-server";
 import NewsGrid from "@/components/home/NewsGrid";
 import { getVisualCategory } from "@/lib/category-utils";
-import BreakingNewsMarquee from "@/components/BreakingNewsMarquee";
 
 export const dynamic = "force-dynamic";
 
@@ -44,14 +43,6 @@ export default async function CategoryPage({ params }: { params: Promise<{ categ
 
   return (
     <div className="min-h-screen bg-white">
-      {configData?.alerta_urgente_ativo && (
-        <BreakingNewsMarquee 
-          text={configData.alerta_urgente_texto || ""}
-          speed={configData.ticker_speed || "normal"}
-          fontSize={configData.ticker_font_size || 14}
-          textColor={configData.ticker_font_color || "#ffffff"}
-        />
-      )}
 
       <main className="container mx-auto px-4 py-12 max-w-7xl">
         <NewsGrid 

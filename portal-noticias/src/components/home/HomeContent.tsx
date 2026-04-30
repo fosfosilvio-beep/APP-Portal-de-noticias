@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Search, Film, Calendar, Tag } from "lucide-react";
-import Header from "../Header";
 import HeroBanner from "../HeroBanner";
 import AutomatedNewsFeed from "../AutomatedNewsFeed";
 import PlantaoPolicialWidget from "../PlantaoPolicialWidget";
@@ -12,7 +11,6 @@ import SmartAdSlot from "../ads/SmartAdSlot";
 import CategoryNav from "../CategoryNav";
 import PWAInstallBanner from "../PWAInstallBanner";
 import NewsGrid from "./NewsGrid";
-import BreakingNewsMarquee from "../BreakingNewsMarquee";
 import ColunistasWidget from "./ColunistasWidget";
 import EnquetesWidget from "./EnquetesWidget";
 import Footer from "../Footer";
