@@ -585,6 +585,7 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
             if (!editId) generateSlug(data.titulo, undefined);
             if (data.subtitulo) setValue("subtitulo", data.subtitulo, { shouldValidate: true, shouldDirty: true });
             if (data.conteudo) setValue("conteudo", data.conteudo, { shouldValidate: true, shouldDirty: true });
+            if (data.seo_tags) setValue("seo_tags", data.seo_tags, { shouldValidate: true, shouldDirty: true });
           }} 
           onImageGenerated={(url) => {
             setValue("imagem_capa", url, { shouldValidate: true, shouldDirty: true });
