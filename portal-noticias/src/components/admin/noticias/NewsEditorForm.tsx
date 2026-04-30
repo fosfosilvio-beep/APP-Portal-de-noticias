@@ -88,9 +88,35 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
     if (editId) {
       loadNewsData();
     } else {
-      loadDraft();
+      // Quando for nova matéria, limpa tudo para evitar lixo de sessões anteriores
+      resetForm();
     }
   }, [editId]);
+
+  const resetForm = () => {
+    form.reset({
+      titulo: "",
+      subtitulo: "",
+      conteudo: "",
+      categoria_id: "",
+      slug: "",
+      imagem_capa: "",
+      video_url: "",
+      status: "published",
+      mostrar_na_home_recentes: true,
+      is_sponsored: false,
+      ordem_prioridade: 0,
+      seo_tags: "",
+      galeria_urls: [],
+      ad_id: "",
+      colunista_id: "",
+      titulo_config: { font: "var(--font-inter)", weight: "900", color: "default" },
+      subtitulo_config: { font: "var(--font-inter)", weight: "400", color: "default" }
+    });
+    localStorage.removeItem("news_draft_local");
+    setLastSaved(null);
+    toast.info("Formulário resetado para nova matéria.");
+  };
 
   // Auto-save Rascunho (DB + LocalStorage)
   useEffect(() => {
@@ -425,10 +451,21 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
       <div className="xl:col-span-2 space-y-6">
         <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-sm p-6 sm:p-8 relative">
           <div className="flex items-center justify-between mb-6 border-b border-slate-800 pb-4">
-            <h3 className="font-black text-white flex items-center gap-2 text-lg">
-              <FileText size={20} className="text-blue-500" />
-              {editId ? "Modo de Edição" : "Nova Matéria"}
-            </h3>
+            <div className="flex items-center gap-4">
+              <h3 className="font-black text-white flex items-center gap-2 text-lg">
+                <FileText size={20} className="text-blue-500" />
+                {editId ? "Modo de Edição" : "Nova Matéria"}
+              </h3>
+              {!editId && (
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="px-3 py-1 bg-slate-800 hover:bg-red-950/40 hover:text-red-400 text-slate-400 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all border border-slate-700 hover:border-red-500/30"
+                >
+                  Limpar Matéria
+                </button>
+              )}
+            </div>
             {!editId && lastSaved && (
               <span className="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
                 <Save size={10} /> Rascunho na nuvem salvo às {lastSaved.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
