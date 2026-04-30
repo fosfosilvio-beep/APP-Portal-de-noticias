@@ -65,13 +65,15 @@ export default function Header({
           const filtered = data.filter((cat: any) => {
             const normalized = cat.nome.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
             return allowedNormalized.includes(normalized);
-          }).map(cat => ({
-            ...cat,
-            // Garante que o slug comece com barra
-            slug: cat.slug ? (cat.slug.startsWith('/') ? cat.slug : `/${cat.slug}`) : `/${normalizeCategory(cat.nome)}`
-          }));
+          }).map(cat => {
+            const rawSlug = cat.slug || normalizeCategory(cat.nome);
+            return {
+              ...cat,
+              slug: rawSlug.replace(/^\//, '') // Remove qualquer barra inicial para controle total
+            };
+          });
 
-          const base = [{ id: "inicio", nome: "Início", slug: "/" }, ...filtered];
+          const base = [{ id: "inicio", nome: "Início", slug: "" }, ...filtered];
           setCategorias(base);
         }
       });
@@ -85,8 +87,9 @@ export default function Header({
   const activeIsLive = liveStatus?.is_live ?? false;
 
   const handleCategoryClick = (catName: string, catSlug?: string) => {
-    const isInicio = catName === "Início" || catSlug === "/" || catSlug === "inicio";
-    const targetPath = isInicio ? "/" : (catSlug?.startsWith('/') ? catSlug : `/${catSlug || normalizeCategory(catName)}`);
+    const isInicio = catName === "Início" || !catSlug || catSlug === "" || catSlug === "inicio";
+    const cleanSlug = catSlug ? catSlug.replace(/^\//, '') : normalizeCategory(catName);
+    const targetPath = isInicio ? "/" : `/${cleanSlug}`;
 
     // Se estivermos na Home, usamos o filtro de estado para não recarregar
     if (pathname === "/") {
@@ -219,8 +222,9 @@ export default function Header({
           <nav className="hidden lg:flex bg-zinc-950 border-b border-zinc-800/80 w-full overflow-x-auto">
             <div className="container mx-auto px-4 lg:px-8 flex items-center">
               {categorias.map((cat) => {
-                const isInicio = cat.nome === "Início" || cat.slug === "/";
-                const href = isInicio ? "/" : (cat.slug.startsWith('/') ? cat.slug : `/${cat.slug}`);
+                const isInicio = cat.nome === "Início" || !cat.slug || cat.slug === "";
+                const cleanSlug = cat.slug ? cat.slug.replace(/^\//, '') : "";
+                const href = isInicio ? "/" : `/${cleanSlug}`;
                 const isActive = activeVisualCategory === cat.nome || (pathname === href) || (isInicio && pathname === "/");
 
                 return (
@@ -256,8 +260,9 @@ export default function Header({
           <button onClick={() => setIsMobileMenuOpen(false)} className="absolute top-6 right-6 text-white"><X size={32} /></button>
           <div className="flex flex-col gap-6 mt-12 overflow-y-auto max-h-[70vh] pr-4">
             {categorias.map((cat) => {
-              const isInicio = cat.nome === "Início" || cat.slug === "/";
-              const href = isInicio ? "/" : (cat.slug.startsWith('/') ? cat.slug : `/${cat.slug}`);
+              const isInicio = cat.nome === "Início" || !cat.slug || cat.slug === "";
+              const cleanSlug = cat.slug ? cat.slug.replace(/^\//, '') : "";
+              const href = isInicio ? "/" : `/${cleanSlug}`;
               const isActive = activeVisualCategory === cat.nome || (pathname === href) || (isInicio && pathname === "/");
 
               return (
