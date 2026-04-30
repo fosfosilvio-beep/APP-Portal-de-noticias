@@ -85,7 +85,7 @@ export default function PlantaoPolicialWidget() {
       </div>
 
       <Link 
-        href={plantao ? `/noticia/${plantao.slug}` : "#"}
+        href={plantao ? `/noticia/${plantao.slug}` : "/categoria/plantao-policial-arapongas"}
         className="block group bg-white border border-red-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-1"
       >
         <div className="relative h-40 overflow-hidden">
@@ -121,15 +121,15 @@ export default function PlantaoPolicialWidget() {
               </p>
             </>
           ) : (
-            <p className="text-xs text-slate-400 italic text-center py-2">
-              Aguardando novas ocorrências...
-            </p>
+            <div className="py-4 text-center">
+               <p className="text-xs text-slate-400 italic">Aguardando novas ocorrências...</p>
+            </div>
           )}
         </div>
       </Link>
 
       <Link 
-        href="/?cat=Plantão Policial Arapongas"
+        href="/categoria/plantao-policial-arapongas"
         className="w-full py-3 bg-slate-900 hover:bg-red-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-slate-200 hover:shadow-red-200"
       >
         Ver Ocorrências <ExternalLink size={12} />

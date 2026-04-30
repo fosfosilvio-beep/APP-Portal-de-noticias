@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase-browser";
+import { getVisualCategory } from "@/lib/category-utils";
 
 interface Category {
   id: string;
@@ -22,7 +23,7 @@ export default function CategoryNav({ categoriaAtiva, setCategoriaAtiva }: Categ
     setMounted(true);
     const fetchCategorias = async () => {
       const supabase = createClient();
-      const allowedNormalized = ['geral', 'arapongas', 'esportes', 'policia', 'politica', 'economia', 'entretenimento'];
+      const allowedNormalized = ['geral', 'arapongas', 'esportes', 'policia', 'politica', 'economia', 'entretenimento', 'plantao policial arapongas'];
       
       const { data } = await supabase
         .from("categorias")
@@ -73,7 +74,7 @@ export default function CategoryNav({ categoriaAtiva, setCategoriaAtiva }: Categ
                         : "text-zinc-500 hover:text-zinc-300 border-transparent"
                   }`}
                 >
-                  {cat.nome}
+                  {getVisualCategory(cat.nome)}
                 </button>
               );
             })}

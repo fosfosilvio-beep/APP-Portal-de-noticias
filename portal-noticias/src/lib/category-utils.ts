@@ -5,6 +5,7 @@ export const categoryMap: Record<string, string> = {
   "Policia": "Polícia",
   "Politica": "Política",
   "Entretenimento": "Entretenimento",
+  "Plantao Policial Arapongas": "Plantão Policial",
 };
 
 /**

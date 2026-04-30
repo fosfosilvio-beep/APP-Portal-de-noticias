@@ -65,7 +65,7 @@ export default function Header({
     }
 
     // Fetch Categorias
-    const allowedNormalized = ['geral', 'arapongas', 'esportes', 'policia', 'politica', 'entretenimento'];
+    const allowedNormalized = ['geral', 'arapongas', 'esportes', 'policia', 'politica', 'entretenimento', 'plantao policial arapongas'];
     supabase.from("categorias").select("id, nome, slug").eq("ativa", true).order("ordem")
       .then(({ data }: { data: any[] | null }) => {
         if (data) {
@@ -250,7 +250,7 @@ export default function Header({
                         : "text-zinc-500 border-transparent hover:text-zinc-200 hover:border-zinc-700"
                     }`}
                   >
-                    {cat.nome}
+                    {getVisualCategory(cat.nome)}
                   </Link>
                 );
               })}
