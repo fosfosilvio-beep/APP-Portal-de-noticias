@@ -28,8 +28,8 @@ export async function analyzeVideo(
       displayName: "Análise Multimodal IA NEWS",
     });
 
-    // Ordem de tentativa para vídeo em v1beta: Pro Latest -> Pro 002 -> Flash Latest
-    const videoModels = ["gemini-1.5-pro-latest", "gemini-1.5-pro-002", "gemini-1.5-flash-latest"];
+    // Ordem de tentativa para vídeo em v1beta: Flash (mais rápido) -> Pro (mais potente)
+    const videoModels = ["gemini-1.5-flash", "gemini-1.5-pro"];
     let lastError = null;
 
     for (const modelName of videoModels) {
@@ -77,8 +77,8 @@ export async function generateWithFallback(
 
   if (geminiKey) {
     const genAI = new GoogleGenerativeAI(geminiKey);
-    // Tentamos aliases 'latest' para garantir compatibilidade em v1beta
-    const models = ["gemini-1.5-flash-latest", "gemini-1.5-pro-latest", "gemini-1.5-flash", "gemini-1.5-pro"];
+    // Modelos oficiais estáveis para v1beta
+    const models = ["gemini-1.5-flash", "gemini-1.5-pro"];
 
     for (const modelName of models) {
       try {

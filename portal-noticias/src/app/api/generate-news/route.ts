@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateWithFallback } from "@/lib/ai-provider";
+import { generateWithFallback, analyzeVideo } from "@/lib/ai-provider";
 import { twelveLabs } from "@/lib/twelve-labs";
 import axios from "axios";
+import fs from "fs";
+import path from "path";
+import os from "os";
 
-export const maxDuration = 300; // Aumentado para 5 minutos devido ao upload + indexação
+export const maxDuration = 300; 
 
 export async function POST(req: NextRequest) {
   try {
@@ -21,45 +24,46 @@ export async function POST(req: NextRequest) {
     let provider = "";
 
     if (isVideo) {
-      console.log(`[generate-news] Iniciando Fluxo Direto Twelve Labs para: ${videoUrl}`);
-      provider = "twelve-labs-pegasus";
+      console.log(`[generate-news] Fluxo de Vídeo ativado: ${videoUrl}`);
+      
+      // 1. Baixar o vídeo antecipadamente (usado tanto por Twelve Labs quanto por Fallback Gemini)
+      let videoBuffer: Buffer;
       try {
-        // 1. Garantir Index (Auto-Index Dinâmico com detecção de versão)
-        const { indexId, version } = await twelveLabs.getOrCreateIndex("Portal_NossaWeb");
-        
-        // 2. Baixar o vídeo do Supabase para Buffer (para upload direto)
-        console.log(`[generate-news] Baixando vídeo do Supabase...`);
+        console.log(`[generate-news] Baixando vídeo para buffer...`);
         const videoRes = await axios.get(videoUrl, { responseType: 'arraybuffer' });
-        const videoBuffer = Buffer.from(videoRes.data);
-        
-        // 3. Upload Direto (Multipart/Form-Data)
-        const taskId = await twelveLabs.submitTaskDirect(indexId, videoBuffer, "noticia-video.mp4", version);
-        
-        // 4. Aguardar Indexação (Polling)
-        const videoId = await twelveLabs.waitForTask(taskId, version);
-        
-        // 5. Geração Pegasus
-        const pegasusPrompt = `Você é um editor sênior da Nossa Web TV. Assista a este vídeo e escreva uma matéria jornalística completa. 
-        Retorne obrigatoriamente um JSON puro com os campos: "titulo", "subtitulo" e "corpo_materia". 
-        Use um tom profissional e informativo. Não inclua textos fora do JSON.`;
+        videoBuffer = Buffer.from(videoRes.data);
+      } catch (err: any) {
+        return NextResponse.json({ error: `Falha ao acessar o vídeo: ${err.message}` }, { status: 500 });
+      }
 
+      const pegasusPrompt = `Você é um editor sênior da Nossa Web TV. Assista a este vídeo e escreva uma matéria jornalística completa. 
+      Retorne obrigatoriamente um JSON puro com os campos: "titulo", "subtitulo" e "corpo_materia". 
+      Use um tom profissional e informativo. Não inclua textos fora do JSON.`;
+
+      try {
+        // TENTATIVA 1: Twelve Labs (Especialista em Vídeo)
+        provider = "twelve-labs-pegasus";
+        const { indexId, version } = await twelveLabs.getOrCreateIndex("Portal_NossaWeb");
+        const taskId = await twelveLabs.submitTaskDirect(indexId, videoBuffer, "noticia-video.mp4", version);
+        const videoId = await twelveLabs.waitForTask(taskId, version);
         responseText = await twelveLabs.generateContent(videoId, pegasusPrompt, version);
       } catch (err: any) {
-        console.error("[generate-news] Falha na Twelve Labs, tentando Fallback Gemini...", err.message);
+        console.error("[generate-news] Twelve Labs falhou, ativando Fallback Gemini Multimodal...", err.message);
         
+        // TENTATIVA 2: Gemini 1.5 (Análise Multimodal Nativa)
+        const tempPath = path.join(os.tmpdir(), `temp-video-${Date.now()}.mp4`);
         try {
-          // Fallback: Gemini 1.5 Flash (lê vídeo também)
-          provider = "gemini-fallback-multimodal";
-          const fallbackPrompt = `Você é um editor sênior. Assista ao vídeo e crie uma matéria jornalística completa. 
-          Responda com JSON: {"titulo": "...", "subtitulo": "...", "conteudo": "..."}`;
-          
-          const result = await generateWithFallback(fallbackPrompt); // Aqui o generateWithFallback já lida com o modelo
+          fs.writeFileSync(tempPath, videoBuffer);
+          const result = await analyzeVideo(tempPath, "video/mp4", pegasusPrompt);
           responseText = result.text;
-          provider = result.provider;
+          provider = `gemini-multimodal-fallback`;
         } catch (fallbackErr: any) {
+          console.error("[generate-news] Falha total no processamento de vídeo:", fallbackErr.message);
           return NextResponse.json({ 
-            error: `Falha total no processamento de vídeo: ${err.message}. Tente novamente.` 
+            error: `Não foi possível analisar o vídeo. (Erro: ${err.message})` 
           }, { status: 500 });
+        } finally {
+          if (fs.existsSync(tempPath)) fs.unlinkSync(tempPath);
         }
       }
     } else {
@@ -79,9 +83,9 @@ export async function POST(req: NextRequest) {
       const isRewrite = !!content;
 
       const systemContext = isLink
-        ? `Você é um Jornalista Sênior do portal Nossa Web TV. Extraia os factos e crie uma matéria original.`
+        ? `Você é um Jornalista Sênior do portal Nossa Web TV. Extraia os factos e crie uma matéria jornalística original e impactante.`
         : isRewrite
-        ? `Você é o Editor Auditor da IA NEWS. Re-escreva e otimize o texto.`
+        ? `Você é o Editor Auditor da IA NEWS. Re-escreva e otimize o texto para máxima clareza e SEO.`
         : `Você é o Agente IA NEWS, especialista em Jornalismo e SEO.`;
 
       const fullPrompt = `${systemContext}
