@@ -57,7 +57,7 @@ export async function analyzeVideo(
       } catch (err: any) {
         lastError = err;
         if (err.message?.includes("404") || err.message?.includes("not found")) {
-          console.warn(`[ai-provider] Modelo ${modelName} indisponível. Tentando próximo...`);
+          console.warn(`[ai-provider] Modelo ${config.model} indisponível. Tentando próximo...`);
           continue;
         }
         break; // Se for outro erro (como quota), interrompe e joga para o catch externo
