@@ -1,14 +1,5 @@
-/**
- * [LIB] ai-provider.ts
- * Motor de IA centralizado com fallback automático:
- *   1ª tentativa → OpenRouter (modelo configurável)
- *   2ª tentativa (fallback) → Google Gemini 2.0 Flash
- *
- * Responsabilidade única: receber um prompt e retornar o texto bruto da IA,
- * independente de qual provedor foi utilizado.
- */
-
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleAIFileManager } from "@google/generative-ai/server";
 
 export interface AIProviderResult {
   text: string;
@@ -16,9 +7,49 @@ export interface AIProviderResult {
 }
 
 /**
- * Tenta gerar conteúdo via OpenRouter primeiro.
- * Em caso de falha (erro de rede, quota, chave inválida etc.),
- * cai automaticamente para o Google Gemini.
+ * Motor de IA para análise profunda de vídeo via Google AI File API.
+ */
+export async function analyzeVideo(
+  filePath: string,
+  mimeType: string,
+  prompt: string
+): Promise<AIProviderResult> {
+  const geminiKey = process.env.GEMINI_API_KEY;
+  if (!geminiKey) throw new Error("GEMINI_API_KEY não configurada.");
+
+  const fileManager = new GoogleAIFileManager(geminiKey);
+  const genAI = new GoogleGenerativeAI(geminiKey);
+
+  console.log(`[ai-provider] Fazendo upload do vídeo para Google AI File API...`);
+  const uploadResult = await fileManager.uploadFile(filePath, {
+    mimeType,
+    displayName: "Vídeo para IA NEWS",
+  });
+
+  console.log(`[ai-provider] Arquivo enviado: ${uploadResult.file.uri}. Processando...`);
+
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+  
+  const result = await model.generateContent([
+    {
+      fileData: {
+        mimeType: uploadResult.file.mimeType,
+        fileUri: uploadResult.file.uri,
+      },
+    },
+    { text: prompt },
+  ]);
+
+  const text = result.response.text();
+  
+  // Limpeza opcional do arquivo após processamento (o Google deleta após 48h automaticamente)
+  // try { await fileManager.deleteFile(uploadResult.file.name); } catch (e) {}
+
+  return { text, provider: "gemini" };
+}
+
+/**
+ * Tenta gerar conteúdo via OpenRouter primeiro... (manter anterior se necessário ou simplificar)
  */
 export async function generateWithFallback(
   prompt: string,
@@ -27,10 +58,8 @@ export async function generateWithFallback(
   const openRouterKey = process.env.OPENROUTER_API_KEY;
   const geminiKey = process.env.GEMINI_API_KEY;
 
-  // ─── Tentativa 1: OpenRouter ──────────────────────────────────────────────
   if (openRouterKey) {
     try {
-      console.log("[ai-provider] Tentando OpenRouter...");
       const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -45,49 +74,22 @@ export async function generateWithFallback(
         }),
       });
 
-      if (!res.ok) {
-        const errBody = await res.text();
-        throw new Error(`OpenRouter HTTP ${res.status}: ${errBody}`);
+      if (res.ok) {
+        const data = await res.json();
+        const text = data.choices?.[0]?.message?.content ?? "";
+        if (text) return { text, provider: "openrouter" };
       }
-
-      const data = await res.json();
-      const text: string = data.choices?.[0]?.message?.content ?? "";
-
-      if (!text) throw new Error("OpenRouter retornou conteúdo vazio.");
-
-      console.log("[ai-provider] Sucesso via OpenRouter.");
-      return { text, provider: "openrouter" };
     } catch (err) {
-      console.warn(
-        "[ai-provider] OpenRouter falhou, ativando fallback Gemini:",
-        err
-      );
+      console.warn("[ai-provider] Fallback para Gemini ativo.");
     }
-  } else {
-    console.warn("[ai-provider] OPENROUTER_API_KEY ausente. Pulando para Gemini.");
   }
 
-  // ─── Tentativa 2 (Fallback): Google Gemini ───────────────────────────────
-  if (!geminiKey) {
-    throw new Error(
-      "Nenhum provedor de IA disponível. Configure OPENROUTER_API_KEY ou GEMINI_API_KEY."
-    );
-  }
+  if (!geminiKey) throw new Error("Nenhum provedor de IA disponível.");
 
-  console.log("[ai-provider] Usando fallback: Google Gemini 2.0 Flash.");
   const genAI = new GoogleGenerativeAI(geminiKey);
-  const model = genAI.getGenerativeModel({
-    model: "gemini-2.0-flash",
-    generationConfig: {
-      temperature: 0.7,
-    },
-  });
-
+  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
   const result = await model.generateContent(prompt);
   const text = result.response.text();
 
-  if (!text) throw new Error("Gemini retornou conteúdo vazio.");
-
-  console.log("[ai-provider] Sucesso via Gemini (fallback).");
   return { text, provider: "gemini" };
 }
