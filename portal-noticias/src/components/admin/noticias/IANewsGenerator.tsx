@@ -152,41 +152,6 @@ export default function IANewsGenerator({ onGenerated, onImageGenerated, current
     }
   };
 
-  const handleCreateImage = async () => {
-    if (!topic.trim()) {
-      toast.error("Insira o tema da notícia para gerar a imagem.");
-      return;
-    }
-    
-    setLoading("image");
-    const interval = startProgress();
-    
-    try {
-      // Aqui chamaríamos uma rota de geração de imagem (DALL-E 3)
-      // Como a rota pode não existir ainda, vamos simular ou avisar
-      toast.info("Iniciando motor de renderização visual...");
-      
-      const res = await fetch("/api/gerar-imagem-ia", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: topic }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Erro ao gerar imagem.");
-
-      if (onImageGenerated) onImageGenerated(data.url);
-      
-      setProgress(100);
-      toast.success("IA NEWS: Imagem de capa gerada!");
-    } catch (err: any) {
-      toast.error("IA NEWS Visual Erro: " + err.message);
-    } finally {
-      clearInterval(interval);
-      setTimeout(() => setLoading(null), 500);
-    }
-  };
-
   return (
     <div className="bg-[#1a1a1a] border border-white/5 rounded-[2.5rem] shadow-2xl overflow-hidden relative group">
       {/* Header Marca */}
@@ -238,9 +203,8 @@ export default function IANewsGenerator({ onGenerated, onImageGenerated, current
               </div>
               <p className="text-[10px] font-black text-white uppercase tracking-[0.3em] animate-pulse text-center">
                 {loading === 'news' ? 'Tecendo Matéria...' : 
-                 loading === 'image' ? 'Pintando Pixels...' : 
                  loading === 'improve' ? 'Refinando Texto...' : 
-                 'Assistindo e Transcrevendo...'}
+                 'Lendo e Adaptando Matéria...'}
               </p>
             </div>
           )}
@@ -252,11 +216,11 @@ export default function IANewsGenerator({ onGenerated, onImageGenerated, current
             type="button"
             onClick={handleGenerateFromLink}
             disabled={!!loading || !linkUrl.trim()}
-            className="group flex items-center justify-between bg-red-600 text-white hover:bg-red-700 disabled:bg-white/10 disabled:text-white/20 px-6 py-4 rounded-[1.5rem] transition-all duration-300 font-black text-xs uppercase tracking-widest shadow-xl shadow-red-900/20"
+            className="group flex items-center justify-between bg-white text-black hover:bg-red-600 hover:text-white disabled:bg-white/10 disabled:text-white/20 px-6 py-4 rounded-[1.5rem] transition-all duration-300 font-black text-xs uppercase tracking-widest shadow-xl shadow-white/5"
           >
             <div className="flex items-center gap-3">
-              <Zap size={18} className="group-hover:animate-bounce" />
-              Assistir e Gerar Matéria
+              <RefreshCw size={18} className="group-hover:rotate-180 transition-transform duration-500" />
+              Ler e Adaptar Matéria
             </div>
             <ArrowRight size={16} className="opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
           </button>
@@ -270,19 +234,6 @@ export default function IANewsGenerator({ onGenerated, onImageGenerated, current
             <div className="flex items-center gap-3">
               <PenTool size={18} className="group-hover:rotate-12 transition-transform" />
               Crie via Tema/Texto
-            </div>
-            <ArrowRight size={16} className="opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
-          </button>
-
-          <button
-            type="button"
-            onClick={handleCreateImage}
-            disabled={!!loading || !topic.trim()}
-            className="group flex items-center justify-between bg-white/5 border border-white/10 text-white hover:bg-red-600 hover:border-red-600 px-6 py-4 rounded-[1.5rem] transition-all duration-300 font-black text-xs uppercase tracking-widest"
-          >
-            <div className="flex items-center gap-3">
-              <ImageIcon size={18} className="group-hover:scale-110 transition-transform" />
-              Crie Imagens
             </div>
             <ArrowRight size={16} className="opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
           </button>

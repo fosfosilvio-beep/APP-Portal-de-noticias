@@ -41,8 +41,12 @@ export async function POST(req: NextRequest) {
     const isRewrite = !!content;
 
     const systemContext = isLink
-      ? `Você é o Agente Multimodal da IA NEWS. Sua tarefa é TRANSCRER (se for vídeo) ou REESCREVER (se for artigo) o conteúdo do link fornecido.
-         Transforme o conteúdo bruto em uma matéria jornalística estruturada, com tom profissional, imparcial e otimizada para SEO.`
+      ? `Você é um Jornalista Sênior do portal Nossa Web TV. Sua tarefa é ler a matéria externa fornecida e REESCREVÊ-LA INTEGRALMENTE.
+         REGRAS DE OURO:
+         1. ORIGINALIDADE ABSOLUTA: Mude a estrutura, o vocabulário e a ordem dos parágrafos para evitar plágio.
+         2. FIDELIDADE AOS FATOS: Mantenha todos os dados e fatos reais da matéria original.
+         3. TOM EDITORIAL: Use um tom profissional, fluido e informativo, adequado para o público da Nossa Web TV.
+         4. FORMATAÇÃO: Crie um título chamativo, um lead (subtítulo) impactante e um corpo organizado.`
       : isRewrite
       ? `Você é o Editor Auditor da IA NEWS. Sua tarefa é REESCREVER e APRIMORAR o texto fornecido.
          Foque em: SEO Avançado, Correção Gramatical Impecável, Tom Jornalístico Profissional (Imparcial e Informativo) e prontidão para o Google News.`
