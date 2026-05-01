@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import { createClient } from "@supabase/supabase-js";
+import { getPublicUrl } from "@/lib/image-utils";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -43,10 +44,8 @@ export async function generateMetadata({
     : podcast?.descricao || "Assista a este episódio exclusivo na Biblioteca da Nossa Web TV.";
 
   // Prioridade: thumbnail do episódio → foto do apresentador → fallback
-  const imagem =
-    ep.thumbnail_url ||
-    podcast?.apresentador_foto_url ||
-    `${siteUrl}/og-default.jpg`;
+  const rawImagem = ep.thumbnail_url || podcast?.apresentador_foto_url;
+  const imagem = getPublicUrl(rawImagem) || `${siteUrl}/og-default.jpg`;
 
   const pageUrl = `${siteUrl}/biblioteca/episodio/${id}`;
 
@@ -115,7 +114,7 @@ export default async function EpisodioSharePage({
         {(ep?.thumbnail_url || podcast?.apresentador_foto_url) && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={ep?.thumbnail_url || podcast?.apresentador_foto_url}
+            src={getPublicUrl(ep?.thumbnail_url || podcast?.apresentador_foto_url) || ""}
             alt={ep?.titulo || "Episódio"}
             style={{
               width: 120,

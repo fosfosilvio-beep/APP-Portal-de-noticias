@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import { createClient } from "@supabase/supabase-js";
+import { getPublicUrl } from "@/lib/image-utils";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -63,10 +64,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
-  const rawImage = noticia.imagem_capa_url || noticia.imagem_capa || "";
-  const capaUrl = rawImage.startsWith("http")
-    ? rawImage
-    : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/media/${rawImage}`;
+  const rawImage = noticia.imagem_capa_url || noticia.imagem_capa;
+  const capaUrl = getPublicUrl(rawImage) || defaultImage;
 
   const description = noticia.resumo || noticia.subtitulo || "Leia a notícia completa no portal Nossa Web TV.";
 

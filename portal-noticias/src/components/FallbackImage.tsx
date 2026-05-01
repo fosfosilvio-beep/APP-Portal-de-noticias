@@ -7,23 +7,7 @@ interface FallbackImageProps extends Omit<ImageProps, "src"> {
   src: string | null | undefined;
 }
 
-// Função helper: constrói URL pública do Supabase Storage
-export const getPublicUrl = (src: string | null | undefined, bucketName = "media") => {
-  if (!src) return null;
-
-  // Remove barras duplas iniciais (bug comum de paths relativos)
-  let cleanSrc = src.replace(/^\/\/+/, "/");
-
-  // Se já for HTTP(S) completo ou data URI, mantemos.
-  if (cleanSrc.startsWith("http://") || cleanSrc.startsWith("https://") || cleanSrc.startsWith("data:")) {
-    return cleanSrc;
-  }
-
-  const cleanPath = cleanSrc.replace(/^\/+/, "");
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://ywsvdgzfmvecaoejtlxo.supabase.co";
-
-  return `${supabaseUrl}/storage/v1/object/public/${bucketName}/${cleanPath}`;
-};
+import { getPublicUrl } from "@/lib/image-utils";
 
 export default function FallbackImage({ src, alt, ...props }: FallbackImageProps) {
   const fallbackSrc = "/images/fallback.jpg";
