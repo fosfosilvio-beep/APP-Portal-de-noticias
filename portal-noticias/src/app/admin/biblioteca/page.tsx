@@ -370,10 +370,26 @@ export default function AdminBiblioteca() {
                         </div>
                         <div className="space-y-4">
                            <div>
-                              <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">Foto do Apresentador (Opcional)</label>
-                              <div className={`relative border-2 border-dashed rounded-xl p-4 flex flex-col items-center justify-center text-center transition-all ${progFotoFile ? 'border-blue-500 bg-blue-50' : 'border-slate-200 bg-slate-50'}`}>
-                                 <input type="file" accept="image/*" onChange={e => setProgFotoFile(e.target.files?.[0] || null)} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-                                 {progFotoFile ? <p className="font-bold text-blue-800">{progFotoFile.name}</p> : <p className="text-sm text-slate-500 font-bold"><ImageIcon className="inline mr-2" size={18}/>Clique para subir imagem</p>}
+                              <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">Foto do Apresentador</label>
+                              <div className={`relative border-2 border-dashed rounded-xl p-4 flex flex-col items-center justify-center text-center transition-all ${progFotoFile || (editingPodcastId && podcasts.find(p => p.id === editingPodcastId)?.apresentador_foto_url) ? 'border-blue-500 bg-blue-50' : 'border-slate-200 bg-slate-50'}`}>
+                                  <input type="file" accept="image/*" onChange={e => setProgFotoFile(e.target.files?.[0] || null)} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+                                  {progFotoFile ? (
+                                     <div className="flex flex-col items-center gap-2">
+                                        <p className="font-bold text-blue-800 text-[10px]">{progFotoFile.name}</p>
+                                        <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-blue-400 shadow-sm">
+                                           <img src={URL.createObjectURL(progFotoFile)} className="w-full h-full object-cover" alt="Preview"/>
+                                        </div>
+                                     </div>
+                                  ) : editingPodcastId && podcasts.find(p => p.id === editingPodcastId)?.apresentador_foto_url ? (
+                                     <div className="flex flex-col items-center gap-2">
+                                        <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-slate-300 shadow-sm">
+                                           <img src={podcasts.find(p => p.id === editingPodcastId).apresentador_foto_url} className="w-full h-full object-cover" alt="Atual"/>
+                                        </div>
+                                        <p className="text-[10px] text-blue-600 font-bold uppercase tracking-tight">Clique para trocar foto</p>
+                                     </div>
+                                  ) : (
+                                     <p className="text-sm text-slate-500 font-bold"><ImageIcon className="inline mr-2" size={18}/>Clique para subir imagem</p>
+                                  )}
                               </div>
                            </div>
                            <div>
@@ -455,9 +471,25 @@ export default function AdminBiblioteca() {
                            <div>
                               <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide flex items-center gap-2">Foto / Folder do Convidado <ImageIcon size={14}/></label>
                               <p className="text-xs text-slate-500 mb-2">Aparecerá como capa (thumbnail) ao invés do default do YouTube.</p>
-                              <div className={`relative border-2 border-dashed rounded-xl p-4 flex flex-col items-center justify-center text-center transition-all ${epThumbFile ? 'border-blue-500 bg-blue-50' : 'border-slate-200 bg-slate-50'}`}>
-                                 <input type="file" accept="image/*" onChange={e => setEpThumbFile(e.target.files?.[0] || null)} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-                                 {epThumbFile ? <p className="font-bold text-blue-800">{epThumbFile.name}</p> : <p className="text-sm text-slate-500 font-bold">Clique para subir imagem de Capa</p>}
+                              <div className={`relative border-2 border-dashed rounded-xl p-4 flex flex-col items-center justify-center text-center transition-all ${epThumbFile || (editingEpisodioId && episodios.find(e => e.id === editingEpisodioId)?.thumbnail_url) ? 'border-blue-500 bg-blue-50' : 'border-slate-200 bg-slate-50'}`}>
+                                 <input type="file" accept="image/*" onChange={e => setEpThumbFile(e.target.files?.[0] || null)} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+                                 {epThumbFile ? (
+                                    <div className="flex flex-col items-center gap-2">
+                                       <p className="font-bold text-blue-800 text-[10px]">{epThumbFile.name}</p>
+                                       <div className="w-32 h-20 rounded-lg overflow-hidden border-2 border-blue-400 shadow-sm">
+                                          <img src={URL.createObjectURL(epThumbFile)} className="w-full h-full object-cover" alt="Preview"/>
+                                       </div>
+                                    </div>
+                                 ) : editingEpisodioId && episodios.find(e => e.id === editingEpisodioId)?.thumbnail_url ? (
+                                    <div className="flex flex-col items-center gap-2">
+                                       <div className="w-32 h-20 rounded-lg overflow-hidden border-2 border-slate-300 shadow-sm">
+                                          <img src={episodios.find(e => e.id === editingEpisodioId).thumbnail_url} className="w-full h-full object-cover" alt="Atual"/>
+                                       </div>
+                                       <p className="text-[10px] text-blue-600 font-bold uppercase tracking-tight">Clique para trocar capa</p>
+                                    </div>
+                                 ) : (
+                                    <p className="text-sm text-slate-500 font-bold">Clique para subir imagem de Capa</p>
+                                 )}
                               </div>
                            </div>
                         </div>
