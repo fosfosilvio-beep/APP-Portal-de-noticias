@@ -23,6 +23,7 @@ O item de menu é marcado como ativo se:
 - **NotificationBell**: Sino de notificações com contador realtime.
 - **ThemeToggle**: Alternador de modo claro/escuro.
 - **BreakingNewsMarquee**: Faixa de notícias urgentes (renderização condicional via config).
+- **MobileCategoryNav**: Barra de categorias com scroll horizontal integrada ao componente (substituiu o antigo `CategoryNav` externo).
 - **LoginModal**: Interface de autenticação Supabase.
 
 ---

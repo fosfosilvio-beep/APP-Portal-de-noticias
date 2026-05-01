@@ -65,7 +65,7 @@ export default function Header({
     }
 
     // Fetch Categorias
-    const allowedNormalized = ['geral', 'arapongas', 'esportes', 'policia', 'politica', 'entretenimento', 'plantao policial arapongas'];
+    const allowedNormalized = ['geral', 'arapongas', 'esportes', 'policia', 'politica', 'economia', 'entretenimento', 'plantao policial arapongas'];
     supabase.from("categorias").select("id, nome, slug").eq("ativa", true).order("ordem")
       .then(({ data }: { data: any[] | null }) => {
         if (data) {
@@ -226,8 +226,12 @@ export default function Header({
         </header>
 
         {finalShowNavigation && (
-          <nav className="hidden lg:flex bg-zinc-950 border-b border-zinc-800/80 w-full overflow-x-auto">
-            <div className="container mx-auto px-4 lg:px-8 flex items-center">
+          <nav className="flex bg-zinc-950 border-b border-zinc-800/80 w-full overflow-x-auto scrollbar-hide relative group/nav">
+            {/* Gradientes de indicação de scroll (Mobile Only) */}
+            <div className="lg:hidden absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-zinc-950 to-transparent z-10 pointer-events-none opacity-0 group-hover/nav:opacity-100 transition-opacity" />
+            <div className="lg:hidden absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-zinc-950 to-transparent z-10 pointer-events-none opacity-0 group-hover/nav:opacity-100 transition-opacity" />
+
+            <div className="container mx-auto px-4 lg:px-8 flex items-center min-w-max lg:min-w-0">
               {categorias.map((cat) => {
                 const isInicio = cat.nome === "Início" || !cat.slug || cat.slug === "";
                 const cleanSlug = cat.slug ? cat.slug.replace(/^\//, '') : "";
@@ -244,9 +248,9 @@ export default function Header({
                         handleCategoryClick(cat.nome, cat.slug);
                       }
                     }}
-                    className={`text-[10px] font-black uppercase tracking-widest px-4 py-3 whitespace-nowrap transition-all border-b-2 ${
+                    className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest px-3 sm:px-4 py-3 sm:py-4 whitespace-nowrap transition-all border-b-2 flex-shrink-0 ${
                       isActive 
-                        ? "text-white border-cyan-400 bg-white/5" 
+                        ? "text-white border-cyan-400 bg-white/5 shadow-[inset_0_-10px_20px_-10px_rgba(34,211,238,0.1)]" 
                         : "text-zinc-500 border-transparent hover:text-zinc-200 hover:border-zinc-700"
                     }`}
                   >
