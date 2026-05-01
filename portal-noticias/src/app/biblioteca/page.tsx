@@ -302,98 +302,92 @@ export default function BibliotecaPage() {
                 />
              </div>
              
-             {/* PAINEL DO PODCAST (PLAYER + APRESENTADOR) */}
-             <div className="flex flex-col lg:flex-row gap-8 bg-zinc-900/40 p-4 sm:p-6 md:p-8 rounded-[32px] md:rounded-[40px] border border-white/5 shadow-2xl">
+             {/* PAINEL DO PODCAST (INFO NO TOPO + PLAYER ABAIXO) */}
+             <div className="flex flex-col gap-8 bg-zinc-900/40 p-4 sm:p-6 md:p-8 rounded-[32px] md:rounded-[40px] border border-white/5 shadow-2xl">
                 
-                {/* Lado Esquerdo: Player Principal e Share */}
-                 <div className="flex-1 min-w-0 flex flex-col gap-4">
-                    <div className="aspect-video w-full bg-black rounded-3xl overflow-hidden shadow-2xl border border-zinc-800">
-                      {selectedEpisodio ? (
-                        <SmartPlayer 
-                          key={selectedEpisodio.id}
-                          customVideoUrl={selectedEpisodio.video_url} 
-                          startTime={selectedEpisodio.start_time} 
-                          endTime={selectedEpisodio.end_time || undefined} 
-                        />
-                      ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900 text-zinc-600 p-6 text-center">
-                           <Video size={48} className="mb-4 opacity-20" />
-                           <p className="font-bold uppercase tracking-widest text-[10px]">Nenhum episódio disponível para este programa</p>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* SOCIAL SHARE MODULE */}
-                    {selectedEpisodio && (
-                      <div className="bg-zinc-900/60 p-4 sm:p-5 rounded-[24px] border border-white/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                         <div>
-                            <h3 className="font-black text-white text-lg sm:text-xl line-clamp-1">{selectedEpisodio.titulo}</h3>
-                            <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-1">
-                               Publicado em {new Date(selectedEpisodio.data_publicacao).toLocaleDateString('pt-BR')}
-                            </p>
-                         </div>
-                         <div className="flex items-center gap-2">
-                            <button onClick={() => handleShare('whatsapp')} className="w-10 h-10 rounded-full bg-green-500/10 hover:bg-green-500/20 text-green-500 flex items-center justify-center transition-colors" title="WhatsApp">
-                               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 00-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                            </button>
-                            <button onClick={() => handleShare('facebook')} className="w-10 h-10 rounded-full bg-blue-600/10 hover:bg-blue-600/20 text-blue-600 flex items-center justify-center transition-colors" title="Facebook">
-                               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-                            </button>
-                            <button onClick={() => handleShare('twitter')} className="w-10 h-10 rounded-full bg-zinc-800 hover:bg-zinc-700 text-white flex items-center justify-center transition-colors" title="X (Twitter)">
-                               <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-                            </button>
-                            <button onClick={() => handleShare('copy')} className="w-10 h-10 rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 flex items-center justify-center transition-colors relative" title="Copiar Link">
-                               {copied ? <Check size={16} className="text-green-500" /> : <LinkIcon size={16} />}
-                               {copied && (
-                                 <span className="absolute -top-10 bg-green-500 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg shadow-xl whitespace-nowrap animate-in fade-in zoom-in">
-                                   Copiado!
-                                 </span>
-                               )}
-                            </button>
-                         </div>
-                      </div>
-                    )}
-                 </div>
-
-                {/* Lado Direito: Info do Apresentador */}
-                <div className="w-full lg:w-[350px] flex flex-col justify-center gap-6">
-                   <div className="flex flex-col items-center text-center space-y-4">
+                {/* TOPO: Info do Apresentador e Programa */}
+                <div className="w-full flex flex-col md:flex-row items-center justify-between gap-6 pb-6 border-b border-white/5">
+                   <div className="flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
                       <div className="relative group">
                         <div className="absolute -inset-1 bg-gradient-to-tr from-blue-600 to-purple-600 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
                         <img 
                           src={selectedPodcast.apresentador_foto_url || "https://ui-avatars.com/api/?name=" + selectedPodcast.apresentador_nome + "&background=1e293b&color=fff&size=200"} 
                           alt={selectedPodcast.apresentador_nome}
-                          className="relative w-32 h-32 md:w-40 md:h-40 rounded-full object-cover border-4 border-zinc-900 shadow-2xl"
+                          className="relative w-24 h-24 md:w-28 md:h-28 rounded-full object-cover border-4 border-zinc-900 shadow-2xl"
                         />
                       </div>
                       <div>
-                        <h2 className="text-2xl font-black text-white">{selectedPodcast.apresentador_nome}</h2>
+                        <h2 className="text-2xl md:text-3xl font-black text-white">{selectedPodcast.apresentador_nome}</h2>
                         <p className="text-blue-500 font-black text-[10px] uppercase tracking-[0.2em] mt-1">Apresentador(a)</p>
+                        {selectedEpisodio?.convidados && (
+                          <div className="mt-3 bg-blue-600/10 border border-blue-600/20 px-4 py-1.5 rounded-xl inline-block">
+                            <span className="text-[8px] text-blue-400 font-black uppercase tracking-widest mr-2">Convidado(a):</span>
+                            <span className="text-xs font-bold text-white">{selectedEpisodio.convidados}</span>
+                          </div>
+                        )}
                       </div>
-                      {selectedEpisodio?.convidados && (
-                        <div className="bg-blue-600/10 border border-blue-600/20 px-4 py-2 rounded-xl">
-                          <p className="text-[8px] text-blue-400 font-black uppercase tracking-widest mb-1">Convidados Hoje:</p>
-                          <p className="text-xs font-bold text-white">{selectedEpisodio.convidados}</p>
-                        </div>
-                      )}
-                      <div className="w-full grid grid-cols-2 sm:grid-cols-3 gap-2 pt-4 border-t border-zinc-800/50">
-                         <div className="bg-zinc-800/50 p-2 sm:p-3 rounded-2xl flex flex-col justify-center items-center">
-                            <span className="text-[7px] font-black text-zinc-500 uppercase block">Episódios</span>
-                            <span className="text-base sm:text-lg font-black">{episodios.length}</span>
-                         </div>
-                         <div className="bg-zinc-800/50 p-2 sm:p-3 rounded-2xl flex flex-col justify-center items-center">
-                            <span className="text-[7px] font-black text-zinc-500 uppercase block">Horário</span>
-                            <span className="text-[9px] sm:text-[10px] font-black truncate max-w-full">{selectedPodcast.horario_exibicao || "A definir"}</span>
-                         </div>
-                         <div className="bg-zinc-800/50 p-2 sm:p-3 rounded-2xl border border-blue-500/20 shadow-[0_0_10px_rgba(37,99,235,0.1)] flex flex-col justify-center items-center col-span-2 sm:col-span-1">
-                            <span className="text-[7px] font-black text-blue-500 uppercase block">Views</span>
-                            <span className="text-base sm:text-lg font-black text-white">{selectedEpisodio?.view_count || 0}</span>
-                         </div>
-                      </div>
-                      <p className="text-zinc-400 text-sm mt-4 italic line-clamp-2">
-                        "{selectedPodcast.descricao || "Acompanhe as principais pautas e entrevistas exclusivas em nosso podcast oficial."}"
-                      </p>
                    </div>
+
+                   <div className="flex items-center gap-3">
+                      <div className="bg-zinc-800/50 p-3 rounded-2xl flex flex-col items-center min-w-[80px]">
+                         <span className="text-[7px] font-black text-zinc-500 uppercase">Episódios</span>
+                         <span className="text-lg font-black">{episodios.length}</span>
+                      </div>
+                      <div className="bg-zinc-800/50 p-3 rounded-2xl flex flex-col items-center min-w-[80px] border border-blue-500/20">
+                         <span className="text-[7px] font-black text-blue-500 uppercase">Views</span>
+                         <span className="text-lg font-black text-white">{selectedEpisodio?.view_count || 0}</span>
+                      </div>
+                   </div>
+                </div>
+
+                {/* ABAIXO: Player Principal e Share */}
+                <div className="flex flex-col gap-6">
+                   <div className="aspect-video w-full bg-black rounded-3xl overflow-hidden shadow-2xl border border-zinc-800">
+                     {selectedEpisodio ? (
+                       <SmartPlayer 
+                         key={selectedEpisodio.id}
+                         customVideoUrl={selectedEpisodio.video_url} 
+                         startTime={selectedEpisodio.start_time} 
+                         endTime={selectedEpisodio.end_time || undefined} 
+                       />
+                     ) : (
+                       <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900 text-zinc-600 p-6 text-center">
+                          <Video size={48} className="mb-4 opacity-20" />
+                          <p className="font-bold uppercase tracking-widest text-[10px]">Nenhum episódio disponível para este programa</p>
+                       </div>
+                     )}
+                   </div>
+
+                   {/* SOCIAL SHARE MODULE */}
+                   {selectedEpisodio && (
+                     <div className="bg-zinc-900/60 p-4 sm:p-5 rounded-[24px] border border-white/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div>
+                           <h3 className="font-black text-white text-lg sm:text-xl line-clamp-1">{selectedEpisodio.titulo}</h3>
+                           <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-1">
+                              Publicado em {new Date(selectedEpisodio.data_publicacao).toLocaleDateString('pt-BR')}
+                           </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                           <button onClick={() => handleShare('whatsapp')} className="w-10 h-10 rounded-full bg-green-500/10 hover:bg-green-500/20 text-green-500 flex items-center justify-center transition-colors" title="WhatsApp">
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 00-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                           </button>
+                           <button onClick={() => handleShare('facebook')} className="w-10 h-10 rounded-full bg-blue-600/10 hover:bg-blue-600/20 text-blue-600 flex items-center justify-center transition-colors" title="Facebook">
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                           </button>
+                           <button onClick={() => handleShare('twitter')} className="w-10 h-10 rounded-full bg-zinc-800 hover:bg-zinc-700 text-white flex items-center justify-center transition-colors" title="X (Twitter)">
+                              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                           </button>
+                           <button onClick={() => handleShare('copy')} className="w-10 h-10 rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 flex items-center justify-center transition-colors relative" title="Copiar Link">
+                              {copied ? <Check size={16} className="text-green-500" /> : <LinkIcon size={16} />}
+                              {copied && (
+                                <span className="absolute -top-10 bg-green-500 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg shadow-xl whitespace-nowrap animate-in fade-in zoom-in">
+                                  Copiado!
+                                </span>
+                              )}
+                           </button>
+                        </div>
+                     </div>
+                   )}
                 </div>
              </div>
 
@@ -477,7 +471,7 @@ export default function BibliotecaPage() {
                     Aguardando upload de episódios...
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-6">
                     {filteredEpisodios.slice(0, 6).map((ep) => (
                       <div 
                         key={ep.id}
@@ -508,14 +502,14 @@ export default function BibliotecaPage() {
                                 HD 1080p
                              </div>
                          </div>
-                         <div className="p-5">
-                            <div className="flex items-center gap-2 mb-2">
-                               <Calendar size={12} className="text-zinc-500" />
-                               <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                         <div className="p-3 md:p-5">
+                            <div className="flex items-center gap-2 mb-1.5">
+                               <Calendar size={10} className="text-zinc-500" />
+                               <span className="text-[8px] md:text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
                                   {new Date(ep.data_publicacao).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
                                </span>
                             </div>
-                            <h4 className="font-black text-white leading-tight group-hover:text-blue-400 transition-colors">
+                            <h4 className="font-black text-white text-xs md:text-base leading-tight group-hover:text-blue-400 transition-colors line-clamp-2">
                                {ep.titulo}
                             </h4>
                          </div>

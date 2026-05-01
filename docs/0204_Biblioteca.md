@@ -10,7 +10,8 @@ Acervo digital focado em Podcasts (Programas) e Episódios (On-Demand), substitu
 ## Lógica de UI (Pública)
 - Layout estilo "Netflix/Cinema" (Fundo Escuro).
 - Menu superior interativo com a lista de Programas (Ex: Espaço Retrô, Ponto de Vista) trazendo a foto do apresentador.
-- **Player Dinâmico**: Ao selecionar um episódio, o player carrega o vídeo (YouTube ou Upload Local) respeitando os timecodes (`start_time` e `end_time`) para pular introduções ou focar na entrevista.
+- **Player Dinâmico**: O layout agora prioriza as informações do programa (Apresentador e Convidados) no topo, com o Player de vídeo logo abaixo para uma navegação mais intuitiva.
+- **Grid de Episódios**: Organização otimizada em um Grid de 2 colunas (2x2) para facilitar a visualização de múltiplos episódios em dispositivos móveis e desktop.
 - Área de Engajamento: Comentários e reações em tempo real por episódio.
 
 ## Lógica de UI (Painel Admin)
