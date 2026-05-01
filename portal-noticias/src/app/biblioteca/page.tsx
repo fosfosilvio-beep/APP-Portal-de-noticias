@@ -391,72 +391,6 @@ export default function BibliotecaPage() {
                 </div>
              </div>
 
-             {/* SEÇÃO DE ENGAJAMENTO (COMENTÁRIOS E REAÇÕES) */}
-             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-in fade-in zoom-in duration-700">
-                
-                {/* Lado A: Reações e Novo Comentário */}
-                <div className="bg-zinc-900/60 p-6 md:p-8 rounded-[32px] border border-white/5 space-y-6">
-                   <div className="flex items-center justify-between">
-                      <h4 className="text-sm font-black uppercase tracking-widest text-blue-400 flex items-center gap-2">
-                         <MessageSquare size={16} /> O que você achou?
-                      </h4>
-                      <div className="flex flex-wrap items-center gap-1.5 mt-2 sm:mt-0">
-                         {["👍", "❤️", "🔥", "👏", " 😂"].map(emoji => (
-                            <button 
-                               key={emoji}
-                               onClick={() => handleReaction(emoji)}
-                               className="group relative bg-zinc-800/50 hover:bg-blue-600 transition-all px-3 py-1.5 rounded-xl border border-white/5 flex items-center gap-2 shrink-0"
-                            >
-                               <span className="text-lg">{emoji}</span>
-                               <span className="text-[10px] font-bold text-zinc-400 group-hover:text-white">{reactions[emoji] || 0}</span>
-                            </button>
-                         ))}
-                      </div>
-                   </div>
-
-                   <div className="space-y-3">
-                      <textarea 
-                         value={newComment}
-                         onChange={e => setNewComment(e.target.value)}
-                         placeholder="Escreva sua opinião para o apresentador..."
-                         className="w-full bg-zinc-950 border border-white/5 rounded-2xl p-4 text-sm font-medium text-zinc-300 outline-none focus:border-blue-500/30 transition-all h-28 resize-none"
-                      />
-                      <button 
-                         onClick={handleSendComment}
-                         disabled={submitting}
-                         className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-zinc-800 text-white font-black text-xs py-4 rounded-2xl uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20"
-                      >
-                         {submitting ? <div className="animate-spin rounded-full h-4 w-4 border-2 border-white/20 border-t-white" /> : <><Send size={14} /> Enviar Mensagem</>}
-                      </button>
-                   </div>
-                </div>
-
-                {/* Lado B: Feed de Comentários */}
-                <div className="bg-zinc-900/30 p-6 md:p-8 rounded-[32px] border border-white/5 flex flex-col h-[340px]">
-                   <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-6 flex items-center gap-2">
-                      <Smile size={14} /> Mensagens Recentes ({comments.length})
-                   </h4>
-                   
-                   <div className="flex-1 overflow-y-auto space-y-4 pr-2 scrollbar-hide no-scrollbar">
-                      {comments.length === 0 ? (
-                         <div className="h-full flex flex-col items-center justify-center text-center opacity-30">
-                            <MessageSquare size={32} className="mb-2" />
-                            <p className="text-[10px] font-bold uppercase tracking-widest">Ainda não há comentários.</p>
-                         </div>
-                      ) : (
-                         comments.map(c => (
-                            <div key={c.id} className="bg-zinc-950/50 p-4 rounded-2xl border border-white/5 animate-in slide-in-from-right-4">
-                               <div className="flex items-center justify-between mb-2">
-                                  <span className="text-[9px] font-black text-blue-500 uppercase tracking-widest">Internauta Anônimo</span>
-                                  <span className="text-[8px] font-bold text-zinc-600">{new Date(c.created_at).toLocaleTimeString()}</span>
-                               </div>
-                               <p className="text-xs text-zinc-400 leading-relaxed font-medium">{c.mensagem}</p>
-                            </div>
-                         ))
-                      )}
-                   </div>
-                </div>
-             </div>
 
              {/* GRID DE EPISÓDIOS (FILTRADO) */}
              <section className="space-y-6">
@@ -526,6 +460,73 @@ export default function BibliotecaPage() {
                    </div>
                 )}
              </section>
+
+             {/* SEÇÃO DE ENGAJAMENTO (COMENTÁRIOS E REAÇÕES) */}
+             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-in fade-in zoom-in duration-700">
+                
+                {/* Lado A: Reações e Novo Comentário */}
+                <div className="bg-zinc-900/60 p-6 md:p-8 rounded-[32px] border border-white/5 space-y-6">
+                   <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-black uppercase tracking-widest text-blue-400 flex items-center gap-2">
+                         <MessageSquare size={16} /> O que você achou?
+                      </h4>
+                      <div className="flex flex-wrap items-center gap-1.5 mt-2 sm:mt-0">
+                         {["👍", "❤️", "🔥", "👏", " 😂"].map(emoji => (
+                            <button 
+                               key={emoji}
+                               onClick={() => handleReaction(emoji)}
+                               className="group relative bg-zinc-800/50 hover:bg-blue-600 transition-all px-3 py-1.5 rounded-xl border border-white/5 flex items-center gap-2 shrink-0"
+                            >
+                               <span className="text-lg">{emoji}</span>
+                               <span className="text-[10px] font-bold text-zinc-400 group-hover:text-white">{reactions[emoji] || 0}</span>
+                            </button>
+                         ))}
+                      </div>
+                   </div>
+
+                   <div className="space-y-3">
+                      <textarea 
+                         value={newComment}
+                         onChange={e => setNewComment(e.target.value)}
+                         placeholder="Escreva sua opinião para o apresentador..."
+                         className="w-full bg-zinc-950 border border-white/5 rounded-2xl p-4 text-sm font-medium text-zinc-300 outline-none focus:border-blue-500/30 transition-all h-28 resize-none"
+                      />
+                      <button 
+                         onClick={handleSendComment}
+                         disabled={submitting}
+                         className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-zinc-800 text-white font-black text-xs py-4 rounded-2xl uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20"
+                      >
+                         {submitting ? <div className="animate-spin rounded-full h-4 w-4 border-2 border-white/20 border-t-white" /> : <><Send size={14} /> Enviar Mensagem</>}
+                      </button>
+                   </div>
+                </div>
+
+                {/* Lado B: Feed de Comentários */}
+                <div className="bg-zinc-900/30 p-6 md:p-8 rounded-[32px] border border-white/5 flex flex-col h-[340px]">
+                   <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-6 flex items-center gap-2">
+                      <Smile size={14} /> Mensagens Recentes ({comments.length})
+                   </h4>
+                   
+                   <div className="flex-1 overflow-y-auto space-y-4 pr-2 scrollbar-hide no-scrollbar">
+                      {comments.length === 0 ? (
+                         <div className="h-full flex flex-col items-center justify-center text-center opacity-30">
+                            <MessageSquare size={32} className="mb-2" />
+                            <p className="text-[10px] font-bold uppercase tracking-widest">Ainda não há comentários.</p>
+                         </div>
+                      ) : (
+                         comments.map(c => (
+                            <div key={c.id} className="bg-zinc-950/50 p-4 rounded-2xl border border-white/5 animate-in slide-in-from-right-4">
+                               <div className="flex items-center justify-between mb-2">
+                                  <span className="text-[9px] font-black text-blue-500 uppercase tracking-widest">Internauta Anônimo</span>
+                                  <span className="text-[8px] font-bold text-zinc-600">{new Date(c.created_at).toLocaleTimeString()}</span>
+                               </div>
+                               <p className="text-xs text-zinc-400 leading-relaxed font-medium">{c.mensagem}</p>
+                            </div>
+                         ))
+                      )}
+                   </div>
+                </div>
+             </div>
 
           </div>
         )}
