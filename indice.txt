@@ -24,6 +24,7 @@ Toda a documentação técnica vive na pasta /docs.
 - /docs/0213_Admin_Relatorios.md (Painel de Relatórios de Views /admin/relatorios)
 - /docs/0216_Admin_Publicidade_Canvas.md (Editor Visual de Publicidade — Canvas D&D /admin/publicidade)
 - /docs/0217_Componente_Header.md (Navegação Global e Estado Ativo)
+- /docs/0219_IANewsGenerator_V3.md (Redação IA Multimodal — Link, Tema e Vídeo)
 
 [03XX] - LÓGICA DE ESTADO E HOOKS
 - /docs/0301_Supabase_Client.md (Padrões de Fetching e Cliente Supabase)

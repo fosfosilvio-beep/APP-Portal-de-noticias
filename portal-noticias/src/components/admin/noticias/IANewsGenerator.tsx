@@ -2,9 +2,8 @@
 
 import { useState } from "react";
 import { 
-  Sparkles, Loader2, Send, PenTool, Image as ImageIcon, 
-  Zap, ArrowRight, RefreshCw, Check, Copy, Wand2,
-  Video, Upload, PlayCircle, FileVideo
+  Sparkles, Loader2, Zap, Copy, Wand2,
+  Video, PlayCircle, Globe, PenTool, Image as ImageIcon
 } from "lucide-react";
 import { toast } from "@/lib/toast";
 import { createClient } from "@/lib/supabase-browser";
@@ -16,6 +15,7 @@ interface IANewsGeneratorProps {
 }
 
 export default function IANewsGenerator({ onGenerated, onImageGenerated, currentContent }: IANewsGeneratorProps) {
+  const [activeTab, setActiveTab] = useState<"link" | "topic" | "video">("link");
   const [topic, setTopic] = useState("");
   const [linkUrl, setLinkUrl] = useState("");
   const [videoFile, setVideoFile] = useState<File | null>(null);
@@ -25,10 +25,9 @@ export default function IANewsGenerator({ onGenerated, onImageGenerated, current
   const supabase = createClient();
 
   const handleGenerate = async () => {
-    if (!topic.trim() && !linkUrl.trim() && !videoFile) {
-      toast.error("Insira um Tema, Link ou selecione um Vídeo.");
-      return;
-    }
+    if (activeTab === "topic" && !topic.trim()) return toast.error("Insira um Tema.");
+    if (activeTab === "link" && !linkUrl.trim()) return toast.error("Insira um Link.");
+    if (activeTab === "video" && !videoFile) return toast.error("Selecione um Vídeo.");
 
     setLoading(true);
     setProgress(10);
@@ -36,8 +35,8 @@ export default function IANewsGenerator({ onGenerated, onImageGenerated, current
     try {
       let payload: any = {};
       
-      if (videoFile) {
-        toast.info("Fazendo upload do vídeo para a Twelve Labs...");
+      if (activeTab === "video" && videoFile) {
+        setProgress(20);
         const ext = videoFile.name.split(".").pop();
         const path = `temp_ai_videos/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
         
@@ -49,9 +48,9 @@ export default function IANewsGenerator({ onGenerated, onImageGenerated, current
 
         const { data: { publicUrl } } = supabase.storage.from("media").getPublicUrl(path);
         payload = { videoUrl: publicUrl };
-        setProgress(40);
+        setProgress(50);
       } 
-      else if (linkUrl.trim()) {
+      else if (activeTab === "link") {
         payload = { linkUrl: linkUrl.trim() };
         setProgress(30);
       } 
@@ -85,10 +84,6 @@ export default function IANewsGenerator({ onGenerated, onImageGenerated, current
 
       setProgress(100);
       toast.success("IA NEWS: Matéria gerada com sucesso!");
-      
-      setLinkUrl("");
-      setVideoFile(null);
-      setTopic("");
     } catch (err: any) {
       console.error("[IA NEWS ERROR]:", err);
       toast.error("Erro IA NEWS: " + err.message);
@@ -110,7 +105,7 @@ export default function IANewsGenerator({ onGenerated, onImageGenerated, current
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
           content: currentContent,
-          guidelines: "Melhore o SEO e a gramática. Mantenha a estrutura HTML." 
+          guidelines: "Melhore o SEO e a gramática jornalística. Mantenha a estrutura HTML." 
         }),
       });
       const data = await res.json();
@@ -125,129 +120,146 @@ export default function IANewsGenerator({ onGenerated, onImageGenerated, current
   };
 
   return (
-    <div className="bg-[#1a1a1a] border border-white/5 rounded-[2.5rem] shadow-2xl overflow-hidden relative group">
-      {/* Header Marca */}
-      <div className="px-8 py-6 bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-between border-b border-white/10">
+    <div className="bg-[#111111] border border-white/5 rounded-[2rem] shadow-2xl overflow-hidden relative group">
+      {/* Header Unificado */}
+      <div className="px-6 py-5 bg-gradient-to-r from-red-600 to-red-800 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-red-600 shadow-lg group-hover:rotate-12 transition-transform duration-500">
-            <Zap size={24} fill="currentColor" />
+          <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-red-600 shadow-lg">
+            <Zap size={20} fill="currentColor" />
           </div>
           <div>
-            <h4 className="font-black text-white text-lg leading-none tracking-tighter">IA NEWS 2.0</h4>
-            <p className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Unificação Multimodal</p>
+            <h4 className="font-black text-white text-base leading-none tracking-tight">IA NEWS 3.0</h4>
+            <p className="text-[9px] font-black text-white/60 uppercase tracking-widest mt-1">Nossa Web TV Recovery</p>
           </div>
         </div>
       </div>
 
-      <div className="p-8 space-y-6 bg-[#141414]">
-        {/* 1. TEMA */}
-        <div>
-          <label className="block text-[11px] font-black text-white/40 uppercase tracking-[0.2em] mb-3 ml-1">Opção 1: Tema Manual</label>
-          <textarea
-            value={topic}
-            onChange={(e) => setTopic(e.target.value)}
-            placeholder="Sobre o que vamos escrever hoje?"
-            rows={2}
-            className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-sm font-bold text-white placeholder:text-white/20 outline-none focus:border-red-500/50 transition-all resize-none"
-          />
-        </div>
+      {/* Tabs Selector */}
+      <div className="grid grid-cols-3 bg-white/5 border-b border-white/5 p-1">
+        <button
+          onClick={() => setActiveTab("link")}
+          className={`flex flex-col items-center gap-1 py-3 rounded-xl transition-all ${activeTab === "link" ? "bg-red-600 text-white shadow-lg" : "text-white/40 hover:text-white/60"}`}
+        >
+          <Globe size={16} />
+          <span className="text-[9px] font-black uppercase tracking-widest">Link</span>
+        </button>
+        <button
+          onClick={() => setActiveTab("topic")}
+          className={`flex flex-col items-center gap-1 py-3 rounded-xl transition-all ${activeTab === "topic" ? "bg-red-600 text-white shadow-lg" : "text-white/40 hover:text-white/60"}`}
+        >
+          <PenTool size={16} />
+          <span className="text-[9px] font-black uppercase tracking-widest">Tema</span>
+        </button>
+        <button
+          onClick={() => setActiveTab("video")}
+          className={`flex flex-col items-center gap-1 py-3 rounded-xl transition-all ${activeTab === "video" ? "bg-red-600 text-white shadow-lg" : "text-white/40 hover:text-white/60"}`}
+        >
+          <Video size={16} />
+          <span className="text-[9px] font-black uppercase tracking-widest">Vídeo</span>
+        </button>
+      </div>
 
-        {/* 2. LINK */}
-        <div>
-          <label className="block text-[11px] font-black text-white/40 uppercase tracking-[0.2em] mb-3 ml-1">Opção 2: Link Externo (G1, YouTube...)</label>
-          <input
-            type="text"
-            value={linkUrl}
-            onChange={(e) => setLinkUrl(e.target.value)}
-            placeholder="Cole a URL aqui..."
-            className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-sm font-bold text-white placeholder:text-white/20 outline-none focus:border-red-500/50 transition-all"
-          />
-        </div>
-
-        {/* 3. VÍDEO */}
-        <div>
-          <label className="block text-[11px] font-black text-white/40 uppercase tracking-[0.2em] mb-3 ml-1">Opção 3: Vídeo Local</label>
-          <div className="relative">
-            <label className={`flex items-center gap-3 p-4 border-2 border-dashed rounded-2xl cursor-pointer transition-all ${videoFile ? 'bg-red-500/10 border-red-500/50' : 'bg-white/5 border-white/10 hover:border-red-500/30'}`}>
-              <Video size={20} className={videoFile ? 'text-red-500' : 'text-white/40'} />
-              <div className="flex-1">
-                <p className="text-[11px] font-black text-white uppercase tracking-widest">
-                  {videoFile ? videoFile.name : 'Selecionar Vídeo do PC'}
-                </p>
-                {!videoFile && <p className="text-[9px] text-white/20 font-bold uppercase tracking-widest">MP4, MOV, AVI</p>}
-              </div>
-              <input 
-                type="file" 
-                accept="video/*" 
-                className="hidden" 
-                onChange={(e) => setVideoFile(e.target.files?.[0] || null)}
+      <div className="p-6 space-y-5 bg-[#0a0a0a]">
+        {/* Content based on Tab */}
+        <div className="min-h-[100px] flex flex-col justify-center">
+          {activeTab === "link" && (
+            <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <label className="block text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-2">URL da Fonte (G1, YouTube, Insta...)</label>
+              <input
+                type="text"
+                value={linkUrl}
+                onChange={(e) => setLinkUrl(e.target.value)}
+                placeholder="https://g1.globo.com/..."
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white placeholder:text-white/20 outline-none focus:border-red-500/50 transition-all"
               />
-            </label>
+            </div>
+          )}
 
-            {loading && videoFile && (
-              <div className="absolute inset-0 bg-black/90 backdrop-blur-md rounded-2xl flex flex-col items-center justify-center p-4 z-20">
-                <Loader2 size={24} className="animate-spin text-red-500 mb-2" />
-                <p className="text-[9px] font-black text-white uppercase tracking-widest text-center animate-pulse">
-                  Twelve Labs analisando as cenas...
-                </p>
-              </div>
-            )}
-          </div>
+          {activeTab === "topic" && (
+            <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <label className="block text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-2">Sobre o que vamos escrever?</label>
+              <textarea
+                value={topic}
+                onChange={(e) => setTopic(e.target.value)}
+                placeholder="Ex: Inauguração do novo hospital em Arapongas..."
+                rows={3}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white placeholder:text-white/20 outline-none focus:border-red-500/50 transition-all resize-none"
+              />
+            </div>
+          )}
+
+          {activeTab === "video" && (
+            <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <label className="block text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-2">Vídeo para análise (Gemini 2.5 Flash)</label>
+              <label className={`flex items-center gap-3 p-5 border-2 border-dashed rounded-xl cursor-pointer transition-all ${videoFile ? 'bg-red-500/10 border-red-500/40' : 'bg-white/5 border-white/10 hover:border-red-500/20'}`}>
+                <div className={`p-2 rounded-lg ${videoFile ? 'bg-red-600 text-white' : 'bg-white/5 text-white/20'}`}>
+                  <PlayCircle size={20} />
+                </div>
+                <div className="flex-1 overflow-hidden">
+                  <p className="text-[11px] font-black text-white uppercase tracking-widest truncate">
+                    {videoFile ? videoFile.name : 'Selecionar Vídeo'}
+                  </p>
+                  <p className="text-[9px] text-white/20 font-bold uppercase tracking-widest">Análise multimodal instantânea</p>
+                </div>
+                <input 
+                  type="file" 
+                  accept="video/*" 
+                  className="hidden" 
+                  onChange={(e) => setVideoFile(e.target.files?.[0] || null)}
+                />
+              </label>
+            </div>
+          )}
         </div>
 
-        {/* BOTÃO ÚNICO MESTRE */}
+        {/* BOTÃO MESTRE */}
         <button
           onClick={handleGenerate}
           disabled={loading}
-          className="w-full bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white font-black text-xs uppercase tracking-[0.3em] py-5 rounded-2xl shadow-xl shadow-red-900/20 transition-all flex items-center justify-center gap-3 active:scale-[0.98] group/btn"
+          className="w-full bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white font-black text-xs uppercase tracking-[0.3em] py-4 rounded-xl shadow-xl shadow-red-900/10 transition-all flex items-center justify-center gap-3 active:scale-[0.98] group/btn"
         >
-          {loading ? <Loader2 className="animate-spin" size={18} /> : <Zap size={18} className="group-hover/btn:scale-125 transition-transform" />}
-          {loading ? "Processando..." : "GERAR MATÉRIA"}
+          {loading ? <Loader2 className="animate-spin" size={16} /> : <Sparkles size={16} className="group-hover/btn:scale-110 transition-transform" />}
+          {loading ? "PROCESSANDO..." : "GERAR MATÉRIA"}
         </button>
 
         {/* REFINAMENTO */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-2">
           <button
             onClick={handleImproveText}
             disabled={loading || !currentContent}
-            className="flex items-center justify-center gap-2 bg-white/5 border border-white/10 text-white/60 hover:text-white px-4 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all disabled:opacity-20"
+            className="flex items-center justify-center gap-2 bg-white/5 border border-white/10 text-white/60 hover:text-white px-3 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all disabled:opacity-20"
           >
-            <Wand2 size={14} /> Melhorar Texto
+            <Wand2 size={12} /> Refinar Texto
           </button>
-          <button className="flex items-center justify-center gap-2 bg-white/5 border border-white/10 text-white/20 px-4 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest cursor-not-allowed">
-            <ImageIcon size={14} /> IA Imagens
+          <button className="flex items-center justify-center gap-2 bg-white/5 border border-white/10 text-white/20 px-3 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest cursor-not-allowed">
+            <ImageIcon size={12} /> IA Imagens
           </button>
         </div>
 
         {/* INSIGHTS */}
         {insights && (
-          <div className="pt-6 border-t border-white/5 space-y-4">
-            {insights.tags && (
-              <div className="bg-blue-500/5 border border-blue-500/20 rounded-xl p-4">
-                <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest block mb-2">Tags SEO Sugeridas</span>
-                <p className="text-[10px] font-bold text-blue-100/60 leading-relaxed italic">{insights.tags}</p>
-              </div>
-            )}
-            {insights.instagram && (
-              <div className="bg-red-500/5 border border-red-500/20 rounded-xl p-4 relative group/ins">
-                <span className="text-[9px] font-black text-red-400 uppercase tracking-widest block mb-2">Instagram (Copy)</span>
-                <p className="text-[10px] font-bold text-red-100/60 leading-relaxed italic line-clamp-3">{insights.instagram}</p>
+          <div className="pt-4 border-t border-white/5 space-y-3">
+            <div className="bg-red-600/5 border border-red-600/20 rounded-xl p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[9px] font-black text-red-500 uppercase tracking-widest">Instagram Suggestion</span>
                 <button 
                   onClick={() => { navigator.clipboard.writeText(insights.instagram!); toast.success("Copiado!"); }}
-                  className="mt-2 flex items-center gap-1 text-[8px] font-black text-red-400 hover:underline uppercase tracking-widest"
+                  className="text-[8px] font-black text-white/40 hover:text-white flex items-center gap-1 uppercase"
                 >
                   <Copy size={10} /> Copiar
                 </button>
               </div>
-            )}
+              <p className="text-[10px] font-bold text-white/60 leading-relaxed italic line-clamp-3">{insights.instagram}</p>
+            </div>
           </div>
         )}
       </div>
 
-      {/* Progress Bar (Visual) */}
+      {/* Progress Bar */}
       {loading && (
         <div className="absolute bottom-0 left-0 h-1 bg-red-600 transition-all duration-1000" style={{ width: `${progress}%` }} />
       )}
     </div>
   );
 }
+

@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateWithFallback, analyzeVideo } from "@/lib/ai-provider";
-import { twelveLabs } from "@/lib/twelve-labs";
+import { generateWithFallback, analyzeVideoWithGemini } from "@/lib/ai-provider";
 import axios from "axios";
-import fs from "fs";
-import path from "path";
-import os from "os";
 
 export const maxDuration = 300; 
 
@@ -23,47 +19,50 @@ export async function POST(req: NextRequest) {
     let responseText = "";
     let provider = "";
 
+    const JOURNO_GUIDELINES = `
+    DIRETRIZES EDITORIAIS (NOSSA WEB TV):
+    1. Você é um Jornalista Sênior.
+    2. Escreva em PIRÂMIDE INVERTIDA (o mais importante no primeiro parágrafo).
+    3. TÍTULO: Impactante e direto.
+    4. SUBTÍTULO: Curto e informativo.
+    5. CORPO: Use subtítulos (h2/h3) para organizar a leitura.
+    6. TOM: Profissional, imparcial e ágil.
+    7. FORMATO: Retorne obrigatoriamente um JSON puro.
+    `;
+
     if (isVideo) {
-      console.log(`[generate-news] Rastreio de Vídeo: ${videoUrl}`);
+      console.log(`[generate-news] Processando Vídeo Local com Gemini 2.5 Flash: ${videoUrl}`);
       
-      // 1. Baixar o vídeo antecipadamente
       let videoBuffer: Buffer;
+      let mimeType = "video/mp4"; // Default
+      
       try {
-        console.log(`[generate-news] Iniciando download do Supabase...`);
         const videoRes = await axios.get(videoUrl, { responseType: 'arraybuffer' });
         videoBuffer = Buffer.from(videoRes.data);
-        console.log(`[generate-news] Sucesso no download. Tamanho: ${videoBuffer.length} bytes`);
+        const contentType = videoRes.headers['content-type'];
+        if (typeof contentType === 'string') mimeType = contentType;
       } catch (err: any) {
-        console.error(`[generate-news] ERRO NO ACESSO AO VÍDEO (Supabase):`, err.message);
         return NextResponse.json({ 
-          error: `Falha ao baixar vídeo do Supabase: ${err.message}. Verifique se o bucket é público.` 
+          error: `Falha ao acessar vídeo: ${err.message}` 
         }, { status: 500 });
       }
 
-      const pegasusPrompt = `Você é um editor sênior da Nossa Web TV. Assista a este vídeo e escreva uma matéria jornalística completa. 
-      Retorne obrigatoriamente um JSON puro com os campos: "titulo", "subtitulo" e "corpo_materia". 
-      Use um tom profissional e informativo. Não inclua textos fora do JSON.`;
+      const geminiPrompt = `${JOURNO_GUIDELINES}
+      Assista ao vídeo e escreva uma matéria jornalística completa. 
+      Retorne um JSON: {"titulo": "...", "subtitulo": "...", "conteudo": "...", "seo_tags": "...", "instagram_suggestion": "..."}
+      O campo "conteudo" deve conter o corpo da matéria com tags HTML básicas (p, h2, strong).`;
 
       try {
-        // MOTOR EXCLUSIVO: Twelve Labs (Pegasus-1)
-        console.log(`[generate-news] Processando via Twelve Labs Pegasus...`);
-        provider = "twelve-labs-pegasus";
-        
-        const { indexId, version } = await twelveLabs.getOrCreateIndex("Portal_NossaWeb");
-        const taskId = await twelveLabs.submitTaskDirect(indexId, videoBuffer, "noticia-video.mp4", version);
-        const videoId = await twelveLabs.waitForTask(taskId, version);
-        
-        responseText = await twelveLabs.generateContent(videoId, pegasusPrompt, version);
-        console.log(`[generate-news] Sucesso total na geração via Pegasus.`);
+        const result = await analyzeVideoWithGemini(videoBuffer, mimeType, geminiPrompt);
+        responseText = result.text;
+        provider = result.provider;
       } catch (err: any) {
-        console.error("[generate-news] ERRO CRÍTICO TWELVE LABS:", err.message);
-        return NextResponse.json({ 
-          error: `Erro na Twelve Labs (Pegasus): ${err.message}. Verifique a API Key e o status do serviço.` 
-        }, { status: 500 });
+        console.error("[generate-news] ERRO GEMINI VIDEO:", err.message);
+        return NextResponse.json({ error: `Erro no Gemini: ${err.message}` }, { status: 500 });
       }
     }
- else {
-      // Fluxo Normal (Links/Temas)
+    else {
+      // Fluxo Normal (Links/Temas/Melhoria)
       let linkContext = "";
       if (linkUrl) {
         try {
@@ -71,7 +70,7 @@ export async function POST(req: NextRequest) {
           const html = await response.text();
           const ogDesc = html.match(/<meta[^>]*property=["']og:description["'][^>]*content=["']([^"']*)["']/i)?.[1] || "";
           const bodyText = html.replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gim, "").replace(/<[^>]+>/g, " ").slice(0, 8000);
-          linkContext = `DESCRICAO OG: ${ogDesc}\n\nCONTEUDO: ${bodyText}`;
+          linkContext = `FONTE EXTERNA (URL): ${linkUrl}\nDESCRIÇÃO: ${ogDesc}\n\nCONTEÚDO EXTRAÍDO: ${bodyText}`;
         } catch (e) {}
       }
 
@@ -79,22 +78,26 @@ export async function POST(req: NextRequest) {
       const isRewrite = !!content;
 
       const systemContext = isLink
-        ? `Você é um Jornalista Sênior do portal Nossa Web TV. Extraia os factos e crie uma matéria jornalística original e impactante.`
+        ? `Aja como Jornalista Sênior. Baseie-se no link fornecido para criar uma matéria original.`
         : isRewrite
-        ? `Você é o Editor Auditor da IA NEWS. Re-escreva e otimize o texto para máxima clareza e SEO.`
-        : `Você é o Agente IA NEWS, especialista em Jornalismo e SEO.`;
+        ? `Aja como Editor Sênior. Melhore o texto abaixo mantendo o tom profissional e otimizando o SEO.`
+        : `Aja como Jornalista Investigativo. Desenvolva uma matéria completa sobre o tema solicitado.`;
 
-      const fullPrompt = `${systemContext}
-      Responda com JSON: {"titulo": "...", "subtitulo": "...", "conteudo": "...", "seo_tags": "...", "instagram_suggestion": "..."}
+      const fullPrompt = `${JOURNO_GUIDELINES}
+      ${systemContext}
       
-      ${isLink ? `Conteúdo extraído: ${linkContext}` : isRewrite ? `Texto: ${content}` : `Tema: ${prompt}`}`;
+      RETORNE JSON: {"titulo": "...", "subtitulo": "...", "conteudo": "...", "seo_tags": "...", "instagram_suggestion": "..."}
+      
+      ${isLink ? `CONTEXTO: ${linkContext}` : isRewrite ? `TEXTO ATUAL: ${content}` : `TEMA: ${prompt}`}
+      
+      ${guidelines ? `REQUISITOS ADICIONAIS: ${guidelines}` : ""}`;
 
       const result = await generateWithFallback(fullPrompt);
       responseText = result.text;
       provider = result.provider;
     }
 
-    // Sanitização Universal
+    // Sanitização e Parse
     const cleaned = responseText
       .replace(/```json/gi, "")
       .replace(/```/g, "")
@@ -105,15 +108,16 @@ export async function POST(req: NextRequest) {
 
     try {
       const parsed = JSON.parse(cleaned);
-      if (parsed.corpo_materia) parsed.conteudo = parsed.corpo_materia;
+      // Fallback para campos legados
+      if (parsed.corpo_materia && !parsed.conteudo) parsed.conteudo = parsed.corpo_materia;
       return NextResponse.json({ ...parsed, _provider: provider });
     } catch (err) {
-      console.error(`[generate-news] Falha no parse JSON (${provider}):`, cleaned);
-      return NextResponse.json({ error: "A IA retornou um formato inválido." }, { status: 500 });
+      console.error(`[generate-news] JSON Malformado:`, cleaned);
+      return NextResponse.json({ error: "A IA gerou um formato inválido. Tente novamente." }, { status: 500 });
     }
 
   } catch (error: any) {
-    console.error("[generate-news] Erro geral:", error);
+    console.error("[generate-news] Erro:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

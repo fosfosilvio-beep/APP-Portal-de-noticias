@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "../../../lib/supabase";
 import { 
   Settings, Video, Plus, Trash2, Loader2, LayoutDashboard, LogOut, User, 
-  ExternalLink, Calendar, Film, Mic2, Image as ImageIcon, PlaySquare, FileVideo, Users, Clock
+  ExternalLink, Calendar, Film, Mic2, Image as ImageIcon, PlaySquare, FileVideo, Users, Clock, Pencil, X
 } from "lucide-react";
 import Link from "next/link";
 
@@ -35,6 +35,8 @@ export default function AdminBiblioteca() {
 
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [editingPodcastId, setEditingPodcastId] = useState<string | null>(null);
+  const [editingEpisodioId, setEditingEpisodioId] = useState<string | null>(null);
 
   useEffect(() => {
     if (isAuthenticated) fetchData();
@@ -94,19 +96,41 @@ export default function AdminBiblioteca() {
     setUploading(true);
     try {
       let fotoUrl = "";
+      
+      // Se estiver editando, busca a foto atual primeiro caso não suba uma nova
+      if (editingPodcastId && !progFotoFile) {
+        const pod = podcasts.find(p => p.id === editingPodcastId);
+        fotoUrl = pod?.apresentador_foto_url || "";
+      }
+
       if (progFotoFile) {
          fotoUrl = await uploadFile(progFotoFile, "videos_biblioteca", "fotos");
       }
-      const { error } = await supabase.from("podcasts").insert({
-        nome: progNome,
-        apresentador_nome: progApresentador,
-        apresentador_foto_url: fotoUrl,
-        horario_exibicao: progHorario,
-        descricao: progDesc
-      });
-      if (error) throw error;
-      alert("Podcast salvo com sucesso!");
+
+      if (editingPodcastId) {
+        const { error } = await supabase.from("podcasts").update({
+          nome: progNome,
+          apresentador_nome: progApresentador,
+          apresentador_foto_url: fotoUrl,
+          horario_exibicao: progHorario,
+          descricao: progDesc
+        }).eq("id", editingPodcastId);
+        if (error) throw error;
+        alert("Podcast atualizado com sucesso!");
+      } else {
+        const { error } = await supabase.from("podcasts").insert({
+          nome: progNome,
+          apresentador_nome: progApresentador,
+          apresentador_foto_url: fotoUrl,
+          horario_exibicao: progHorario,
+          descricao: progDesc
+        });
+        if (error) throw error;
+        alert("Podcast salvo com sucesso!");
+      }
+
       setProgNome(""); setProgApresentador(""); setProgHorario(""); setProgDesc(""); setProgFotoFile(null);
+      setEditingPodcastId(null);
       fetchData();
     } catch (err: any) {
       alert("Erro: " + err.message);
@@ -118,47 +142,101 @@ export default function AdminBiblioteca() {
   const handleSaveEpisodio = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!epPodcastId || !epTitulo) return alert("Selecione um podcast e preencha o título.");
-    if (epVideoSource === "upload" && !epVideoFile) return alert("Selecione o arquivo de vídeo.");
+    if (epVideoSource === "upload" && !epVideoFile && !editingEpisodioId) return alert("Selecione o arquivo de vídeo.");
     if (epVideoSource === "youtube" && !epVideoUrl) return alert("Insira o link do YouTube.");
 
     setUploading(true);
     try {
       let finalVideoUrl = epVideoUrl;
+      
+      // Se estiver editando e não subiu novo vídeo, mantém o atual
+      if (editingEpisodioId && epVideoSource === "upload" && !epVideoFile) {
+        const ep = episodios.find(e => e.id === editingEpisodioId);
+        finalVideoUrl = ep?.video_url || "";
+      }
+
       if (epVideoSource === "upload" && epVideoFile) {
         finalVideoUrl = await uploadFile(epVideoFile, "videos_biblioteca", "acervo");
       }
 
       let finalThumbUrl = "";
+      // Mantém thumb atual se estiver editando e não subiu nova
+      if (editingEpisodioId && !epThumbFile) {
+        const ep = episodios.find(e => e.id === editingEpisodioId);
+        finalThumbUrl = ep?.thumbnail_url || "";
+      }
+
       if (epThumbFile) {
         finalThumbUrl = await uploadFile(epThumbFile, "videos_biblioteca", "thumbnails");
-      } else if (epVideoSource === "youtube" && finalVideoUrl) {
+      } else if (epVideoSource === "youtube" && finalVideoUrl && !finalThumbUrl) {
          const match = finalVideoUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&]{11})/);
          if (match && match[1]) {
             finalThumbUrl = `https://img.youtube.com/vi/${match[1]}/maxresdefault.jpg`;
          }
       }
 
-      const { error } = await supabase.from("episodios").insert({
+      const payload: any = {
         podcast_id: epPodcastId,
         titulo: epTitulo,
         convidados: epConvidados,
         video_url: finalVideoUrl,
         thumbnail_url: finalThumbUrl,
         start_time: parseTimeToSeconds(epStartTimeStr) || 0,
-        end_time: parseTimeToSeconds(epEndTimeStr) || null,
-        data_publicacao: new Date().toISOString()
-      });
+        end_time: parseTimeToSeconds(epEndTimeStr) || null
+      };
 
-      if (error) throw error;
-      alert("Episódio salvo com sucesso!");
+      if (!editingEpisodioId) {
+        payload.data_publicacao = new Date().toISOString();
+      }
+
+      if (editingEpisodioId) {
+        const { error } = await supabase.from("episodios").update(payload).eq("id", editingEpisodioId);
+        if (error) throw error;
+        alert("Episódio atualizado com sucesso!");
+      } else {
+        const { error } = await supabase.from("episodios").insert(payload);
+        if (error) throw error;
+        alert("Episódio salvo com sucesso!");
+      }
+
       setEpTitulo(""); setEpConvidados(""); setEpVideoUrl(""); setEpVideoFile(null); setEpThumbFile(null);
       setEpStartTimeStr(""); setEpEndTimeStr("");
+      setEditingEpisodioId(null);
       fetchData();
     } catch (err: any) {
       alert("Erro: " + err.message);
     } finally {
       setUploading(false);
     }
+  };
+
+  const startEditPodcast = (pod: any) => {
+    setEditingPodcastId(pod.id);
+    setProgNome(pod.nome);
+    setProgApresentador(pod.apresentador_nome);
+    setProgHorario(pod.horario_exibicao || "");
+    setProgDesc(pod.descricao || "");
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const startEditEpisodio = (ep: any) => {
+    setEditingEpisodioId(ep.id);
+    setEpPodcastId(ep.podcast_id);
+    setEpTitulo(ep.titulo);
+    setEpConvidados(ep.convidados || "");
+    setEpVideoUrl(ep.video_url || "");
+    setEpVideoSource(ep.video_url?.includes("youtube.com") || ep.video_url?.includes("youtu.be") ? "youtube" : "upload");
+    setEpStartTimeStr(formatSecondsToTime(ep.start_time));
+    setEpEndTimeStr(formatSecondsToTime(ep.end_time));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const cancelEdit = () => {
+    setEditingPodcastId(null);
+    setEditingEpisodioId(null);
+    setProgNome(""); setProgApresentador(""); setProgHorario(""); setProgDesc(""); setProgFotoFile(null);
+    setEpTitulo(""); setEpConvidados(""); setEpVideoUrl(""); setEpVideoFile(null); setEpThumbFile(null);
+    setEpStartTimeStr(""); setEpEndTimeStr("");
   };
 
   const deletePodcast = async (id: string) => {
@@ -264,9 +342,16 @@ export default function AdminBiblioteca() {
             {activeTab === "podcasts" && (
                <div className="space-y-8 animate-in fade-in">
                   <section className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                     <div className="bg-slate-50 px-6 py-4 border-b border-slate-200 flex items-center gap-3">
-                        <Plus className="text-blue-600" size={20} />
-                        <h3 className="font-bold text-slate-800">Novo Podcast (Podcast)</h3>
+                     <div className="bg-slate-50 px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                           {editingPodcastId ? <Pencil className="text-amber-500" size={20} /> : <Plus className="text-blue-600" size={20} />}
+                           <h3 className="font-bold text-slate-800">{editingPodcastId ? "Editar Podcast" : "Novo Podcast (Franquia)"}</h3>
+                        </div>
+                        {editingPodcastId && (
+                           <button onClick={cancelEdit} className="flex items-center gap-1 text-xs font-bold text-slate-500 hover:text-slate-800">
+                              <X size={14} /> Cancelar Edição
+                           </button>
+                        )}
                      </div>
                      <form onSubmit={handleSavePodcast} className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-4">
@@ -295,8 +380,9 @@ export default function AdminBiblioteca() {
                               <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">Descrição (Opcional)</label>
                               <textarea value={progDesc} onChange={e => setProgDesc(e.target.value)} placeholder="Sobre o que é este podcast?" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-blue-500 h-24 resize-none" />
                            </div>
-                           <button type="submit" disabled={uploading} className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold py-3.5 rounded-xl transition-all flex items-center justify-center gap-2">
-                              {uploading ? <Loader2 className="animate-spin" size={20} /> : <Plus size={20} />} {uploading ? "Salvando..." : "Salvar Podcast"}
+                           <button type="submit" disabled={uploading} className={`w-full ${editingPodcastId ? 'bg-amber-500 hover:bg-amber-600' : 'bg-blue-600 hover:bg-blue-700'} disabled:bg-slate-400 text-white font-bold py-3.5 rounded-xl transition-all flex items-center justify-center gap-2`}>
+                              {uploading ? <Loader2 className="animate-spin" size={20} /> : (editingPodcastId ? <Pencil size={20} /> : <Plus size={20} />)} 
+                              {uploading ? "Salvando..." : (editingPodcastId ? "Atualizar Podcast" : "Salvar Podcast")}
                            </button>
                         </div>
                      </form>
@@ -321,6 +407,7 @@ export default function AdminBiblioteca() {
                                     <td className="px-6 py-4 font-bold text-slate-800">{pod.nome}</td>
                                     <td className="px-6 py-4 text-slate-600">{pod.apresentador_nome}</td>
                                     <td className="px-6 py-4 text-right">
+                                       <button onClick={() => startEditPodcast(pod)} className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg"><Pencil size={18}/></button>
                                        <button onClick={() => deletePodcast(pod.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 size={18}/></button>
                                     </td>
                                  </tr>
@@ -336,9 +423,16 @@ export default function AdminBiblioteca() {
             {activeTab === "episodios" && (
                <div className="space-y-8 animate-in fade-in">
                   <section className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                     <div className="bg-slate-50 px-6 py-4 border-b border-slate-200 flex items-center gap-3">
-                        <Video className="text-blue-600" size={20} />
-                        <h3 className="font-bold text-slate-800">Postar Novo Episódio</h3>
+                     <div className="bg-slate-50 px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                           {editingEpisodioId ? <Pencil className="text-amber-500" size={20} /> : <Video className="text-blue-600" size={20} />}
+                           <h3 className="font-bold text-slate-800">{editingEpisodioId ? "Editar Episódio" : "Postar Novo Episódio"}</h3>
+                        </div>
+                        {editingEpisodioId && (
+                           <button onClick={cancelEdit} className="flex items-center gap-1 text-xs font-bold text-slate-500 hover:text-slate-800">
+                              <X size={14} /> Cancelar Edição
+                           </button>
+                        )}
                      </div>
                      <form onSubmit={handleSaveEpisodio} className="p-6 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                         
@@ -403,7 +497,7 @@ export default function AdminBiblioteca() {
 
                            <div className="pt-4 mt-auto">
                               <button type="submit" disabled={uploading || podcasts.length === 0} className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20">
-                                 {uploading ? <Loader2 className="animate-spin" size={20} /> : <Plus size={20} />} {uploading ? "Publicando Episódio..." : "Publicar Episódio"}
+                                 {uploading ? <Loader2 className="animate-spin" size={20} /> : <Plus size={20} />} {uploading ? "Salvando..." : (editingEpisodioId ? "Atualizar Episódio" : "Publicar Episódio")}
                               </button>
                            </div>
                         </div>
@@ -456,6 +550,7 @@ export default function AdminBiblioteca() {
                                        </div>
                                     </td>
                                     <td className="px-6 py-4 text-right">
+                                       <button onClick={() => startEditEpisodio(ep)} className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg"><Pencil size={18}/></button>
                                        <button onClick={() => deleteEpisodio(ep.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 size={18}/></button>
                                     </td>
                                  </tr>

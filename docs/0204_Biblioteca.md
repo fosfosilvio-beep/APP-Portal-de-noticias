@@ -15,8 +15,8 @@ Acervo digital focado em Podcasts (Programas) e Episódios (On-Demand), substitu
 
 ## Lógica de UI (Painel Admin)
 O painel foi remodelado em sistema de "Abas":
-1. **Gerenciar Programas**: CRUD da tabela `podcasts` (Nome, Apresentador, Foto, Horário).
-2. **Cadastrar Episódio**: CRUD da tabela `episodios`. Permite colar Link do YouTube (com campos para Recorte de Tempo) ou Upload de arquivo físico. Permite também fazer upload da "Capa" (Thumbnail do convidado) que sobrescreve a capa padrão do YouTube.
+1. **Gerenciar Programas**: CRUD completo da tabela `podcasts` (Nome, Apresentador, Foto, Horário). Agora inclui botão de **Editar** para alterar dados e foto do apresentador.
+2. **Cadastrar/Editar Episódio**: CRUD completo da tabela `episodios`. Permite colar Link do YouTube ou Upload de arquivo físico. Agora permite **Editar** episódios existentes para corrigir títulos, trocar convidados ou atualizar thumbnails.
 
 ## Fontes de Dados (Tabelas)
 A ferramenta consome exclusivamente as novas tabelas dedicadas:

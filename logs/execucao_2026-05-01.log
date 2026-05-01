@@ -1,0 +1,2 @@
+INFO: Início da tarefa de implementação do botão de edição de podcasts e episódios.
+INFO: Implementação concluída. Botões de edição adicionados a Podcasts e Episódios. Lógica de atualização (Supabase update) e persistência de imagens implementada.
