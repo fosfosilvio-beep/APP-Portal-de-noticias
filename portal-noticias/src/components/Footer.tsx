@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { MessageCircle, ChevronUp, MapPin, Mail, Phone } from "lucide-react";
 import { useEffect, useState } from "react";
-import { getPublicUrl } from "./FallbackImage";
+import { getPublicUrl } from "@/lib/image-utils";
+
 import { formatExternalUrl } from "@/lib/utils";
 
 interface FooterProps {

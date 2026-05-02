@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useSettingsStore } from "../store/settingsStore";
 import NotificationBell from "./NotificationBell";
 import LoginModal from "./LoginModal";
-import { getPublicUrl } from "./FallbackImage";
+import { getPublicUrl } from "@/lib/image-utils";
+
 import { supabase } from "../lib/supabase";
 import { useEffect, useState } from "react";
 import { User, LogOut, Menu, X, ChevronRight, Headset } from "lucide-react";
