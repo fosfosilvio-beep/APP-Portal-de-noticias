@@ -6,7 +6,8 @@ import Footer from "@/components/Footer";
 import { useNavigationStore } from "@/store/navigationStore";
 import { PlaySquare, ChevronLeft, Loader2, X } from "lucide-react";
 import Link from "next/link";
-import { getPublicUrl } from "@/components/FallbackImage";
+import { getPublicUrl } from "@/lib/image-utils";
+
 import dynamic from "next/dynamic";
 
 const ReactPlayer = dynamic(() => import("react-player"), { ssr: false }) as any;

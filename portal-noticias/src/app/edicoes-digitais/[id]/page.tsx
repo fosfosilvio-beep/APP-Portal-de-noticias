@@ -6,7 +6,8 @@ import { supabase } from "@/lib/supabase";
 import { ChevronLeft, Loader2, BookOpen } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { getPublicUrl } from "@/components/FallbackImage";
+import { getPublicUrl } from "@/lib/image-utils";
+
 import { useNavigationStore } from "@/store/navigationStore";
 
 const FlipbookViewer = dynamic(() => import("@/components/edicoes/FlipbookViewer"), {

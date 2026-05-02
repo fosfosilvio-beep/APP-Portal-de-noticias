@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
-import { getPublicUrl } from "@/components/FallbackImage";
+import { getPublicUrl } from "@/lib/image-utils";
+
 import DOMPurify from "dompurify";
 
 const supabase = createClient(
