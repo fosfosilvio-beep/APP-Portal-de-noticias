@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import { createClient } from "@supabase/supabase-js";
-import { getPublicUrl } from "@/lib/image-utils";
+import { getPublicUrl, getAbsoluteUrl } from "@/lib/image-utils";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -45,7 +45,7 @@ export async function generateMetadata({
 
   // Prioridade: thumbnail do episódio → foto do apresentador → fallback
   const rawImagem = ep.thumbnail_url || podcast?.apresentador_foto_url;
-  const imagem = getPublicUrl(rawImagem) || `${siteUrl}/og-default.jpg`;
+  const imagem = getPublicUrl(rawImagem) || getAbsoluteUrl("/logo.png");
 
   const pageUrl = `${siteUrl}/biblioteca/episodio/${id}`;
 
@@ -60,7 +60,7 @@ export async function generateMetadata({
       siteName: "Nossa Web TV | Portal de Notícias",
       images: [
         {
-          url: imagem,
+          url: encodeURI(imagem),
           width: 1280,
           height: 720,
           alt: titulo,
@@ -71,7 +71,7 @@ export async function generateMetadata({
       card: "summary_large_image",
       title: `🎙️ ${titulo} — ${apresentador}`,
       description: descricao,
-      images: [imagem],
+      images: [encodeURI(imagem)],
     },
   };
 }

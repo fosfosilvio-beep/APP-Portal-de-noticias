@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import { createClient } from "@supabase/supabase-js";
-import { getPublicUrl } from "@/lib/image-utils";
+import { getPublicUrl, getAbsoluteUrl } from "@/lib/image-utils";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -49,7 +49,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const noticia = await fetchNoticia(slug);
   
   const baseUrl = "https://www.nossawebtv.com.br";
-  const defaultImage = `${baseUrl}/logo-og.png`;
+  const defaultImage = getAbsoluteUrl("/logo.png");
 
   if (!noticia) {
     return {
@@ -81,7 +81,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       url: `${baseUrl}/noticia/${slug}`,
       images: [
         { 
-          url: capaUrl, 
+          url: encodeURI(capaUrl), 
           width: 1200, 
           height: 630,
           alt: noticia.titulo 
@@ -95,7 +95,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       card: "summary_large_image",
       title: noticia.titulo,
       description: description,
-      images: [capaUrl],
+      images: [encodeURI(capaUrl)],
     }
   };
 }
