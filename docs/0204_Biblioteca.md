@@ -12,6 +12,7 @@ Acervo digital focado em Podcasts (Programas) e Episódios (On-Demand), substitu
 - Menu superior interativo com a lista de Programas (Ex: Espaço Retrô, Ponto de Vista) trazendo a foto do apresentador.
 - **Player Dinâmico**: O layout agora prioriza as informações do programa (Apresentador e Convidados) no topo, com o Player de vídeo logo abaixo para uma navegação mais intuitiva.
 - **Grid de Episódios**: Organização otimizada em um Grid de 2 colunas (2x2) para facilitar a visualização de múltiplos episódios em dispositivos móveis e desktop.
+- **Navegação**: Botão "Início" corrigido para redirecionar corretamente para a Home Principal (`/`) resetando o estado de categorias.
 - Área de Engajamento: Comentários e reações em tempo real por episódio.
 
 ## Lógica de UI (Painel Admin)

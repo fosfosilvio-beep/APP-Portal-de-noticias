@@ -111,9 +111,9 @@ export default function NoticiaClient({ slug, initialData }: { slug: string, ini
           allImages.push({ src: coverImg.src, el: coverImg });
         }
 
-        // 2. Adicionar Galeria (Album) - Campo galeria_urls do banco
-        if (Array.isArray(noticia.galeria_urls) && noticia.galeria_urls.length > 0) {
-          noticia.galeria_urls.forEach((url: string) => {
+        // 2. Adicionar Galeria (Album) - Campo album_fotos do banco
+        if (Array.isArray(noticia.album_fotos) && noticia.album_fotos.length > 0) {
+          noticia.album_fotos.forEach((url: string) => {
             const fullUrl = getPublicUrl(url);
             // Evitar duplicidade com a capa se a URL for a mesma
             if (fullUrl && fullUrl !== coverSrc) {
@@ -335,14 +335,14 @@ export default function NoticiaClient({ slug, initialData }: { slug: string, ini
                 </div>
                 
                 {/* Galeria de Fotos (Álbum) */}
-                {Array.isArray(noticia.galeria_urls) && noticia.galeria_urls.length > 0 && (
+                {Array.isArray(noticia.album_fotos) && noticia.album_fotos.length > 0 && (
                   <div className="mt-12 mb-8">
                     <h3 className="text-xl font-black uppercase tracking-tighter mb-6 flex items-center gap-2">
                       <div className="w-2 h-6 bg-blue-600 rounded-full" />
                       Álbum de Fotos
                     </h3>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                      {noticia.galeria_urls.map((url: string, index: number) => {
+                      {noticia.album_fotos.map((url: string, index: number) => {
                         const fullUrl = getPublicUrl(url);
                         if (!fullUrl) return null;
 

@@ -10,6 +10,7 @@ Para evitar erros de rotas relativas (como `/noticia/esportes`), o Header utiliz
 3.  **Handle Smart Click**: 
     - Se o usuário estiver na Home (`/`), o clique em uma categoria apenas filtra o estado local (`setCategoriaAtiva`) e faz scroll suave.
     - Se o usuário estiver em qualquer outra página (`/noticia/[slug]`, `/biblioteca`, etc), o clique força uma navegação real para a raiz da categoria (`/categoria`).
+    - O clique no link "Início" força o reset do estado global `categoriaAtiva` para garantir que a Home exiba as notícias recentes e não o estado anterior (ex: Biblioteca).
 
 ## Estado Ativo (Active State)
 

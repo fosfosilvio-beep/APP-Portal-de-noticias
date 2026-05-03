@@ -28,14 +28,31 @@ export default function CommentsSection({ noticiaId }: CommentsSectionProps) {
 
   useEffect(() => {
     fetchComentarios();
+    
+    // Check initial user
     checkUser();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUser(session.user);
+        setNome(session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split('@')[0] || "");
+      } else {
+        setUser(null);
+        setNome("");
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [noticiaId]);
 
   async function checkUser() {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       setUser(user);
-      setNome(user.user_metadata?.full_name || user.email?.split('@')[0] || "");
+      setNome(user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || "");
     }
   }
 
@@ -91,7 +108,7 @@ export default function CommentsSection({ noticiaId }: CommentsSectionProps) {
     try {
       const { error } = await supabase.from("comentarios").insert([{
         noticia_id: noticiaId,
-        usuario_nome: nome.trim().slice(0, 80),
+        usuario_nome: nome.trim().slice(0, 80), // O campo no banco é usuario_nome
         comentario: texto.trim().slice(0, 1000),
       }]);
 

@@ -11,6 +11,8 @@ Exibe o conteúdo completo de uma matéria jornalística com suporte a vídeo em
 - `SmartPlayer`: Renderiza o `video_url` da notícia no topo do artigo.
 - `Header`: Navegação fixa (modo simplificado sem categorias).
 - `Share Buttons`: Botões sociais para Facebook e WhatsApp.
+- `Photo Gallery`: Carrossel de imagens que consome o campo `album_fotos` do Supabase.
+- `Comments Section`: Sistema de comentários com integração Google Auth e preenchimento automático de nome.
 
 ## Lógica de Carregamento
 1. Extrai o `slug` da URL.

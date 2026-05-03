@@ -89,10 +89,10 @@ export default function ArticleComments({ noticiaId }: { noticiaId: string }) {
     const { error } = await supabase.from("comentarios_noticias").insert([
       {
         noticia_id: noticiaId,
-        usuario_nome: user.user_metadata?.full_name || user.email,
-        usuario_email: user.email,
-        usuario_imagem: user.user_metadata?.avatar_url,
+        usuario_nome: user.user_metadata?.full_name || user.user_metadata?.name || user.email,
         conteudo: novoComentario.trim(),
+        // Removido campos possivelmente inexistentes (email/imagem) para evitar erros de banco
+        // se necessário, adicione-os apenas se existirem na tabela.
       },
     ]);
 

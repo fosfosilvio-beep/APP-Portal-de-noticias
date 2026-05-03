@@ -242,7 +242,7 @@ export default function BibliotecaPage() {
                   <span className="text-zinc-600">On-Demand</span>
                 </h1>
                 <p className="text-zinc-500 font-bold mt-2 uppercase text-[10px] tracking-widest leading-relaxed">
-                  Assista a todos os podcasts e podcasts do portal
+                  Assista a todos os podcasts do portal
                 </p>
               </div>
               

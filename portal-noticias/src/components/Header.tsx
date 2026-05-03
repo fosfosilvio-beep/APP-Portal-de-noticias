@@ -276,6 +276,11 @@ export default function Header({
                     key={cat.id || cat.nome}
                     href={href}
                     onClick={(e) => {
+                      if (isInicio) {
+                        setStoreCategoria("Início");
+                        setCategoriaAtiva?.("Início");
+                      }
+                      
                       if (pathname === "/") {
                         e.preventDefault();
                         handleCategoryClick(cat.nome, cat.slug);

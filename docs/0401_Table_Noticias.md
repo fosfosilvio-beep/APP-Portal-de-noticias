@@ -15,7 +15,8 @@ Armazena todas as matérias jornalísticas publicadas no portal.
 | `categoria_id` | UUID (FK) | Link para a tabela `categorias`. |
 | `imagem_capa` | TEXT (URL) | URL da imagem principal. |
 | `video_url` | TEXT (URL) | URL de vídeo destacado. |
-| `galeria_urls` | TEXT[] | Lista de URLs de fotos para o álbum. |
+| `album_fotos` | TEXT[] | Lista de URLs de fotos para o álbum (substituiu `galeria_urls`). |
+| `galeria_urls` | TEXT[] | (Depreciado) Lista de URLs de fotos legadas. |
 | `created_at` | TIMESTAMP | Data de criação. |
 | `publish_at` | TIMESTAMP | Data agendada para publicação. |
 | `status` | TEXT | Status: draft, in_review, scheduled, published, archived. |
