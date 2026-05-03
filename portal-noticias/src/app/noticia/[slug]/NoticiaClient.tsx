@@ -106,6 +106,7 @@ export default function NoticiaClient({ slug, initialData }: { slug: string, ini
         const allImages: { src: string, el?: HTMLElement }[] = [];
         
         // 1. Adicionar capa
+        const coverSrc = coverImg instanceof HTMLImageElement ? coverImg.src : "";
         if (coverImg instanceof HTMLImageElement) {
           allImages.push({ src: coverImg.src, el: coverImg });
         }
@@ -113,9 +114,10 @@ export default function NoticiaClient({ slug, initialData }: { slug: string, ini
         // 2. Adicionar Galeria (Album) - Campo galeria_urls do banco
         if (Array.isArray(noticia.galeria_urls) && noticia.galeria_urls.length > 0) {
           noticia.galeria_urls.forEach((url: string) => {
+            if (!url) return;
             const fullUrl = getPublicUrl(url);
             // Evitar duplicidade com a capa se a URL for a mesma
-            if (fullUrl !== coverImg?.getAttribute('src')) {
+            if (fullUrl !== coverSrc) {
               allImages.push({ src: fullUrl });
             }
           });
