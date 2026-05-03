@@ -38,13 +38,20 @@ export default async function CategorySlugPage({ params }: { params: Promise<{ s
     .or(`slug.eq.${normalizedSlug},nome.ilike.${searchTerm}`)
     .maybeSingle();
   
-  const { data: noticias, error } = await supabase
+  let query = supabase
     .from("noticias")
     .select("*, categorias(id, nome, slug)")
     .eq("status", "published")
     .or(`categoria.ilike.${searchTerm}${catData ? `,categoria_id.eq.${catData.id}` : ""}`)
     .order("created_at", { ascending: false })
     .limit(40);
+
+  // Exclusividade estrita: se não for a página do plantão, remove notícias do plantão
+  if (slug !== "plantao-policial-arapongas") {
+    query = query.not("categoria", "ilike", "%Plantão Policial Arapongas%");
+  }
+  
+  const { data: noticias, error } = await query;
 
   const visualTitle = getVisualCategory(slug);
 

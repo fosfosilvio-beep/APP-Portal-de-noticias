@@ -66,13 +66,13 @@ export default function Header({
     }
 
     // Fetch Categorias
-    const allowedNames = ["Geral", "Arapongas", "Esportes", "Polícia", "Política", "Entretenimento", "Plantão Policial"];
+    const allowedNames = ["Geral", "Arapongas", "Esportes", "Polícia", "Política", "Entretenimento", "Plantão Policial Arapongas"];
     const defaultCats = [
       { id: "geral", nome: "Geral", slug: "geral" },
       { id: "arapongas", nome: "Arapongas", slug: "arapongas" },
       { id: "esportes", nome: "Esportes", slug: "esportes" },
       { id: "policia", nome: "Polícia", slug: "policia" },
-      { id: "plantao-policial", nome: "Plantão Policial", slug: "plantao-policial-arapongas" },
+      { id: "plantao-policial", nome: "Plantão Policial Arapongas", slug: "plantao-policial-arapongas" },
       { id: "politica", nome: "Política", slug: "politica" },
       { id: "entretenimento", nome: "Entretenimento", slug: "entretenimento" }
     ];
@@ -103,9 +103,9 @@ export default function Header({
             slug: (cat.slug || normalizeCategory(cat.nome)).replace(/^\//, '')
           }));
 
-        // Ordenação manual para garantir 'Plantão Policial' ao lado de 'Polícia'
+        // Ordenação manual para garantir 'Plantão Policial Arapongas' ao lado de 'Polícia'
         const orderMap: Record<string, number> = {
-          "Início": 0, "Geral": 1, "Arapongas": 2, "Esportes": 3, "Polícia": 4, "Plantão Policial": 5, "Política": 6, "Entretenimento": 7
+          "Início": 0, "Geral": 1, "Arapongas": 2, "Esportes": 3, "Polícia": 4, "Plantão Policial Arapongas": 5, "Política": 6, "Entretenimento": 7
         };
 
         const finalCats = [{ id: "inicio", nome: "Início", slug: "" }, ...filtered].sort((a, b) => {
