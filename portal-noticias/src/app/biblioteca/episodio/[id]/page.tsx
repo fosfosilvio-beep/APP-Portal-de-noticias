@@ -24,7 +24,8 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
   const ep = await getEpisodioData(id);
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.nossawebtv.com.br";
+  // Forçamos o domínio absoluto conforme solicitado para garantir miniatura no WhatsApp
+  const siteUrl = "https://nossawebtv.com.br";
 
   if (!ep) {
     return {
@@ -44,9 +45,21 @@ export async function generateMetadata({
     : podcast?.descricao || "Assista a este episódio exclusivo na Biblioteca da Nossa Web TV.";
 
   // Prioridade: thumbnail do episódio → foto do apresentador → fallback
-  // Usamos a versão otimizada (JPG, < 300KB via Supabase Render) para evitar erro no WhatsApp Mobile
   const rawImagem = ep.thumbnail_url || podcast?.apresentador_foto_url;
-  const imagem = getOptimizedImageUrl(rawImagem);
+  
+  // Forçamos a URL absoluta com o domínio principal
+  let shareImage = "";
+  if (rawImagem) {
+    if (rawImagem.startsWith("http")) {
+      shareImage = rawImagem;
+    } else {
+      // Se for um path relativo, garantimos que comece com / e adicionamos o domínio
+      const cleanPath = rawImagem.startsWith("/") ? rawImagem : `/${rawImagem}`;
+      shareImage = `${siteUrl}${cleanPath}`;
+    }
+  } else {
+    shareImage = `${siteUrl}/og-default.jpg`;
+  }
 
   const pageUrl = `${siteUrl}/biblioteca/episodio/${id}`;
 
@@ -61,7 +74,7 @@ export async function generateMetadata({
       siteName: "Nossa Web TV | Portal de Notícias",
       images: [
         {
-          url: encodeURI(imagem),
+          url: shareImage,
           width: 1280,
           height: 720,
           alt: titulo,
@@ -72,7 +85,7 @@ export async function generateMetadata({
       card: "summary_large_image",
       title: `🎙️ ${titulo} — ${apresentador}`,
       description: descricao,
-      images: [encodeURI(imagem)],
+      images: [shareImage],
     },
   };
 }
@@ -90,6 +103,12 @@ export default async function EpisodioSharePage({
   const ep = await getEpisodioData(id);
   const podcast = ep ? (ep as any).podcasts : null;
   const destUrl = `/biblioteca?ep=${id}`;
+  const siteUrl = "https://nossawebtv.com.br";
+
+  const rawImagem = ep?.thumbnail_url || podcast?.apresentador_foto_url;
+  const shareImage = rawImagem 
+    ? (rawImagem.startsWith("http") ? rawImagem : `${siteUrl}${rawImagem.startsWith("/") ? "" : "/"}${rawImagem}`)
+    : `${siteUrl}/og-default.jpg`;
 
   return (
     <html lang="pt-BR">
@@ -112,10 +131,10 @@ export default async function EpisodioSharePage({
         }}
       >
         {/* Imagem visível para crawlers que renderizam HTML básico */}
-        {(ep?.thumbnail_url || podcast?.apresentador_foto_url) && (
+        {shareImage && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={getPublicUrl(ep?.thumbnail_url || podcast?.apresentador_foto_url) || ""}
+            src={shareImage}
             alt={ep?.titulo || "Episódio"}
             style={{
               width: 120,
@@ -150,7 +169,7 @@ export default async function EpisodioSharePage({
                 "@type": "VideoObject",
                 "name": ep.titulo,
                 "description": ep.descricao || podcast?.descricao,
-                "thumbnailUrl": [getOptimizedImageUrl(ep.thumbnail_url)],
+                "thumbnailUrl": [shareImage],
                 "uploadDate": ep.data_publicacao,
                 "contentUrl": ep.video_url,
                 "embedUrl": ep.video_url,
