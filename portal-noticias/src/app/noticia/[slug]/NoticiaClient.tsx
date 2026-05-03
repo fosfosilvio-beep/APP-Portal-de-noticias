@@ -114,10 +114,9 @@ export default function NoticiaClient({ slug, initialData }: { slug: string, ini
         // 2. Adicionar Galeria (Album) - Campo galeria_urls do banco
         if (Array.isArray(noticia.galeria_urls) && noticia.galeria_urls.length > 0) {
           noticia.galeria_urls.forEach((url: string) => {
-            if (!url) return;
             const fullUrl = getPublicUrl(url);
             // Evitar duplicidade com a capa se a URL for a mesma
-            if (fullUrl !== coverSrc) {
+            if (fullUrl && fullUrl !== coverSrc) {
               allImages.push({ src: fullUrl });
             }
           });
@@ -345,6 +344,8 @@ export default function NoticiaClient({ slug, initialData }: { slug: string, ini
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                       {noticia.galeria_urls.map((url: string, index: number) => {
                         const fullUrl = getPublicUrl(url);
+                        if (!fullUrl) return null;
+
                         // Procurar o index real no array global de slides para o Lightbox abrir no lugar certo
                         const slideIndex = slides.findIndex(s => s.src === fullUrl);
                         
