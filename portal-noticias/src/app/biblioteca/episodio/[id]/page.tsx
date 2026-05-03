@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import { createClient } from "@supabase/supabase-js";
-import { getPublicUrl, getAbsoluteUrl } from "@/lib/image-utils";
+import { getPublicUrl, getAbsoluteUrl, getOptimizedImageUrl } from "@/lib/image-utils";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -44,8 +44,9 @@ export async function generateMetadata({
     : podcast?.descricao || "Assista a este episódio exclusivo na Biblioteca da Nossa Web TV.";
 
   // Prioridade: thumbnail do episódio → foto do apresentador → fallback
+  // Usamos a versão otimizada (JPG, < 300KB via Supabase Render) para evitar erro no WhatsApp Mobile
   const rawImagem = ep.thumbnail_url || podcast?.apresentador_foto_url;
-  const imagem = getPublicUrl(rawImagem) || getAbsoluteUrl("/logo.png");
+  const imagem = getOptimizedImageUrl(rawImagem);
 
   const pageUrl = `${siteUrl}/biblioteca/episodio/${id}`;
 
@@ -138,6 +139,29 @@ export default async function EpisodioSharePage({
         <p style={{ color: "#6b7280", fontSize: "0.75rem" }}>
           Redirecionando para a Biblioteca...
         </p>
+
+        {/* JSON-LD Structured Data para SEO e Social Bots */}
+        {ep && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "VideoObject",
+                "name": ep.titulo,
+                "description": ep.descricao || podcast?.descricao,
+                "thumbnailUrl": [getOptimizedImageUrl(ep.thumbnail_url)],
+                "uploadDate": ep.data_publicacao,
+                "contentUrl": ep.video_url,
+                "embedUrl": ep.video_url,
+                "actor": {
+                  "@type": "Person",
+                  "name": podcast?.apresentador_nome
+                }
+              })
+            }}
+          />
+        )}
 
         {/* JS redirect — mais rápido que meta refresh */}
         <script
