@@ -27,14 +27,22 @@ export default async function CategorySlugPage({ params }: { params: Promise<{ s
     .maybeSingle();
 
   // 2. Fetch news for this category
-  // Normalizamos o slug para busca robusta
-  const normalizedTerm = slug.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/-/g, " ");
-  const searchTerm = `%${normalizedTerm}%`;
+  const normalizedSlug = slug.toLowerCase();
+  const searchName = slug.replace(/-/g, " ");
+  const searchTerm = `%${searchName}%`;
+
+  // Buscamos primeiro o ID da categoria para garantir o filtro correto
+  const { data: catData } = await supabase
+    .from("categorias")
+    .select("id")
+    .or(`slug.eq.${normalizedSlug},nome.ilike.${searchTerm}`)
+    .maybeSingle();
   
   const { data: noticias, error } = await supabase
     .from("noticias")
     .select("*, categorias(id, nome, slug)")
-    .or(`categoria.ilike.${searchTerm},categorias.slug.eq.${slug}`)
+    .eq("status", "published")
+    .or(`categoria.ilike.${searchTerm}${catData ? `,categoria_id.eq.${catData.id}` : ""}`)
     .order("created_at", { ascending: false })
     .limit(40);
 

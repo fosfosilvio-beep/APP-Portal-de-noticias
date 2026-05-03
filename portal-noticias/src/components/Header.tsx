@@ -66,25 +66,53 @@ export default function Header({
     }
 
     // Fetch Categorias
-    // Fetch Categorias
-    const allowedNormalized = ['geral', 'arapongas', 'esportes', 'policia', 'politica', 'economia', 'entretenimento', 'plantao policial arapongas', 'plantao policial'];
+    const allowedNames = ["Geral", "Arapongas", "Esportes", "Polícia", "Política", "Entretenimento", "Plantão Policial"];
+    const defaultCats = [
+      { id: "geral", nome: "Geral", slug: "geral" },
+      { id: "arapongas", nome: "Arapongas", slug: "arapongas" },
+      { id: "esportes", nome: "Esportes", slug: "esportes" },
+      { id: "policia", nome: "Polícia", slug: "policia" },
+      { id: "plantao-policial", nome: "Plantão Policial", slug: "plantao-policial-arapongas" },
+      { id: "politica", nome: "Política", slug: "politica" },
+      { id: "entretenimento", nome: "Entretenimento", slug: "entretenimento" }
+    ];
+
     supabase.from("categorias").select("id, nome, slug").eq("ativa", true).order("ordem")
       .then(({ data }: { data: any[] | null }) => {
-        if (data) {
-          const filtered = data.filter((cat: any) => {
-            const normalized = cat.nome.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-            return allowedNormalized.includes(normalized);
-          }).map(cat => {
-            const rawSlug = cat.slug || normalizeCategory(cat.nome);
-            return {
-              ...cat,
-              slug: rawSlug.replace(/^\//, '') // Remove qualquer barra inicial para controle total
-            };
-          });
+        const merged = data ? [...data] : [];
+        const normalize = (str: string) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
-          const base = [{ id: "inicio", nome: "Início", slug: "" }, ...filtered];
-          setCategorias(base);
-        }
+        defaultCats.forEach(d => {
+          const dNorm = normalize(d.nome);
+          if (!merged.find(m => normalize(m.nome) === dNorm)) {
+            merged.push(d);
+          }
+        });
+
+        const seen = new Set();
+        const filtered = merged
+          .filter(c => allowedNames.some(a => normalize(a) === normalize(c.nome)))
+          .filter(c => {
+            const norm = normalize(c.nome);
+            const duplicate = seen.has(norm);
+            seen.add(norm);
+            return !duplicate;
+          })
+          .map(cat => ({
+            ...cat,
+            slug: (cat.slug || normalizeCategory(cat.nome)).replace(/^\//, '')
+          }));
+
+        // Ordenação manual para garantir 'Plantão Policial' ao lado de 'Polícia'
+        const orderMap: Record<string, number> = {
+          "Início": 0, "Geral": 1, "Arapongas": 2, "Esportes": 3, "Polícia": 4, "Plantão Policial": 5, "Política": 6, "Entretenimento": 7
+        };
+
+        const finalCats = [{ id: "inicio", nome: "Início", slug: "" }, ...filtered].sort((a, b) => {
+          return (orderMap[a.nome] ?? 99) - (orderMap[b.nome] ?? 99);
+        });
+
+        setCategorias(finalCats);
       });
 
     return () => subscription.unsubscribe();

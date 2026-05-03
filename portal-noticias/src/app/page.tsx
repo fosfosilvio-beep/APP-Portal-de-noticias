@@ -107,6 +107,7 @@ export default async function Home() {
     supabase
       .from("noticias")
       .select("*, categorias(id, nome, slug)")
+      .eq("status", "published")
       .order("created_at", { ascending: false })
       .limit(80),
     supabase
