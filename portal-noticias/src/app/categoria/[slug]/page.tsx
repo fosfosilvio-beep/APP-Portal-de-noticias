@@ -45,7 +45,8 @@ export default async function CategorySlugPage({ params }: { params: Promise<{ s
 
   // Lógica de isolamento cirúrgico com sincronização de ordem do Admin
   if (slug === "plantao-policial-arapongas") {
-    query = query.eq("categoria", "Plantão Policial Arapongas");
+    // Tenta correspondência exata E por ilike para evitar falhas por acentos/espaços invisíveis
+    query = query.or(`categoria.eq.Plantão Policial Arapongas,categoria.ilike.%Plantão Policial Arapongas%`);
   } else {
     query = query
       .neq("categoria", "Plantão Policial Arapongas")
