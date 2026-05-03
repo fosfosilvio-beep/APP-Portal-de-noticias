@@ -55,7 +55,7 @@ export default function CommentModeration() {
       toast.error("Erro ao atualizar status.");
     } else {
       toast.success(`Comentário ${newStatus === "approved" ? "aprovado" : "rejeitado"} com sucesso!`);
-      setComentarios(comentarios.map(c => c.id === id ? { ...c, status: newStatus } : c));
+      setComentarios(comentarios.map((c: any) => c.id === id ? { ...c, status: newStatus } : c));
     }
   }
 
@@ -72,7 +72,7 @@ export default function CommentModeration() {
     }
   }
 
-  const filtered = comentarios.filter(c => {
+  const filtered = comentarios.filter((c: any) => {
     const matchesFilter = filter === "all" || c.status === filter;
     const matchesSearch = c.usuario_nome.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           c.comentario.toLowerCase().includes(searchTerm.toLowerCase());

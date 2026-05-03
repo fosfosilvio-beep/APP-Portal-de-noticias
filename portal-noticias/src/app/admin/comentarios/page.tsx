@@ -77,7 +77,7 @@ export default function ComentariosAdmin() {
             </div>
           ) : (
             <div className="space-y-4">
-              {comentarios.map((item) => (
+              {comentarios.map((item: any) => (
                 <div key={item.id} className="bg-white rounded-2xl p-6 border border-slate-100 flex flex-col md:flex-row gap-6">
                   
                   <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center text-slate-500 font-black text-xl shrink-0 uppercase">
