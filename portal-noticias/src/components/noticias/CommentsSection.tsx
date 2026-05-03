@@ -47,7 +47,7 @@ export default function CommentsSection({ noticiaId }: CommentsSectionProps) {
     if (!nomeTrim) return "Preencha seu nome.";
     if (nomeTrim.length < 2) return "Nome deve ter pelo menos 2 caracteres.";
     if (nomeTrim.length > 80) return "Nome deve ter no maximo 80 caracteres.";
-    if (!/^[a-zA-Z0-9À-ɏs.-]+$/.test(nomeTrim)) {
+    if (!/^[a-zA-Z0-9À-ɏ\s.-]+$/.test(nomeTrim)) {
       return "Nome contem caracteres invalidos.";
     }
     
@@ -80,11 +80,12 @@ if (!textoTrim) return "Preencha o comentario.";
 
       if (error) {
         console.error("[CommentsSection] Erro ao inserir:", error);
-        toast.error("Erro ao enviar comentario. Tente novamente.");
+        toast.error("Erro ao enviar comentário. Tente novamente.");
       } else {
         setSubmitted(true);
         setNome("");
         setTexto("");
+        fetchComentarios(); // Atualiza a lista imediatamente
       }
     } catch (err) {
       console.error("[CommentsSection] Excecao:", err);
@@ -133,10 +134,10 @@ if (!textoTrim) return "Preencha o comentario.";
                 ✓
               </div>
               <h3 className="text-slate-900 font-black uppercase tracking-tighter text-xl">
-                Comentário Enviado!
+                Obrigado por participar!
               </h3>
               <p className="text-slate-500 font-medium text-sm">
-                Ele passará por moderação e aparecerá em breve.
+                Seu comentário foi publicado com sucesso.
               </p>
               <button
                 onClick={() => setSubmitted(false)}

@@ -102,23 +102,46 @@ export default function NoticiaClient({ slug, initialData }: { slug: string, ini
       const timer = setTimeout(() => {
         const articleElement = document.getElementById("article-body");
         const coverImg = document.getElementById("cover-image");
-        const allImages: HTMLImageElement[] = [];
+        const allImages: { src: string, el?: HTMLElement }[] = [];
         
-        if (coverImg instanceof HTMLImageElement) allImages.push(coverImg);
+        // 1. Adicionar capa
+        if (coverImg instanceof HTMLImageElement) {
+          allImages.push({ src: coverImg.src, el: coverImg });
+        }
+
+        // 2. Adicionar Galeria (Album) - Campo galeria_urls do banco
+        if (Array.isArray(noticia.galeria_urls) && noticia.galeria_urls.length > 0) {
+          noticia.galeria_urls.forEach((url: string) => {
+            const fullUrl = getPublicUrl(url);
+            // Evitar duplicidade com a capa se a URL for a mesma
+            if (fullUrl !== coverImg?.getAttribute('src')) {
+              allImages.push({ src: fullUrl });
+            }
+          });
+        }
+        
+        // 3. Adicionar imagens do corpo da matéria
         if (articleElement) {
           const bodyImages = Array.from(articleElement.getElementsByTagName("img"));
-          allImages.push(...bodyImages);
+          bodyImages.forEach(img => {
+            if (!allImages.find(item => item.src === img.src)) {
+              allImages.push({ src: img.src, el: img });
+            }
+          });
         }
 
         if (allImages.length > 0) {
-          const slideUrls = allImages.map(img => ({ src: img.src }));
-          setSlides(slideUrls);
-          allImages.forEach((img, index) => {
-            img.style.cursor = "zoom-in";
-            img.onclick = () => {
-              setPhotoIndex(index);
-              setIsOpen(true);
-            };
+          setSlides(allImages.map(item => ({ src: item.src })));
+          
+          // Vincular clique nas imagens que existem no DOM
+          allImages.forEach((item, index) => {
+            if (item.el) {
+              item.el.style.cursor = "zoom-in";
+              item.el.onclick = () => {
+                setPhotoIndex(index);
+                setIsOpen(true);
+              };
+            }
           });
         }
       }, 800);
@@ -308,6 +331,43 @@ export default function NoticiaClient({ slug, initialData }: { slug: string, ini
                     <p className="italic text-zinc-500">Conteúdo indisponível.</p>
                   )}
                 </div>
+                
+                {/* Galeria de Fotos (Álbum) */}
+                {Array.isArray(noticia.galeria_urls) && noticia.galeria_urls.length > 0 && (
+                  <div className="mt-12 mb-8">
+                    <h3 className="text-xl font-black uppercase tracking-tighter mb-6 flex items-center gap-2">
+                      <div className="w-2 h-6 bg-blue-600 rounded-full" />
+                      Álbum de Fotos
+                    </h3>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {noticia.galeria_urls.map((url: string, index: number) => {
+                        const fullUrl = getPublicUrl(url);
+                        // Procurar o index real no array global de slides para o Lightbox abrir no lugar certo
+                        const slideIndex = slides.findIndex(s => s.src === fullUrl);
+                        
+                        return (
+                          <div 
+                            key={index} 
+                            className="relative aspect-square rounded-xl overflow-hidden bg-zinc-100 border border-zinc-100 cursor-zoom-in group shadow-sm hover:shadow-md transition-all"
+                            onClick={() => {
+                              if (slideIndex !== -1) {
+                                setPhotoIndex(slideIndex);
+                                setIsOpen(true);
+                              }
+                            }}
+                          >
+                            <img 
+                              src={fullUrl} 
+                              alt={`Foto ${index + 1}`}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                            />
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 <div className="mt-8">
                    <ShareBar url={`/noticia/${slug}`} title={noticia.titulo} />
