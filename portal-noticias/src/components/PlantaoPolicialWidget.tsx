@@ -40,16 +40,14 @@ export default function PlantaoPolicialWidget() {
 
   const fetchPlantao = async () => {
     try {
-      // Busca a matéria mais recente da categoria Plantão Policial Arapongas
-      // Filtro rigoroso para evitar mix de categorias
+      // NOVA QUERY FORÇADA: Busca a única notícia mais recente desta categoria específica
       const { data, error } = await supabase
-        .from("noticias")
-        .select("id, titulo, subtitulo, imagem_capa, slug, created_at")
-        .eq("status", "published")
-        .or("categoria.eq.Plantão Policial Arapongas,categoria.ilike.%plantao-policial-arapongas%")
-        .order("created_at", { ascending: false })
+        .from('noticias')
+        .select('*')
+        .eq('categoria', 'Plantão Policial Arapongas')
+        .order('created_at', { ascending: false })
         .limit(1)
-        .maybeSingle();
+        .single();
 
       if (error) {
         console.warn("[PlantaoPolicial] Fetch error:", error.message);
@@ -76,13 +74,12 @@ export default function PlantaoPolicialWidget() {
     <div className="flex flex-col space-y-3">
       <div className="flex items-center gap-3 px-1">
         <div className="relative flex h-8 w-8 shrink-0 items-center justify-center">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-40"></span>
           <div className="relative inline-flex rounded-full h-8 w-8 bg-red-600 items-center justify-center border border-red-700 shadow-sm">
             <Siren size={18} className="text-white" />
           </div>
         </div>
         <h3 className="font-black uppercase tracking-tight text-sm">
-          <span className="text-red-600">Plantão Policial</span> <span className="text-black">Arapongas</span>
+          <span style={{ color: 'red' }}>PLANTÃO POLICIAL</span> <span style={{ color: 'black' }}>ARAPONGAS</span>
         </h3>
       </div>
 

@@ -108,7 +108,7 @@ export default async function Home() {
       .from("noticias")
       .select("*, categorias(id, nome, slug)")
       .eq("status", "published")
-      .not("categoria", "ilike", "%Plantão Policial Arapongas%")
+      .neq("categoria", "Plantão Policial Arapongas")
       .order("created_at", { ascending: false })
       .limit(80),
     supabase
