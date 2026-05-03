@@ -9,6 +9,7 @@ import { Tag, ChevronLeft, Sun, Clock, BookOpen } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { getVisualCategory, normalizeCategory } from "../../../lib/category-utils";
+import { getPublicUrl } from "../../../lib/image-utils";
 
 // Lightbox dinâmico para performance
 const Lightbox = dynamic(() => import("yet-another-react-lightbox"), { ssr: false });
