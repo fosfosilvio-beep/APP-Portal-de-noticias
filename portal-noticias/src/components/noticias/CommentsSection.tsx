@@ -47,7 +47,7 @@ export default function CommentsSection({ noticiaId }: CommentsSectionProps) {
       .order("criado_em", { ascending: false });
 
     // Mapear criado_em para created_at para manter compatibilidade com a interface
-    const mapped = (data || []).map(c => ({
+    const mapped = (data || []).map((c: any) => ({
       ...c,
       nome_usuario: c.usuario_nome,
       created_at: c.criado_em
