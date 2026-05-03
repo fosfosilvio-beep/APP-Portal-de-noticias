@@ -21,7 +21,7 @@ export default function ComentariosAdmin() {
       .from("comentarios")
       .select("*, noticias(titulo, slug)")
       .eq("status", filter)
-      .order("created_at", { ascending: false });
+      .order("criado_em", { ascending: false });
     
     if (data) setComentarios(data);
     setLoading(false);
@@ -81,14 +81,14 @@ export default function ComentariosAdmin() {
                 <div key={item.id} className="bg-white rounded-2xl p-6 border border-slate-100 flex flex-col md:flex-row gap-6">
                   
                   <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center text-slate-500 font-black text-xl shrink-0 uppercase">
-                    {item.nome_usuario.charAt(0)}
+                    {(item.usuario_nome || "?").charAt(0)}
                   </div>
                   
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="font-black text-slate-900 text-lg">{item.nome_usuario}</span>
+                      <span className="font-black text-slate-900 text-lg">{item.usuario_nome}</span>
                       <span className="text-slate-400 text-xs font-medium">
-                        {new Date(item.created_at).toLocaleDateString("pt-BR", { day: '2-digit', month: 'short', hour: '2-digit', minute:'2-digit' })}
+                        {new Date(item.criado_em).toLocaleDateString("pt-BR", { day: '2-digit', month: 'short', hour: '2-digit', minute:'2-digit' })}
                       </span>
                     </div>
                     

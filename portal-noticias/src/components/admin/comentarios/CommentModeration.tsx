@@ -8,10 +8,10 @@ import { motion, AnimatePresence } from "framer-motion";
 
 interface Comentario {
   id: string;
-  nome_usuario: string;
+  usuario_nome: string;
   comentario: string;
   status: "pending" | "approved" | "rejected";
-  created_at: string;
+  criado_em: string;
   noticias: {
     titulo: string;
   };
@@ -32,10 +32,10 @@ export default function CommentModeration() {
     const { data, error } = await supabase
       .from("comentarios")
       .select(`
-        id, nome_usuario, comentario, status, created_at,
+        id, usuario_nome, comentario, status, criado_em,
         noticias(titulo)
       `)
-      .order("created_at", { ascending: false });
+      .order("criado_em", { ascending: false });
 
     if (error) {
       toast.error("Erro ao carregar comentários.");
@@ -74,7 +74,7 @@ export default function CommentModeration() {
 
   const filtered = comentarios.filter(c => {
     const matchesFilter = filter === "all" || c.status === filter;
-    const matchesSearch = c.nome_usuario.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    const matchesSearch = c.usuario_nome.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           c.comentario.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesFilter && matchesSearch;
   });
@@ -153,12 +153,12 @@ export default function CommentModeration() {
               >
                 <div className="flex-1 space-y-3">
                   <div className="flex items-center gap-3 flex-wrap">
-                    <span className="font-black text-slate-900 uppercase tracking-tighter">{c.nome_usuario}</span>
+                    <span className="font-black text-slate-900 uppercase tracking-tighter">{c.usuario_nome}</span>
                     <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${getStatusColor(c.status)}`}>
                       {getStatusText(c.status)}
                     </span>
                     <span className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">
-                      {new Date(c.created_at).toLocaleString("pt-BR")}
+                      {new Date(c.criado_em).toLocaleString("pt-BR")}
                     </span>
                   </div>
                   

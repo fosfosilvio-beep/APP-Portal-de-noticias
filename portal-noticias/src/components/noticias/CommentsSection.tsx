@@ -24,19 +24,36 @@ export default function CommentsSection({ noticiaId }: CommentsSectionProps) {
   const [nome, setNome] = useState("");
   const [texto, setTexto] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
     fetchComentarios();
+    checkUser();
   }, [noticiaId]);
+
+  async function checkUser() {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      setUser(user);
+      setNome(user.user_metadata?.full_name || user.email?.split('@')[0] || "");
+    }
+  }
 
   async function fetchComentarios() {
     const { data } = await supabase
       .from("comentarios")
-      .select("id, nome_usuario, comentario, created_at")
+      .select("id, usuario_nome, comentario, criado_em")
       .eq("noticia_id", noticiaId)
-      .order("created_at", { ascending: false });
+      .order("criado_em", { ascending: false });
 
-    setComentarios(data || []);
+    // Mapear criado_em para created_at para manter compatibilidade com a interface
+    const mapped = (data || []).map(c => ({
+      ...c,
+      nome_usuario: c.usuario_nome,
+      created_at: c.criado_em
+    }));
+
+    setComentarios(mapped as any);
     setLoading(false);
   }
 
@@ -48,14 +65,14 @@ export default function CommentsSection({ noticiaId }: CommentsSectionProps) {
     if (nomeTrim.length < 2) return "Nome deve ter pelo menos 2 caracteres.";
     if (nomeTrim.length > 80) return "Nome deve ter no maximo 80 caracteres.";
     if (!/^[a-zA-Z0-9À-ɏ\s.-]+$/.test(nomeTrim)) {
-      return "Nome contem caracteres invalidos.";
+      return "Nome contém caracteres inválidos.";
     }
     
-if (!textoTrim) return "Preencha o comentario.";
-    if (textoTrim.length < 3) return "Comentario deve ter pelo menos 3 caracteres.";
-    if (textoTrim.length > 1000) return "Comentario deve ter no maximo 1000 caracteres.";
+    if (!textoTrim) return "Preencha o comentário.";
+    if (textoTrim.length < 3) return "Comentário deve ter pelo menos 3 caracteres.";
+    if (textoTrim.length > 1000) return "Comentário deve ter no maximo 1000 caracteres.";
     if (/(https?:\/\/|www\.|http:\/\/|\.com|\.br|\.net)/.test(textoTrim)) {
-      return "Links nao sao permitidos.";
+      return "Links não são permitidos.";
     }
     
     return null;
@@ -74,7 +91,7 @@ if (!textoTrim) return "Preencha o comentario.";
     try {
       const { error } = await supabase.from("comentarios").insert([{
         noticia_id: noticiaId,
-        nome_usuario: nome.trim().slice(0, 80),
+        usuario_nome: nome.trim().slice(0, 80),
         comentario: texto.trim().slice(0, 1000),
       }]);
 
@@ -83,7 +100,8 @@ if (!textoTrim) return "Preencha o comentario.";
         toast.error("Erro ao enviar comentário. Tente novamente.");
       } else {
         setSubmitted(true);
-        setNome("");
+        // Não limpa o nome se estiver logado
+        if (!user) setNome("");
         setTexto("");
         fetchComentarios(); // Atualiza a lista imediatamente
       }
@@ -96,6 +114,7 @@ if (!textoTrim) return "Preencha o comentario.";
   }
 
   const formatDate = (date: string) => {
+    if (!date) return "Agora";
     return new Date(date).toLocaleDateString("pt-BR", {
       day: "2-digit",
       month: "short",
@@ -154,16 +173,24 @@ if (!textoTrim) return "Preencha o comentario.";
               onSubmit={handleSubmit}
               className="space-y-4"
             >
-              <h3 className="text-slate-900 font-black uppercase tracking-tighter mb-6">
-                Deixe sua <span className="text-blue-600">Opinião</span>
-              </h3>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-slate-900 font-black uppercase tracking-tighter">
+                  Deixe sua <span className="text-blue-600">Opinião</span>
+                </h3>
+                {user && (
+                  <span className="text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
+                    Conectado como {user.email?.split('@')[0]}
+                  </span>
+                )}
+              </div>
               <input
                 type="text"
                 placeholder="Seu nome"
                 value={nome}
                 onChange={(e) => setNome(e.target.value)}
                 maxLength={80}
-                className="w-full bg-slate-50 rounded-2xl px-6 py-4 text-slate-900 font-semibold placeholder:text-slate-300 outline-none focus:ring-2 focus:ring-blue-500/20 border-none transition-all"
+                disabled={!!user}
+                className={`w-full bg-slate-50 rounded-2xl px-6 py-4 text-slate-900 font-semibold placeholder:text-slate-300 outline-none focus:ring-2 focus:ring-blue-500/20 border-none transition-all ${!!user ? 'opacity-60 cursor-not-allowed' : ''}`}
               />
               <textarea
                 placeholder="Escreva seu comentário aqui..."
