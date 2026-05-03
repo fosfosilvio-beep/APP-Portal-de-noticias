@@ -103,6 +103,7 @@ export default function HomeContent({ initialConfig, liveStatus, todasNoticias, 
         .from("noticias")
         .select("*, categorias(id, nome, slug)")
         .ilike("categoria", searchTerm)
+        .order("ordem_prioridade", { ascending: true })
         .order("created_at", { ascending: false })
         .limit(40);
 

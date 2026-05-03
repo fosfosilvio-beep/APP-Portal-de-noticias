@@ -43,7 +43,7 @@ export default async function CategorySlugPage({ params }: { params: Promise<{ s
     .select("*, categorias(id, nome, slug)")
     .eq("status", "published");
 
-  // Lógica de isolamento cirúrgico
+  // Lógica de isolamento cirúrgico com sincronização de ordem do Admin
   if (slug === "plantao-policial-arapongas") {
     query = query.eq("categoria", "Plantão Policial Arapongas");
   } else {
@@ -52,7 +52,10 @@ export default async function CategorySlugPage({ params }: { params: Promise<{ s
       .or(`categoria.ilike.${searchTerm}${catData ? `,categoria_id.eq.${catData.id}` : ""}`);
   }
 
-  query = query.order("created_at", { ascending: false }).limit(40);
+  query = query
+    .order("ordem_prioridade", { ascending: true })
+    .order("created_at", { ascending: false })
+    .limit(40);
   
   const { data: noticias, error } = await query;
 

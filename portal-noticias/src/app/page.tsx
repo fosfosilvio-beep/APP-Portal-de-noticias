@@ -109,6 +109,7 @@ export default async function Home() {
       .select("*, categorias(id, nome, slug)")
       .eq("status", "published")
       .neq("categoria", "Plantão Policial Arapongas")
+      .order("ordem_prioridade", { ascending: true })
       .order("created_at", { ascending: false })
       .limit(80),
     supabase

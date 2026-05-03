@@ -40,11 +40,13 @@ export default function PlantaoPolicialWidget() {
 
   const fetchPlantao = async () => {
     try {
-      // NOVA QUERY FORÇADA: Busca a única notícia mais recente desta categoria específica
+      // NOVA QUERY FORÇADA COM ORDEM DE PRIORIDADE (SINCRONIA COM ADMIN)
       const { data, error } = await supabase
         .from('noticias')
         .select('*')
         .eq('categoria', 'Plantão Policial Arapongas')
+        .eq('status', 'published')
+        .order('ordem_prioridade', { ascending: true })
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
@@ -79,7 +81,7 @@ export default function PlantaoPolicialWidget() {
           </div>
         </div>
         <h3 className="font-black uppercase tracking-tight text-sm">
-          <span style={{ color: 'red' }}>PLANTÃO POLICIAL</span> <span style={{ color: 'black' }}>ARAPONGAS</span>
+          <span style={{ color: '#ff0000' }}>PLANTÃO POLICIAL</span> <span style={{ color: '#000000' }}>ARAPONGAS</span>
         </h3>
       </div>
 
