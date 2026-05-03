@@ -128,8 +128,11 @@ export default function Header({
     const cleanSlug = catSlug ? catSlug.replace(/^\//, '') : normalizeCategory(catName);
     const targetPath = isInicio ? "/" : `/categoria/${cleanSlug}`;
 
-    // Se estivermos na Home, usamos o filtro de estado para não recarregar
-    if (pathname === "/") {
+    // Para o Plantão Policial, sempre navegamos para a página dedicada para garantir a query correta e isolamento
+    const isPlantao = cleanSlug === "plantao-policial-arapongas";
+
+    // Se estivermos na Home e não for Plantão, usamos o filtro de estado
+    if (pathname === "/" && !isPlantao) {
       const finalSet = setCategoriaAtiva || setStoreCategoria;
       finalSet(isInicio ? "Início" : catName);
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -137,7 +140,7 @@ export default function Header({
       return;
     }
 
-    // Caso contrário, navegamos para a rota absoluta forçada
+    // Caso contrário (ou se for Plantão), navegamos para a rota absoluta forçada
     router.push(targetPath);
     setIsMobileMenuOpen(false);
   };
