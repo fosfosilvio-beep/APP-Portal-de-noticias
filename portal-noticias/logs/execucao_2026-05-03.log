@@ -1,0 +1,6 @@
+[2026-05-03 15:20] INFO: Iniciando correções na Home e Widget Plantão Policial.
+[2026-05-03 15:20] INFO: 1. Ajustando ordenação da Home para created_at DESC.
+[2026-05-03 15:20] INFO: 2. Refatorando query do PlantaoPolicialWidget para buscar categoria 'Plantão Policial Arapongas' de forma robusta.
+[2026-05-03 15:20] INFO: 3. Corrigindo links e rotas do widget.
+[2026-05-03 15:22] INFO: Correções aplicadas com sucesso. Realizando commit e push.
+

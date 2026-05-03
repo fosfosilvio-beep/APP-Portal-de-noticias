@@ -41,10 +41,11 @@ export default function PlantaoPolicialWidget() {
   const fetchPlantao = async () => {
     try {
       // Busca a matéria mais recente da categoria Plantão Policial Arapongas
+      // Usamos ilike no campo 'categoria' para maior abrangência, além do join
       const { data, error } = await supabase
         .from("noticias")
-        .select("id, titulo, subtitulo, imagem_capa, slug, created_at, categorias!inner(slug)")
-        .eq("categorias.slug", "plantao-policial-arapongas")
+        .select("id, titulo, subtitulo, imagem_capa, slug, created_at")
+        .or("categoria.ilike.%Plantão Policial Arapongas%,categoria.ilike.%plantao-policial-arapongas%")
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
