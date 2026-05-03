@@ -33,7 +33,7 @@ export default function CommentsSection({ noticiaId }: CommentsSectionProps) {
     checkUser();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: any, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
       if (session?.user) {
         setUser(session.user);
         setNome(session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split('@')[0] || "");
