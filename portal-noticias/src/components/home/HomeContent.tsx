@@ -46,6 +46,9 @@ export default function HomeContent({ initialConfig, liveStatus, todasNoticias, 
   // Filtrar duplicidade da live na lista de notícias e garantir ordem decrescente (DESC)
   const noticiasFiltradas = todasNoticias
     .filter((noticia) => {
+      // Isolamento Estrito: Notícias do Plantão Policial Arapongas NÃO aparecem na listagem geral
+      if (noticia.categoria === "Plantão Policial Arapongas") return false;
+
       if (!isLive) return true;
       
       const hasSameUrl = (liveStatus?.url_youtube && noticia.video_url && noticia.video_url.includes(liveStatus.url_youtube)) ||
@@ -96,12 +99,19 @@ export default function HomeContent({ initialConfig, liveStatus, todasNoticias, 
       const normalizedTerm = categoriaAtiva.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
       const searchTerm = `%${normalizedTerm}%`;
 
-      const { data, error } = await supabase
+      let query = supabase
         .from("noticias")
         .select("*, categorias(id, nome, slug)")
         .ilike("categoria", searchTerm)
         .order("created_at", { ascending: false })
         .limit(40);
+
+      // Isolamento estrito: Se não for a categoria de plantão, remove ela da lista
+      if (normalizedTerm !== "plantao policial arapongas") {
+        query = query.neq("categoria", "Plantão Policial Arapongas");
+      }
+
+      const { data, error } = await query;
 
       if (!error && data) {
         setNoticiasCategoria(data);

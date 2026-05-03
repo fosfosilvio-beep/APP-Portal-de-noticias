@@ -41,15 +41,18 @@ export default async function CategorySlugPage({ params }: { params: Promise<{ s
   let query = supabase
     .from("noticias")
     .select("*, categorias(id, nome, slug)")
-    .eq("status", "published")
-    .or(`categoria.ilike.${searchTerm}${catData ? `,categoria_id.eq.${catData.id}` : ""}`)
-    .order("created_at", { ascending: false })
-    .limit(40);
+    .eq("status", "published");
 
-  // Exclusividade estrita: se não for a página do plantão, remove notícias do plantão
-  if (slug !== "plantao-policial-arapongas") {
-    query = query.not("categoria", "ilike", "%Plantão Policial Arapongas%");
+  // Lógica de isolamento cirúrgico
+  if (slug === "plantao-policial-arapongas") {
+    query = query.eq("categoria", "Plantão Policial Arapongas");
+  } else {
+    query = query
+      .neq("categoria", "Plantão Policial Arapongas")
+      .or(`categoria.ilike.${searchTerm}${catData ? `,categoria_id.eq.${catData.id}` : ""}`);
   }
+
+  query = query.order("created_at", { ascending: false }).limit(40);
   
   const { data: noticias, error } = await query;
 
