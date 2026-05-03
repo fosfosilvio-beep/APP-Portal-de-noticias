@@ -43,17 +43,19 @@ export default function HomeContent({ initialConfig, liveStatus, todasNoticias, 
     speed: config?.ui_settings?.breaking_news_alert?.speed || "normal"
   };
 
-  // Filtrar duplicidade da live na lista de notícias
-  const noticiasFiltradas = todasNoticias.filter((noticia) => {
-    if (!isLive) return true;
-    
-    const hasSameUrl = (liveStatus?.url_youtube && noticia.video_url && noticia.video_url.includes(liveStatus.url_youtube)) ||
-                       (liveStatus?.url_facebook && noticia.video_url && noticia.video_url.includes(liveStatus.url_facebook));
-    
-    const hasSameTitle = liveStatus?.titulo && noticia.titulo && noticia.titulo.toLowerCase().trim() === liveStatus.titulo.toLowerCase().trim();
+  // Filtrar duplicidade da live na lista de notícias e garantir ordem decrescente (DESC)
+  const noticiasFiltradas = todasNoticias
+    .filter((noticia) => {
+      if (!isLive) return true;
+      
+      const hasSameUrl = (liveStatus?.url_youtube && noticia.video_url && noticia.video_url.includes(liveStatus.url_youtube)) ||
+                         (liveStatus?.url_facebook && noticia.video_url && noticia.video_url.includes(liveStatus.url_facebook));
+      
+      const hasSameTitle = liveStatus?.titulo && noticia.titulo && noticia.titulo.toLowerCase().trim() === liveStatus.titulo.toLowerCase().trim();
 
-    return !(hasSameUrl || hasSameTitle || noticia.is_live);
-  });
+      return !(hasSameUrl || hasSameTitle || noticia.is_live);
+    })
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
   useEffect(() => {
     setIsMounted(true);

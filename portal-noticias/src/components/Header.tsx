@@ -66,7 +66,8 @@ export default function Header({
     }
 
     // Fetch Categorias
-    const allowedNormalized = ['geral', 'arapongas', 'esportes', 'policia', 'politica', 'economia', 'entretenimento', 'plantao policial arapongas'];
+    // Fetch Categorias
+    const allowedNormalized = ['geral', 'arapongas', 'esportes', 'policia', 'politica', 'economia', 'entretenimento', 'plantao policial arapongas', 'plantao policial'];
     supabase.from("categorias").select("id, nome, slug").eq("ativa", true).order("ordem")
       .then(({ data }: { data: any[] | null }) => {
         if (data) {
@@ -97,7 +98,7 @@ export default function Header({
   const handleCategoryClick = (catName: string, catSlug?: string) => {
     const isInicio = catName === "Início" || !catSlug || catSlug === "" || catSlug === "inicio";
     const cleanSlug = catSlug ? catSlug.replace(/^\//, '') : normalizeCategory(catName);
-    const targetPath = isInicio ? "/" : `/${cleanSlug}`;
+    const targetPath = isInicio ? "/" : `/categoria/${cleanSlug}`;
 
     // Se estivermos na Home, usamos o filtro de estado para não recarregar
     if (pathname === "/") {
@@ -236,7 +237,7 @@ export default function Header({
               {categorias.map((cat) => {
                 const isInicio = cat.nome === "Início" || !cat.slug || cat.slug === "";
                 const cleanSlug = cat.slug ? cat.slug.replace(/^\//, '') : "";
-                const href = isInicio ? "/" : `/${cleanSlug}`;
+                const href = isInicio ? "/" : `/categoria/${cleanSlug}`;
                 const isActive = activeVisualCategory === cat.nome || (pathname === href) || (isInicio && pathname === "/");
 
                 return (
@@ -274,7 +275,7 @@ export default function Header({
             {categorias.map((cat) => {
               const isInicio = cat.nome === "Início" || !cat.slug || cat.slug === "";
               const cleanSlug = cat.slug ? cat.slug.replace(/^\//, '') : "";
-              const href = isInicio ? "/" : `/${cleanSlug}`;
+              const href = isInicio ? "/" : `/categoria/${cleanSlug}`;
               const isActive = activeVisualCategory === cat.nome || (pathname === href) || (isInicio && pathname === "/");
 
               return (

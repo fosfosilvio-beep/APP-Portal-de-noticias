@@ -73,15 +73,13 @@ export default function PlantaoPolicialWidget() {
 
   return (
     <div className="flex flex-col space-y-3">
-      <div className="flex items-center gap-3 px-1">
-        <div className="relative flex h-8 w-8 shrink-0 items-center justify-center">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-40"></span>
-          <div className="relative inline-flex rounded-full h-8 w-8 bg-red-600 items-center justify-center border border-red-700 shadow-sm">
-            <Siren size={18} className="text-white" />
-          </div>
+      <div className="flex items-center gap-3 bg-red-600 p-2 rounded-xl shadow-sm border border-red-700">
+        <div className="relative flex h-8 w-8 shrink-0 items-center justify-center bg-white/20 rounded-full">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-40"></span>
+          <Siren size={18} className="text-white relative z-10" />
         </div>
-        <h3 className="font-black text-red-600 uppercase tracking-tight text-sm">
-          Plantão Policial <span className="text-black">Arapongas</span>
+        <h3 className="font-black text-white uppercase tracking-tight text-xs flex-1">
+          Plantão Policial <span className="text-black ml-1">Arapongas</span>
         </h3>
       </div>
 

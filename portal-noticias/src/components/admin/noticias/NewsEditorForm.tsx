@@ -163,7 +163,7 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
     }
     if (colRes.data) setColunistas(colRes.data);
     if (catRes.data) {
-      const allowedNames = ["Geral", "Arapongas", "Esportes", "Polícia", "Política", "Entretenimento", "Plantão Policial Arapongas"];
+      const allowedNames = ["Geral", "Arapongas", "Esportes", "Polícia", "Política", "Entretenimento", "Plantão Policial Arapongas", "Plantão Policial"];
       
       const defaultCats = [
         { id: "geral", nome: "Geral" },
@@ -172,7 +172,8 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
         { id: "policia", nome: "Polícia" },
         { id: "politica", nome: "Política" },
         { id: "entretenimento", nome: "Entretenimento" },
-        { id: "plantao-policial-arapongas", nome: "Plantão Policial Arapongas" }
+        { id: "plantao-policial-arapongas", nome: "Plantão Policial Arapongas" },
+        { id: "plantao-policial", nome: "Plantão Policial" }
       ];
       
       const merged = [...catRes.data];
