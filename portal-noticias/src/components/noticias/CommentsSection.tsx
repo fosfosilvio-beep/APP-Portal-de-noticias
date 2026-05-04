@@ -1,16 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { MessageSquare, Send, Loader2, User, Clock } from "lucide-react";
+import { MessageSquare, Send, Loader2, User, Clock, LogIn } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import LoginModal from "../LoginModal";
 
 interface Comentario {
   id: string;
   nome_usuario: string;
   comentario: string;
   created_at: string;
+  usuario_imagem?: string;
 }
 
 interface CommentsSectionProps {
@@ -25,6 +27,7 @@ export default function CommentsSection({ noticiaId }: CommentsSectionProps) {
   const [texto, setTexto] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   useEffect(() => {
     fetchComentarios();
@@ -59,7 +62,7 @@ export default function CommentsSection({ noticiaId }: CommentsSectionProps) {
   async function fetchComentarios() {
     const { data } = await supabase
       .from("comentarios")
-      .select("id, usuario_nome, comentario, criado_em")
+      .select("id, usuario_nome, comentario, criado_em, usuario_imagem")
       .eq("noticia_id", noticiaId)
       .order("criado_em", { ascending: false });
 
@@ -97,6 +100,15 @@ export default function CommentsSection({ noticiaId }: CommentsSectionProps) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    if (!user) {
+      toast.error("Você precisa estar logado para comentar.");
+      setIsLoginModalOpen(true);
+      return;
+    }
+
+    // Log de confirmação solicitado
+    console.log('Usuário autenticado:', user);
     
     const erro = validarComentario(nome, texto);
     if (erro) {
@@ -106,19 +118,22 @@ export default function CommentsSection({ noticiaId }: CommentsSectionProps) {
 
     setSending(true);
     try {
+      const avatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture || "";
+
       const { error } = await supabase.from("comentarios").insert([{
         noticia_id: noticiaId,
-        usuario_nome: nome.trim().slice(0, 80), // O campo no banco é usuario_nome
+        usuario_id: user.id,
+        usuario_email: user.email,
+        usuario_nome: nome.trim().slice(0, 80),
+        usuario_imagem: avatarUrl,
         comentario: texto.trim().slice(0, 1000),
       }]);
 
       if (error) {
         console.error("[CommentsSection] Erro ao inserir:", error);
-        toast.error("Erro ao enviar comentário. Tente novamente.");
+        toast.error("Erro ao enviar comentário. Verifique se o banco de dados foi atualizado.");
       } else {
         setSubmitted(true);
-        // Não limpa o nome se estiver logado
-        if (!user) setNome("");
         setTexto("");
         fetchComentarios(); // Atualiza a lista imediatamente
       }
@@ -157,7 +172,7 @@ export default function CommentsSection({ noticiaId }: CommentsSectionProps) {
       </div>
 
       {/* Comment Form */}
-      <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm">
+      <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm relative overflow-hidden">
         <AnimatePresence mode="wait">
           {submitted ? (
             <motion.div
@@ -182,6 +197,32 @@ export default function CommentsSection({ noticiaId }: CommentsSectionProps) {
                 Deixar outro comentário
               </button>
             </motion.div>
+          ) : !user ? (
+            <motion.div
+              key="login-required"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="py-10 text-center flex flex-col items-center gap-4"
+            >
+              <div className="w-14 h-14 bg-zinc-50 rounded-full flex items-center justify-center text-zinc-300">
+                <User size={28} />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-slate-900 font-black uppercase tracking-tighter text-lg">
+                  Faça login para comentar
+                </h3>
+                <p className="text-slate-400 font-medium text-sm">
+                  Sua opinião é muito importante para nós.
+                </p>
+              </div>
+              <button
+                onClick={() => setIsLoginModalOpen(true)}
+                className="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-8 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-blue-100 transition-all active:scale-95"
+              >
+                <LogIn size={16} />
+                Entrar com Redes Sociais
+              </button>
+            </motion.div>
           ) : (
             <motion.form
               key="form"
@@ -194,11 +235,18 @@ export default function CommentsSection({ noticiaId }: CommentsSectionProps) {
                 <h3 className="text-slate-900 font-black uppercase tracking-tighter">
                   Deixe sua <span className="text-blue-600">Opinião</span>
                 </h3>
-                {user && (
-                  <span className="text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
-                    Conectado como {user.email?.split('@')[0]}
-                  </span>
-                )}
+                <span className="text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 px-3 py-1 rounded-full flex items-center gap-2">
+                  {user.user_metadata?.avatar_url || user.user_metadata?.picture ? (
+                    <img 
+                      src={user.user_metadata.avatar_url || user.user_metadata.picture} 
+                      className="w-4 h-4 rounded-full" 
+                      alt="Avatar" 
+                    />
+                  ) : (
+                    <User size={10} />
+                  )}
+                  Conectado como {user.user_metadata?.full_name || user.email?.split('@')[0]}
+                </span>
               </div>
               <input
                 type="text"
@@ -206,8 +254,8 @@ export default function CommentsSection({ noticiaId }: CommentsSectionProps) {
                 value={nome}
                 onChange={(e) => setNome(e.target.value)}
                 maxLength={80}
-                disabled={!!user}
-                className={`w-full bg-slate-50 rounded-2xl px-6 py-4 text-slate-900 font-semibold placeholder:text-slate-300 outline-none focus:ring-2 focus:ring-blue-500/20 border-none transition-all ${!!user ? 'opacity-60 cursor-not-allowed' : ''}`}
+                disabled={true}
+                className="w-full bg-slate-50 rounded-2xl px-6 py-4 text-slate-900 font-semibold placeholder:text-slate-300 outline-none focus:ring-2 focus:ring-blue-500/20 border-none transition-all opacity-60 cursor-not-allowed"
               />
               <textarea
                 placeholder="Escreva seu comentário aqui..."
@@ -239,6 +287,8 @@ export default function CommentsSection({ noticiaId }: CommentsSectionProps) {
         </AnimatePresence>
       </div>
 
+      <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
+
       {/* Comments List */}
       {loading ? (
         <div className="flex justify-center py-12">
@@ -260,8 +310,12 @@ export default function CommentsSection({ noticiaId }: CommentsSectionProps) {
               animate={{ opacity: 1, y: 0 }}
               className="bg-white rounded-[2rem] p-6 border border-slate-50 shadow-sm flex gap-4"
             >
-              <div className="w-11 h-11 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 shrink-0 font-black text-lg uppercase">
-                {c.nome_usuario.charAt(0)}
+              <div className="w-11 h-11 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 shrink-0 overflow-hidden font-black text-lg uppercase border border-blue-100">
+                {c.usuario_imagem ? (
+                  <img src={c.usuario_imagem} className="w-full h-full object-cover" alt={c.nome_usuario} />
+                ) : (
+                  c.nome_usuario.charAt(0)
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
