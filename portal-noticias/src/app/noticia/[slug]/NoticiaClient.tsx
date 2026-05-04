@@ -88,21 +88,38 @@ export default function NoticiaClient({ slug, initialData }: { slug: string, ini
     if (!noticia?.id || hasTracked.current) return;
     hasTracked.current = true;
     
+    console.log('--- [DEBUG VIEWS] PAGINA CARREGADA: Iniciando contagem de views ---');
+    console.log('[DEBUG VIEWS] Noticia ID:', noticia.id);
+
     const key = `viewed_${noticia.id}`;
-    if (sessionStorage.getItem(key)) return;
+    if (sessionStorage.getItem(key)) {
+      console.log('[DEBUG VIEWS] Acesso já contado nesta sessão. Abortando.');
+      return;
+    }
     sessionStorage.setItem(key, "1");
 
     // 1. Log granular na tabela page_views
+    console.log('[DEBUG VIEWS] Disparando log granular em /api/track-view...');
     fetch("/api/track-view", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ noticiaId: noticia.id }),
-    }).catch(() => null);
+    })
+    .then(r => r.json())
+    .then(res => console.log('[DEBUG VIEWS] Resposta API track-view:', res))
+    .catch(err => console.error('[DEBUG VIEWS] Erro API track-view:', err));
 
     // 2. Incremento atômico na tabela noticias via RPC
+    console.log('[DEBUG VIEWS] Chamando RPC increment_views...');
     supabase.rpc('increment_views', { noticia_id: noticia.id })
-      .then(({ error }: { error: any }) => {
-        if (error) console.error("[RPC Error] Falha ao incrementar views:", error);
+      .then((res: { data: any, error: any }) => {
+        if (res.error) {
+           console.error("[DEBUG VIEWS] Erro no RPC increment_views:");
+           console.table(res.error);
+        } else {
+           console.log("[DEBUG VIEWS] RPC executado com sucesso!");
+           console.table({ status: 'success', noticia_id: noticia.id });
+        }
       });
   }, [noticia?.id]);
 

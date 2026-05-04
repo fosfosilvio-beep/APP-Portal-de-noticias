@@ -45,6 +45,10 @@ export default function NewsViewsClient() {
       if (filtroDataFim) query = query.lte("created_at", filtroDataFim + "T23:59:59");
 
       const { data, error } = await query;
+      console.log('[DEBUG DASHBOARD] Dados crus retornados:', data);
+      if (error) {
+        console.error('[DEBUG DASHBOARD] Erro ao buscar notícias:', error);
+      }
       if (!error && data) setNoticias(data as any[]);
 
       // 2. Fetch total count (dynamic)
@@ -57,9 +61,10 @@ export default function NewsViewsClient() {
       if (filtroDataFim) countQuery = countQuery.lte("created_at", filtroDataFim + "T23:59:59");
 
       const { count } = await countQuery;
+      console.log('[DEBUG DASHBOARD] Total Geral (count):', count);
       setTotalGeral(count || 0);
     } catch (err) {
-      console.error(err);
+      console.error('[DEBUG DASHBOARD] Exceção no fetchRelatorio:', err);
     } finally {
       setLoading(false);
     }
