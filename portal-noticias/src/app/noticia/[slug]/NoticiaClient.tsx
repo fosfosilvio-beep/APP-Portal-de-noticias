@@ -84,6 +84,10 @@ export default function NoticiaClient({ slug, initialData }: { slug: string, ini
     }
   }, [noticia, loading]);
 
+  useEffect(() => {
+    if (!noticia?.id || hasTracked.current) return;
+    hasTracked.current = true;
+    
     console.log('--- ENVIANDO VIEW PARA O BANCO: ID ' + noticia.id + ' ---');
 
     const key = `viewed_${noticia.id}`;
