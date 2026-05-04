@@ -110,7 +110,7 @@ export default function NoticiaClient({ slug, initialData }: { slug: string, ini
         if (res.error) {
            console.error("[ERRO BANCO] Falha ao registrar view:", res.error);
         } else {
-           console.log("[SUCESSO] View registrada com sucesso no banco (views_reais).");
+           console.log('--- VIEW COMPUTADA COM SUCESSO ---');
         }
       });
   }, [noticia?.id]);

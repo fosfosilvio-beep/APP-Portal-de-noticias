@@ -30,3 +30,5 @@
 [2026-05-04 17:35:00] log.info: Ativação total: Adicionada coluna views_reais à tabela noticias e atualizada função RPC increment_views.
 [2026-05-04 17:35:05] log.info: Rastreamento: Implementado log de auditoria no console do navegador ao registrar visualização.
 [2026-05-04 17:35:10] log.info: Dashboard: Sincronizados todos os componentes de relatório para consumir dados da coluna views_reais.
+[2026-05-04 17:45:00] log.info: Fix: Corrigido gatilho de visualização com log específico 'VIEW COMPUTADA COM SUCESSO'.
+[2026-05-04 17:45:05] log.info: Relatórios: Garantido que NewsViewsClient use a tabela física 'noticias' em vez de views legadas.
