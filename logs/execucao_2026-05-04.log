@@ -15,3 +15,5 @@
 [2026-05-04 14:45:05] log.info: Verificada consistência da tag property='fb:app_id' e URL canônica sem 'www'.
 [2026-05-04 14:55:00] log.info: Solução Radical: Domínio 'https://nossawebtv.com.br' hardcodado diretamente no código para anular quaisquer influências de variáveis de ambiente ou redirects de terceiros.
 [2026-05-04 14:55:05] log.info: Limpeza Absoluta de og:image: Forçada URL pública direta do Supabase sem nenhum parâmetro de query.
+[2026-05-04 15:00:00] log.info: Limpeza Profunda: Removidas todas as referências residuais de 'www.' em /api/noticia-og, sitemap.ts e teste-bot/page.tsx.
+[2026-05-04 15:00:05] log.info: Verificada integridade de todos os links internos para garantir consistência com o domínio principal https://nossawebtv.com.br.

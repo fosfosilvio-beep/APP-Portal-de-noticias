@@ -47,7 +47,7 @@ export async function GET(
 ) {
   const { slug } = await params;
   const noticia = await fetchNoticiaRest(slug);
-  const BASE_URL = "https://www.nossawebtv.com.br";
+  const BASE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://nossawebtv.com.br').replace("www.", "");
 
   const title = noticia?.titulo || "Nossa Web TV | Portal de Notícias";
   const description =

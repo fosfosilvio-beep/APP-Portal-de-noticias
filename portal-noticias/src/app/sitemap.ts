@@ -5,7 +5,7 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.nossawebtv.com.br';
+const BASE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://nossawebtv.com.br').replace("www.", "");
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const routes: MetadataRoute.Sitemap = [
