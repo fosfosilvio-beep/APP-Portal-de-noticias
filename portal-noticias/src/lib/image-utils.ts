@@ -35,7 +35,7 @@ export const getAbsoluteUrl = (path: string | null | undefined) => {
   if (!path) return "";
   if (path.startsWith("http")) return path;
   
-  let siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.nossawebtv.com.br");
+  let siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://nossawebtv.com.br");
   if (!siteUrl.startsWith("http")) siteUrl = `https://${siteUrl}`;
   
   const cleanSiteUrl = siteUrl.replace(/\/$/, "");

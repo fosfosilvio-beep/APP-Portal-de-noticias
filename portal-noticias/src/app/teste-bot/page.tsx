@@ -6,10 +6,10 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Teste Bot Facebook - Nossa Web TV",
     description: "Página estática isolada para testar o crawler do Facebook.",
-    url: "https://www.nossawebtv.com.br/teste-bot",
+    url: "https://nossawebtv.com.br/teste-bot",
     images: [
       {
-        url: "https://www.nossawebtv.com.br/logo-og.png",
+        url: "https://nossawebtv.com.br/logo-og.png",
         width: 1200,
         height: 630,
         alt: "Nossa Web TV",
