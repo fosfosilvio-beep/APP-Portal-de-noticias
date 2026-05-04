@@ -1,0 +1,6 @@
+[2026-05-04 14:05:00] log.info: Iniciando correção do loop de carregamento infinito no compartilhamento do Facebook.
+[2026-05-04 14:05:05] log.info: Analisando src/app/noticia/[slug]/page.tsx e src/lib/image-utils.ts.
+[2026-05-04 14:05:10] log.info: Identificada necessidade de usar getOptimizedImageUrl para garantir URLs absolutas e otimização de tamanho (WebP/JPG) nas metatags OpenGraph.
+[2026-05-04 14:10:00] log.info: Refatoração concluída em src/app/noticia/[slug]/page.tsx.
+[2026-05-04 14:10:05] log.info: Documentação atualizada em docs/0202_Noticia_Detalhe.md.
+[2026-05-04 14:10:10] log.info: Preparando push para Vercel via Git.

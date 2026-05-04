@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import { createClient } from "@supabase/supabase-js";
-import { getPublicUrl, getAbsoluteUrl } from "@/lib/image-utils";
+import { getPublicUrl, getAbsoluteUrl, getOptimizedImageUrl } from "@/lib/image-utils";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -48,7 +48,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const slug = p.slug;
   const noticia = await fetchNoticia(slug);
   
-  const baseUrl = "https://www.nossawebtv.com.br";
+  // Garantir base URL absoluta para evitar loops de redirecionamento no crawler do Facebook
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.nossawebtv.com.br";
+  const baseUrl = siteUrl.startsWith("http") ? siteUrl.replace(/\/$/, "") : `https://${siteUrl.replace(/\/$/, "")}`;
+  
   const defaultImage = getAbsoluteUrl("/logo.png");
 
   if (!noticia) {
@@ -65,23 +68,36 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const rawImage = noticia.imagem_capa_url || noticia.imagem_capa;
-  const capaUrl = getPublicUrl(rawImage) || defaultImage;
+  
+  /**
+   * Otimização de Imagem para Redes Sociais:
+   * 1. Força URL absoluta (Facebook rejeita caminhos relativos).
+   * 2. Converte para JPG/WebP via Supabase Transformation (Reduz peso p/ < 300KB).
+   * 3. Define dimensões ideais (1200x630).
+   */
+  const capaUrl = getOptimizedImageUrl(rawImage) || defaultImage;
 
   const description = noticia.resumo || noticia.subtitulo || "Leia a notícia completa no portal Nossa Web TV.";
+  const canonicalUrl = `${baseUrl}/noticia/${slug}`;
 
   return {
     title: noticia.titulo,
     description: description,
+    alternates: {
+      canonical: canonicalUrl,
+    },
     other: {
       "fb:app_id": "131682697252495",
+      "og:image:width": "1200",
+      "og:image:height": "630",
     },
     openGraph: {
       title: noticia.titulo,
       description: description,
-      url: `${baseUrl}/noticia/${slug}`,
+      url: canonicalUrl,
       images: [
         { 
-          url: encodeURI(capaUrl), 
+          url: capaUrl, 
           width: 1200, 
           height: 630,
           alt: noticia.titulo 
@@ -95,7 +111,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       card: "summary_large_image",
       title: noticia.titulo,
       description: description,
-      images: [encodeURI(capaUrl)],
+      images: [capaUrl],
     }
   };
 }

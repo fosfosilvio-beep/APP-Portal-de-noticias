@@ -21,6 +21,12 @@ Exibe o conteúdo completo de uma matéria jornalística com suporte a vídeo em
 4. Carrega metadados da `configuracao_portal` para o cabeçalho.
 5. Carrega "Giro de Notícias" (5 notícias recentes) para a barra lateral.
 
+## Metadados e SEO (OpenGraph)
+- **SSR**: Metadados gerados via `generateMetadata` para garantir leitura por crawlers (Facebook/WhatsApp).
+- **Imagens**: Utiliza `getOptimizedImageUrl` para garantir URLs absolutas e redimensionamento via Supabase (formato JPG, < 300KB).
+- **Canonical**: Rota absoluta forçada para evitar loops de redirecionamento no Facebook.
+- **FB App ID**: Integrado para estatísticas de compartilhamento.
+
 ## Design
 - **Renderização HTML**: Suporte a conteúdo formatado via TipTap (Rich Text).
 - **Estilização Dinâmica**: Títulos e Subtítulos consomem configurações de `fontFamily`, `fontWeight` e `color` salvos no banco.
