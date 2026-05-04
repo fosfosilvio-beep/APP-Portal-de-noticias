@@ -101,7 +101,7 @@ export default function NoticiaClient({ slug, initialData }: { slug: string, ini
 
     // 2. Incremento atômico na tabela noticias via RPC
     supabase.rpc('increment_views', { noticia_id: noticia.id })
-      .then(({ error }) => {
+      .then(({ error }: { error: any }) => {
         if (error) console.error("[RPC Error] Falha ao incrementar views:", error);
       });
   }, [noticia?.id]);
