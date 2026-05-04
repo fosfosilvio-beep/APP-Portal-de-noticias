@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import { createClient } from "@supabase/supabase-js";
 import { getPublicUrl, getAbsoluteUrl, getOptimizedImageUrl } from "@/lib/image-utils";
+import { headers } from "next/headers";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -130,9 +131,17 @@ export default async function NoticiaPage({ params }: PageProps) {
     );
   }
 
+  const headersList = await headers();
+  const city = headersList.get("x-vercel-ip-city") || "Localização não identificada";
+  const region = headersList.get("x-vercel-ip-country-region") || "Localização não identificada";
+
   return (
     <div className="bg-white min-h-screen">
-      <NoticiaClient slug={slug} initialData={noticia} />
+      <NoticiaClient 
+        slug={slug} 
+        initialData={noticia} 
+        location={{ city: decodeURIComponent(city), region }}
+      />
       
       {/* SEO Fallback para robôs e crawlers */}
       <noscript>

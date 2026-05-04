@@ -39,16 +39,17 @@ CREATE INDEX IF NOT EXISTS idx_noticia_logs_noticia ON public.noticia_logs(notic
 CREATE INDEX IF NOT EXISTS idx_noticia_logs_cidade ON public.noticia_logs(cidade);
 CREATE INDEX IF NOT EXISTS idx_noticia_logs_created_at ON public.noticia_logs(created_at);
 
--- Função para buscar Top Cidades
+-- Função para buscar Top Cidades (Unificada)
 CREATE OR REPLACE FUNCTION get_top_cities(limit_count INT DEFAULT 5)
 RETURNS TABLE (cidade TEXT, total BIGINT) 
 LANGUAGE plpgsql SECURITY DEFINER AS $$
 BEGIN
     RETURN QUERY
-    SELECT nl.cidade, count(*)::BIGINT as total
+    SELECT 
+        COALESCE(NULLIF(nl.cidade, ''), 'Localização não identificada') as cidade, 
+        count(*)::BIGINT as total
     FROM noticia_logs nl
-    WHERE nl.cidade IS NOT NULL AND nl.cidade != 'Desconhecido'
-    GROUP BY nl.cidade
+    GROUP BY 1
     ORDER BY total DESC
     LIMIT limit_count;
 END;
@@ -71,7 +72,7 @@ END;
 $$;
 
 -- Função para atualizar contador via RPC
--- IMPORTANTE: Usa views_reais para consistência com o portal
+-- IMPORTANTE: Garante que a soma total venha sempre da noticia_logs
 CREATE OR REPLACE FUNCTION update_news_view_count(p_noticia_id UUID)
 RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $$
 BEGIN

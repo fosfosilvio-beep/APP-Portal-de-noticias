@@ -173,6 +173,7 @@ export default function NewsViewsClient() {
                   <Tooltip 
                     contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '12px' }}
                     itemStyle={{ color: '#f1f5f9', fontWeight: 'bold' }}
+                    formatter={(value, name) => [value, name === "Localização não identificada" ? "Não Identificada" : name]}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -184,7 +185,9 @@ export default function NewsViewsClient() {
              {topCities.map((item, idx) => (
                <div key={idx} className="flex items-center gap-2">
                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[idx] }} />
-                 <span className="text-[10px] font-bold text-slate-400 uppercase truncate">{item.cidade}: {item.total}</span>
+                 <span className="text-[10px] font-bold text-slate-400 uppercase truncate">
+                    {item.cidade === "Localização não identificada" ? "Não Identificada" : item.cidade}: {item.total}
+                 </span>
                </div>
              ))}
           </div>

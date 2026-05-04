@@ -24,7 +24,15 @@ import Footer from "../../../components/Footer";
 import SmartPlayer from "../../../components/SmartPlayer";
 import SmartAdSlot from "../../../components/ads/SmartAdSlot";
 
-export default function NoticiaClient({ slug, initialData }: { slug: string, initialData?: any }) {
+export default function NoticiaClient({ 
+  slug, 
+  initialData, 
+  location 
+}: { 
+  slug: string, 
+  initialData?: any, 
+  location?: { city: string, region: string } 
+}) {
   const [noticia, setNoticia] = useState<any>(initialData || null);
   const [loading, setLoading] = useState(!initialData);
   const [error, setError] = useState("");
@@ -102,7 +110,10 @@ export default function NoticiaClient({ slug, initialData }: { slug: string, ini
     fetch("/api/track-view", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ noticiaId: noticia.id }),
+      body: JSON.stringify({ 
+        noticiaId: noticia.id,
+        location: location
+      }),
     }).catch((err) => console.error("[TRACK] Erro ao registrar view:", err));
   }, [noticia?.id]);
 
