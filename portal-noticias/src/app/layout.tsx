@@ -112,6 +112,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <meta name="theme-color" content="#00AEE0" />
         <meta property="fb:app_id" content="131682697252495" />
+        <meta property="og:image:type" content="image/png" />
         <script dangerouslySetInnerHTML={{
           __html: `
             if ('serviceWorker' in navigator) {

@@ -65,7 +65,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         title: "Nossa Web TV",
         description: "Portal de notícias de Arapongas e região.",
         url: baseUrl,
-        images: [{ url: defaultImage, width: 1200, height: 630 }],
+        images: [{ url: defaultImage, width: 1200, height: 630, type: "image/png" }],
       }
     };
   }
@@ -97,7 +97,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
           url: capaUrl, 
           width: 1200, 
           height: 630,
-          alt: noticia.titulo 
+          alt: noticia.titulo,
+          type: capaUrl.toLowerCase().endsWith(".png") ? "image/png" : "image/jpeg"
         }
       ],
       type: 'article',
