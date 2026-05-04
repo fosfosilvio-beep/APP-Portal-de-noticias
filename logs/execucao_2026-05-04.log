@@ -27,4 +27,6 @@
 [2026-05-04 16:35:10] log.info: Dashboard: Refatorada contagem total de matérias para ser 100% dinâmica via Supabase count.
 [2026-05-04 16:50:00] log.info: Visualizações Reais: Criada função RPC increment_views para garantir incrementos atômicos e evitar concorrência no banco.
 [2026-05-04 16:50:05] log.info: Gatilho Frontend: Implementada chamada RPC em NoticiaClient.tsx com controle via sessionStorage para contar apenas um acesso por sessão.
-[2026-05-04 15:15:05] log.info: Mantida a propriedade fb:app_id e imagens limpas (sem query params) para compatibilidade.
+[2026-05-04 17:35:00] log.info: Ativação total: Adicionada coluna views_reais à tabela noticias e atualizada função RPC increment_views.
+[2026-05-04 17:35:05] log.info: Rastreamento: Implementado log de auditoria no console do navegador ao registrar visualização.
+[2026-05-04 17:35:10] log.info: Dashboard: Sincronizados todos os componentes de relatório para consumir dados da coluna views_reais.

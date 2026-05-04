@@ -84,41 +84,29 @@ export default function NoticiaClient({ slug, initialData }: { slug: string, ini
     }
   }, [noticia, loading]);
 
-  useEffect(() => {
-    if (!noticia?.id || hasTracked.current) return;
-    hasTracked.current = true;
-    
-    console.log('--- [DEBUG VIEWS] PAGINA CARREGADA: Iniciando contagem de views ---');
-    console.log('[DEBUG VIEWS] Noticia ID:', noticia.id);
+    console.log('--- ENVIANDO VIEW PARA O BANCO: ID ' + noticia.id + ' ---');
 
     const key = `viewed_${noticia.id}`;
     if (sessionStorage.getItem(key)) {
-      console.log('[DEBUG VIEWS] Acesso já contado nesta sessão. Abortando.');
+      console.log('[DEBUG VIEWS] Acesso já contado nesta sessão.');
       return;
     }
     sessionStorage.setItem(key, "1");
 
     // 1. Log granular na tabela page_views
-    console.log('[DEBUG VIEWS] Disparando log granular em /api/track-view...');
     fetch("/api/track-view", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ noticiaId: noticia.id }),
-    })
-    .then(r => r.json())
-    .then(res => console.log('[DEBUG VIEWS] Resposta API track-view:', res))
-    .catch(err => console.error('[DEBUG VIEWS] Erro API track-view:', err));
+    }).catch(() => null);
 
-    // 2. Incremento atômico na tabela noticias via RPC
-    console.log('[DEBUG VIEWS] Chamando RPC increment_views...');
+    // 2. Incremento atômico na tabela noticias via RPC (na coluna views_reais)
     supabase.rpc('increment_views', { noticia_id: noticia.id })
       .then((res: { data: any, error: any }) => {
         if (res.error) {
-           console.error("[DEBUG VIEWS] Erro no RPC increment_views:");
-           console.table(res.error);
+           console.error("[ERRO BANCO] Falha ao registrar view:", res.error);
         } else {
-           console.log("[DEBUG VIEWS] RPC executado com sucesso!");
-           console.table({ status: 'success', noticia_id: noticia.id });
+           console.log("[SUCESSO] View registrada com sucesso no banco (views_reais).");
         }
       });
   }, [noticia?.id]);

@@ -9,7 +9,7 @@ interface NoticiaView {
   titulo: string;
   categoria: string;
   created_at: string;
-  view_count: number;
+  views_reais: number;
 }
 
 export default function NewsViewsClient() {
@@ -36,8 +36,8 @@ export default function NewsViewsClient() {
       // 1. Fetch filtered data
       let query = supabase
         .from("noticias")
-        .select("id, titulo, categoria, created_at, view_count")
-        .order("view_count", { ascending: false })
+        .select("id, titulo, categoria, created_at, views_reais")
+        .order("views_reais", { ascending: false })
         .limit(200);
 
       if (filtroTitulo) query = query.ilike("titulo", `%${filtroTitulo}%`);
@@ -45,7 +45,7 @@ export default function NewsViewsClient() {
       if (filtroDataFim) query = query.lte("created_at", filtroDataFim + "T23:59:59");
 
       const { data, error } = await query;
-      console.log('[DEBUG DASHBOARD] Dados crus retornados:', data);
+      console.log('[DEBUG DASHBOARD] Dados crus retornados (views_reais):', data);
       if (error) {
         console.error('[DEBUG DASHBOARD] Erro ao buscar notícias:', error);
       }
@@ -92,7 +92,7 @@ export default function NewsViewsClient() {
       `"${n.titulo.replace(/"/g, '""')}"`,
       n.categoria || "",
       new Date(n.created_at).toLocaleDateString("pt-BR"),
-      n.view_count || 0,
+      n.views_reais || 0,
     ]);
     const csvContent = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
     const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
@@ -104,7 +104,7 @@ export default function NewsViewsClient() {
     URL.revokeObjectURL(url);
   };
 
-  const totalViews = noticias.reduce((acc: number, n: NoticiaView) => acc + (n.view_count || 0), 0);
+  const totalViews = noticias.reduce((acc: number, n: NoticiaView) => acc + (n.views_reais || 0), 0);
 
   return (
     <div className="space-y-6">
@@ -206,7 +206,7 @@ export default function NewsViewsClient() {
                     <tr key={n.id} className="hover:bg-slate-900/50">
                       <td className="px-6 py-3 text-slate-300 font-medium">{n.titulo}</td>
                       <td className="px-6 py-3 text-slate-500 text-xs">{new Date(n.created_at).toLocaleDateString("pt-BR")}</td>
-                      <td className="px-6 py-3 text-right text-slate-300 font-bold">{(n.view_count || 0)?.toLocaleString()}</td>
+                      <td className="px-6 py-3 text-right text-slate-300 font-bold">{(n.views_reais || 0)?.toLocaleString()}</td>
                     </tr>
                   ))}
                   {noticias.length === 0 && (
