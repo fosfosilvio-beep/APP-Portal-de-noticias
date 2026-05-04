@@ -44,7 +44,7 @@ export default function NewsGrid({ title, icon, news, limit = 18, paginated = fa
         </h2>
       </div>
 
-      <div className="flex flex-col divide-y divide-slate-200">
+      <div className="flex flex-col gap-y-10 md:gap-y-0 md:divide-y md:divide-slate-100">
         {displayNews.map((noticia, index) => {
           const isEndOfBlock = (index + 1) % 8 === 0;
           
@@ -79,7 +79,7 @@ export default function NewsGrid({ title, icon, news, limit = 18, paginated = fa
             
             <button 
               onClick={loadMore}
-              className="group flex items-center gap-4 bg-white border-2 border-slate-200 hover:border-cyan-500 px-12 py-4 rounded-2xl transition-all duration-300 hover:shadow-2xl hover:shadow-cyan-500/10 active:scale-95"
+              className="group w-full md:w-auto flex items-center justify-center gap-4 bg-white border-2 border-slate-200 hover:border-cyan-500 px-12 py-5 rounded-2xl transition-all duration-300 hover:shadow-2xl hover:shadow-cyan-500/10 active:scale-95"
             >
               <span className="text-sm font-black uppercase tracking-widest text-slate-600 group-hover:text-cyan-600 transition-colors">
                 Ver Mais Notícias

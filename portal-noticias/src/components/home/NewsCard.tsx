@@ -21,7 +21,7 @@ export default function NewsCard({ noticia, index = 0 }: NewsCardProps) {
       >
       <Link 
         href={`/noticia/${noticia.slug || noticia.id}`} 
-        className="group flex flex-col md:flex-row gap-4 md:gap-6 py-6 transition-all duration-300"
+        className="group flex flex-col md:flex-row gap-5 md:gap-8 py-2 md:py-10 h-auto border-b md:border-none border-slate-100 transition-all duration-300"
       >
         {/* Conteúdo Textual - Mobile: Topo | Desktop: Direita */}
         <div className="flex flex-col flex-1 order-1 md:order-2">
