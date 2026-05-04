@@ -43,13 +43,19 @@ async function fetchNoticia(slug: string) {
 
 import NoticiaClient from "./NoticiaClient";
 
+// Forçar renderização dinâmica para garantir que o crawler sempre receba metadados atualizados
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const p = await params;
   const slug = p.slug;
   const noticia = await fetchNoticia(slug);
   
   // Garantir base URL absoluta para evitar loops de redirecionamento no crawler do Facebook
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.nossawebtv.com.br";
+  // Seguindo a recomendação do usuário para usar o domínio sem 'www' se for o padrão
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://nossawebtv.com.br";
   const baseUrl = siteUrl.startsWith("http") ? siteUrl.replace(/\/$/, "") : `https://${siteUrl.replace(/\/$/, "")}`;
   
   const defaultImage = getAbsoluteUrl("/logo.png");
@@ -88,8 +94,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     },
     other: {
       "fb:app_id": "131682697252495",
-      "og:image:width": "1200",
-      "og:image:height": "630",
     },
     openGraph: {
       title: noticia.titulo,

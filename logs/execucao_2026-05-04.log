@@ -4,3 +4,5 @@
 [2026-05-04 14:10:00] log.info: Refatoração concluída em src/app/noticia/[slug]/page.tsx.
 [2026-05-04 14:10:05] log.info: Documentação atualizada em docs/0202_Noticia_Detalhe.md.
 [2026-05-04 14:10:10] log.info: Preparando push para Vercel via Git.
+[2026-05-04 14:15:00] log.info: Refinamento adicional: Forçada URL base sem 'www' e configurado dynamic='force-dynamic' para garantir SSR sempre atualizado.
+[2026-05-04 14:15:05] log.info: Verificação de tags og:image:width e og:image:height via Next.js Metadata API.
