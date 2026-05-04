@@ -91,11 +91,19 @@ export default function NoticiaClient({ slug, initialData }: { slug: string, ini
     const key = `viewed_${noticia.id}`;
     if (sessionStorage.getItem(key)) return;
     sessionStorage.setItem(key, "1");
+
+    // 1. Log granular na tabela page_views
     fetch("/api/track-view", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ noticiaId: noticia.id }),
     }).catch(() => null);
+
+    // 2. Incremento atômico na tabela noticias via RPC
+    supabase.rpc('increment_views', { noticia_id: noticia.id })
+      .then(({ error }) => {
+        if (error) console.error("[RPC Error] Falha ao incrementar views:", error);
+      });
   }, [noticia?.id]);
 
   useEffect(() => {
