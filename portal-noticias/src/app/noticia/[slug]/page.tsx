@@ -53,8 +53,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const slug = p.slug;
   const noticia = await fetchNoticia(slug);
   
-  // Hardcoding do domínio canônico para evitar discrepâncias com variáveis de ambiente
-  const baseUrl = "https://nossawebtv.com.br";
+  // Padronização obrigatória com 'www' conforme identificado no redirecionamento do servidor
+  const baseUrl = "https://www.nossawebtv.com.br";
   const defaultImage = `${baseUrl}/logo.png`;
 
   if (!noticia) {

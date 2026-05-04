@@ -19,3 +19,5 @@
 [2026-05-04 15:00:05] log.info: Verificada integridade de todos os links internos para garantir consistência com o domínio principal https://nossawebtv.com.br.
 [2026-05-04 15:10:00] log.info: Refinamento de Compatibilidade: Adicionada tag og:image:type (image/jpeg ou image/png) para auxiliar o crawler da Meta no processamento imediato dos assets.
 [2026-05-04 15:10:05] log.info: Revalidada a entrega via SSR das propriedades fb:app_id e og:url (sem www) em todos os pontos de entrada.
+[2026-05-04 15:15:00] log.info: Inversão de Estratégia (www): Identificado que o servidor redireciona para a versão 'www'. Todas as URLs canônicas e OpenGraph foram alteradas para 'https://www.nossawebtv.com.br' para bater com o redirecionamento 307.
+[2026-05-04 15:15:05] log.info: Mantida a propriedade fb:app_id e imagens limpas (sem query params) para compatibilidade.

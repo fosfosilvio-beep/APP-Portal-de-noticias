@@ -69,7 +69,7 @@ const oswald = Oswald({
   subsets: ["latin"],
 });
 
-const baseUrl = "https://nossawebtv.com.br";
+const baseUrl = "https://www.nossawebtv.com.br";
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
