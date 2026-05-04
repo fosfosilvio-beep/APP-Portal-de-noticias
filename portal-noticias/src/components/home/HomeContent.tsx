@@ -175,7 +175,7 @@ export default function HomeContent({ initialConfig, liveStatus, todasNoticias, 
                 {/* Moderação Live / Web TV - Removida duplicidade */}
 
                 {/* Grade de Notícias */}
-                <NewsGrid title="Últimas Notícias" news={noticiasFiltradas.slice(0, 8)} />
+                <NewsGrid title="Últimas Notícias" news={noticiasFiltradas} paginated={true} />
 
                 {/* Ad removido */}
 

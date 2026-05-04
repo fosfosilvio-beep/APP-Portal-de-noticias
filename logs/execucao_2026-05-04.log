@@ -32,3 +32,5 @@
 [2026-05-04 17:35:10] log.info: Dashboard: Sincronizados todos os componentes de relatório para consumir dados da coluna views_reais.
 [2026-05-04 17:45:00] log.info: Fix: Corrigido gatilho de visualização com log específico 'VIEW COMPUTADA COM SUCESSO'.
 [2026-05-04 17:45:05] log.info: Relatórios: Garantido que NewsViewsClient use a tabela física 'noticias' em vez de views legadas.
+[2026-05-04 17:58:00] log.info: UI/Home: Removido limite estático de 8 notícias. Implementada paginação em blocos de 8 com botão 'Ver Mais' e divisores dinâmicos.
+[2026-05-04 17:58:05] log.info: UI/Home: Removido botão 'Ver Mais' do topo da seção Últimas Notícias para seguir novo layout de rodapé de bloco.
