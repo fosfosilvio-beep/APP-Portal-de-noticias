@@ -55,7 +55,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   
   // Garantir base URL absoluta para evitar loops de redirecionamento no crawler do Facebook
   // Seguindo a recomendação do usuário para usar o domínio sem 'www' se for o padrão
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://nossawebtv.com.br";
+  // Forçar domínio sem 'www' para evitar loop de redirecionamento (HTTP 307)
+  const rawSiteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://nossawebtv.com.br";
+  const siteUrl = rawSiteUrl.replace("www.", "");
   const baseUrl = siteUrl.startsWith("http") ? siteUrl.replace(/\/$/, "") : `https://${siteUrl.replace(/\/$/, "")}`;
   
   const defaultImage = getAbsoluteUrl("/logo.png");
