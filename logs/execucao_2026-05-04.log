@@ -34,3 +34,4 @@
 [2026-05-04 17:45:05] log.info: Relatórios: Garantido que NewsViewsClient use a tabela física 'noticias' em vez de views legadas.
 [2026-05-04 17:58:00] log.info: UI/Home: Removido limite estático de 8 notícias. Implementada paginação em blocos de 8 com botão 'Ver Mais' e divisores dinâmicos.
 [2026-05-04 17:58:05] log.info: UI/Home: Removido botão 'Ver Mais' do topo da seção Últimas Notícias para seguir novo layout de rodapé de bloco.
+[2026-05-04 18:05:00] log.info: UI/Home: Refatorada lógica do 'Ver Mais' para ser 100% dinâmica. O botão persiste até que a última notícia do banco seja carregada.
