@@ -68,12 +68,13 @@ BEGIN
 END;
 $$;
 
--- Função para atualizar contador via RPC (Opcional, mas solicitado)
+-- Função para atualizar contador via RPC
+-- IMPORTANTE: Usa views_reais para consistência com o portal
 CREATE OR REPLACE FUNCTION update_news_view_count(p_noticia_id UUID)
 RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $$
 BEGIN
   UPDATE noticias
-  SET real_views = (SELECT count(*) FROM noticia_logs WHERE noticia_id = p_noticia_id)
+  SET views_reais = (SELECT count(*) FROM noticia_logs WHERE noticia_id = p_noticia_id)
   WHERE id = p_noticia_id;
 END;
 $$;

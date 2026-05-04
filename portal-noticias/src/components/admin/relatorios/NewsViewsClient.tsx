@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@/lib/supabase-browser";
 import { Download, Filter, FileText, Loader2, BarChart3, TrendingUp, MapPin } from "lucide-react";
 import { 

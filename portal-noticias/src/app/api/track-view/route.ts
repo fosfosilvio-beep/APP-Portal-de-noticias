@@ -14,33 +14,33 @@ const TrackViewSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
-  const cookieStore = cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
-        },
-      },
-    }
-  );
-
   try {
     const body = await req.json();
     const parsed = TrackViewSchema.parse(body);
     
-    // 1. Identificar Usuário (se logado)
+    // Identificar Usuário (se logado) - cookies() é async no Next.js 15+
+    const cookieStore = await cookies();
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value;
+          },
+        },
+      }
+    );
+
     const { data: { user } } = await supabase.auth.getUser();
     
-    // 2. Capturar Geolocalização (Headers da Vercel)
+    // Capturar Geolocalização (Headers da Vercel)
     const cidade = req.headers.get('x-vercel-ip-city') || 'Desconhecido';
     const estado = req.headers.get('x-vercel-ip-country-region') || 'Desconhecido';
     const userAgent = req.headers.get('user-agent') || 'Desconhecido';
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0] || '127.0.0.1';
 
-    // 3. Inserir Log Granular
+    // Inserir Log Granular
     if (parsed.noticiaId) {
       const { error: logError } = await supabase.from('noticia_logs').insert([
         {
@@ -58,18 +58,23 @@ export async function POST(req: NextRequest) {
       if (logError) {
         console.error('[track-view] Log error:', logError.message);
       } else {
-        // 4. Atualizar Contador Atômico via RPC
+        // Atualizar Contador Atômico via RPC
+        // IMPORTANTE: p_noticia_id deve corresponder ao nome do parâmetro na função SQL
         await supabase.rpc('update_news_view_count', { p_noticia_id: parsed.noticiaId });
       }
     }
 
     // Compatibilidade com a tabela antiga enquanto migra
-    await supabase.from('page_views').insert([
-      {
-        noticia_id: parsed.noticiaId || null,
-        story_id: parsed.storyId || null,
-      },
-    ]).catch(() => null);
+    try {
+      await supabase.from('page_views').insert([
+        {
+          noticia_id: parsed.noticiaId || null,
+          story_id: parsed.storyId || null,
+        },
+      ]);
+    } catch (e) {
+      // Ignorar erros na tabela legada
+    }
 
     return NextResponse.json({ ok: true });
   } catch (err: unknown) {
