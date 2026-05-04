@@ -20,9 +20,11 @@ ALTER TABLE public.noticia_logs ENABLE ROW LEVEL SECURITY;
 
 -- Políticas
 -- 1. Inserção: Qualquer pessoa pode inserir (anônimo ou logado)
+DROP POLICY IF EXISTS "Anyone can insert logs" ON public.noticia_logs;
 CREATE POLICY "Anyone can insert logs" ON public.noticia_logs FOR INSERT WITH CHECK (true);
 
 -- 2. Leitura: Apenas Admins podem ver os logs
+DROP POLICY IF EXISTS "Admins can view logs" ON public.noticia_logs;
 CREATE POLICY "Admins can view logs" ON public.noticia_logs FOR SELECT TO authenticated
 USING (
     EXISTS (
