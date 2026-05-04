@@ -8,3 +8,4 @@
 [2026-05-04 14:15:05] log.info: Verificação de tags og:image:width e og:image:height via Next.js Metadata API.
 [2026-05-04 14:30:00] log.info: Correção Crítica (Debugger): Removido 'www' de todos os fallbacks e URLs base para bater com redirecionamento 307 do servidor.
 [2026-05-04 14:30:05] log.info: Correção fb:app_id: Removido dos objetos Metadata (que forçavam 'name') e mantido apenas no head do layout com 'property'.
+[2026-05-04 14:32:00] log.error: Build falhou devido a uma chave extra em page.tsx. Corrigido imediatamente.

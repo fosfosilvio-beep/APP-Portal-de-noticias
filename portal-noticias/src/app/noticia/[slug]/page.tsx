@@ -92,7 +92,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     alternates: {
       canonical: canonicalUrl,
     },
-    },
     openGraph: {
       title: noticia.titulo,
       description: description,
