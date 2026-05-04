@@ -6,28 +6,26 @@ Painel privado de analytics com dados reais de visualizações de matérias e de
 - **Rota**: `/admin/relatorios`
 - **Arquivo**: `src/app/admin/relatorios/page.tsx`
 - **Acesso**: Protegido por senha (`admin`) — igual ao painel principal.
-- **Responsabilidade única**: Exibir métricas reais (sem multiplicação) e exportar relatório.
+- **Responsabilidade única**: Exibir métricas reais e auditoria detalhada de acessos.
 
 ## Funcionalidades
 
-### Views de Notícias
-- **Total Matérias**: Contagem dinâmica total baseada nos filtros aplicados.
-- **Views Reais**: Soma da coluna `view_count` da tabela `noticias`.
-- **Filtros**: Título (ilike), Data Início (gte) e Data Fim (lte).
-- **Tabela**: Listagem das matérias com data de publicação e contagem real de visualizações.
-- **Exportação**: CSV e PDF (via html2pdf.js).
+### Views de Notícias (Auditoria Profissional)
+- **Painel de Auditoria**: Números de views agora são clicáveis, abrindo um modal com a lista detalhada de acessos (Usuário, Cidade/Estado e Hora).
+- **Inteligência Geográfica**: Gráfico (Pie) exibindo as Top 5 Cidades que mais consomem o portal.
+- **Horários de Pico**: Gráfico de linha (Trend) mostrando os acessos hora a hora nas últimas 24h.
+- **Views Reais**: Sincronizadas via `noticia_logs` para garantir integridade.
+- **Exportação**: CSV e PDF mantidos para relatórios externos.
 
 ### Analytics de Publicidade
-- **Impressões**: Contagem de registros na tabela `ad_impressions` vinculados aos slots.
-- **Cliques**: Contagem de registros na tabela `ad_clicks`.
-- **CTR Médio**: Cálculo em tempo real (Cliques / Impressões * 100).
-- **Filtros por Período**: Permite analisar o desempenho de banners em janelas de tempo específicas.
+- **Impressões e Cliques**: Rastreamento granular de banners.
+- **CTR Médio**: Cálculo em tempo real.
 
 ## Dados (Fetch)
-- **Tabela**: `noticias` — campo `view_count`.
-- **Tabela**: `ad_impressions` e `ad_clicks` — para rastreamento granular.
-- **Tabela**: `ad_slots` — para mapeamento de nomes de posições.
+- **Tabela**: `noticias` — campo `views_reais`.
+- **Tabela**: `noticia_logs` — fonte da verdade para auditoria e geolocalização.
+- **RPCs**: `get_top_cities`, `get_peak_hours`, `update_news_view_count`.
 
 ---
-Status: Atualizado em 2026-05-04 (Limpeza de métricas fakes concluída)
-Relacionado: [[0401] Table_Noticias](../04XX/0401_Table_Noticias.md) | [[0203] Admin_Dashboard](0203_Admin_Dashboard.md)
+Status: Atualizado em 2026-05-04 (Upgrade de Auditoria e Geolocation concluído)
+Relacionado: [[0410] Table_NoticiaLogs](../04XX/0410_Table_NoticiaLogs.md) | [[0203] Admin_Dashboard](0203_Admin_Dashboard.md)

@@ -2,7 +2,22 @@
 
 import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase-browser";
-import { Download, Filter, FileText, Loader2 } from "lucide-react";
+import { Download, Filter, FileText, Loader2, BarChart3, TrendingUp, MapPin } from "lucide-react";
+import { 
+  ResponsiveContainer, 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  Tooltip, 
+  PieChart, 
+  Pie, 
+  Cell, 
+  LineChart, 
+  Line,
+  CartesianGrid
+} from "recharts";
+import NewsAuditModal from "./NewsAuditModal";
 
 interface NoticiaView {
   id: string;
@@ -12,28 +27,35 @@ interface NoticiaView {
   views_reais: number;
 }
 
+const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"];
+
 export default function NewsViewsClient() {
   const supabase = createClient();
   const [noticias, setNoticias] = useState<NoticiaView[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingAnalytics, setLoadingAnalytics] = useState(false);
 
   const [filtroTitulo, setFiltroTitulo] = useState("");
   const [filtroDataInicio, setFiltroDataInicio] = useState("");
   const [filtroDataFim, setFiltroDataFim] = useState("");
 
+  const [topCities, setTopCities] = useState<any[]>([]);
+  const [peakHours, setPeakHours] = useState<any[]>([]);
+  
+  const [selectedNews, setSelectedNews] = useState<{ id: string, titulo: string } | null>(null);
+
   const tableRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchRelatorio();
+    fetchAnalytics();
   }, []);
 
-    const [totalGeral, setTotalGeral] = useState(0);
+  const [totalGeral, setTotalGeral] = useState(0);
 
-  // Re-fetch from Supabase when filter button is clicked
   const fetchRelatorio = async () => {
     setLoading(true);
     try {
-      // 1. Fetch filtered data
       let query = supabase
         .from("noticias")
         .select("id, titulo, categoria, created_at, views_reais")
@@ -45,13 +67,8 @@ export default function NewsViewsClient() {
       if (filtroDataFim) query = query.lte("created_at", filtroDataFim + "T23:59:59");
 
       const { data, error } = await query;
-      console.log('[DEBUG DASHBOARD] Dados crus retornados (views_reais):', data);
-      if (error) {
-        console.error('[DEBUG DASHBOARD] Erro ao buscar notícias:', error);
-      }
       if (!error && data) setNoticias(data as any[]);
 
-      // 2. Fetch total count (dynamic)
       let countQuery = supabase
         .from("noticias")
         .select("*", { count: "exact", head: true });
@@ -61,12 +78,28 @@ export default function NewsViewsClient() {
       if (filtroDataFim) countQuery = countQuery.lte("created_at", filtroDataFim + "T23:59:59");
 
       const { count } = await countQuery;
-      console.log('[DEBUG DASHBOARD] Total Geral (count):', count);
       setTotalGeral(count || 0);
     } catch (err) {
-      console.error('[DEBUG DASHBOARD] Exceção no fetchRelatorio:', err);
+      console.error('[NewsViewsClient] Erro no fetchRelatorio:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAnalytics = async () => {
+    setLoadingAnalytics(true);
+    try {
+      // 1. Top Cidades
+      const { data: cities } = await supabase.rpc('get_top_cities', { limit_count: 5 });
+      if (cities) setTopCities(cities);
+
+      // 2. Horários de Pico
+      const { data: hours } = await supabase.rpc('get_peak_hours');
+      if (hours) setPeakHours(hours);
+    } catch (err) {
+      console.error('[NewsViewsClient] Erro no fetchAnalytics:', err);
+    } finally {
+      setLoadingAnalytics(false);
     }
   };
 
@@ -108,6 +141,105 @@ export default function NewsViewsClient() {
 
   return (
     <div className="space-y-6">
+      {/* Gráficos de Inteligência */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Top Cidades */}
+        <div className="bg-slate-950 rounded-2xl border border-slate-800 p-6">
+          <div className="flex items-center gap-2 mb-6">
+            <MapPin size={18} className="text-rose-500" />
+            <h3 className="font-black text-slate-300 text-sm uppercase tracking-widest">Top 5 Cidades</h3>
+          </div>
+          <div className="h-[250px] w-full flex items-center justify-center">
+            {loadingAnalytics ? (
+              <Loader2 className="animate-spin text-slate-700" />
+            ) : topCities.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={topCities}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="total"
+                    nameKey="cidade"
+                  >
+                    {topCities.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '12px' }}
+                    itemStyle={{ color: '#f1f5f9', fontWeight: 'bold' }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="text-slate-600 text-xs font-bold uppercase">Sem dados geográficos</p>
+            )}
+          </div>
+          <div className="grid grid-cols-2 gap-2 mt-4">
+             {topCities.map((item, idx) => (
+               <div key={idx} className="flex items-center gap-2">
+                 <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[idx] }} />
+                 <span className="text-[10px] font-bold text-slate-400 uppercase truncate">{item.cidade}: {item.total}</span>
+               </div>
+             ))}
+          </div>
+        </div>
+
+        {/* Horários de Pico */}
+        <div className="bg-slate-950 rounded-2xl border border-slate-800 p-6">
+          <div className="flex items-center gap-2 mb-6">
+            <TrendingUp size={18} className="text-emerald-500" />
+            <h3 className="font-black text-slate-300 text-sm uppercase tracking-widest">Acessos (24h)</h3>
+          </div>
+          <div className="h-[250px] w-full">
+            {loadingAnalytics ? (
+              <div className="h-full flex items-center justify-center">
+                <Loader2 className="animate-spin text-slate-700" />
+              </div>
+            ) : peakHours.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={peakHours}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                  <XAxis 
+                    dataKey="hora" 
+                    stroke="#475569" 
+                    fontSize={10} 
+                    tickLine={false} 
+                    axisLine={false} 
+                  />
+                  <YAxis 
+                    stroke="#475569" 
+                    fontSize={10} 
+                    tickLine={false} 
+                    axisLine={false} 
+                  />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '12px' }}
+                    itemStyle={{ color: '#3b82f6', fontWeight: 'bold' }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="total" 
+                    stroke="#3b82f6" 
+                    strokeWidth={3} 
+                    dot={{ r: 4, fill: '#3b82f6', strokeWidth: 0 }}
+                    activeDot={{ r: 6 }} 
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex items-center justify-center">
+                <p className="text-slate-600 text-xs font-bold uppercase">Sem logs nas últimas 24h</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Resumo */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-slate-950 rounded-2xl border border-slate-800 p-6">
@@ -115,7 +247,7 @@ export default function NewsViewsClient() {
           <h2 className="text-4xl font-black text-white border-l-4 border-blue-500 pl-3">{totalGeral}</h2>
         </div>
         <div className="bg-slate-950 rounded-2xl border border-slate-800 p-6">
-          <p className="text-slate-500 font-bold text-xs uppercase tracking-widest mb-2">Views Reais</p>
+          <p className="text-slate-500 font-bold text-xs uppercase tracking-widest mb-2">Soma Total de Views</p>
           <h2 className="text-4xl font-black text-white border-l-4 border-emerald-500 pl-3">{totalViews.toLocaleString("pt-BR")}</h2>
         </div>
       </div>
@@ -124,7 +256,7 @@ export default function NewsViewsClient() {
       <div className="bg-slate-950 rounded-2xl border border-slate-800 p-6">
         <div className="flex items-center gap-2 mb-5">
           <Filter size={16} className="text-slate-500" />
-          <h3 className="font-black text-slate-300 text-sm uppercase tracking-widest">Filtros</h3>
+          <h3 className="font-black text-slate-300 text-sm uppercase tracking-widest">Filtros de Pesquisa</h3>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
@@ -163,7 +295,7 @@ export default function NewsViewsClient() {
             disabled={loading}
             className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-black uppercase tracking-widest px-6 py-2 rounded-xl transition-all"
           >
-            {loading ? <Loader2 size={13} className="animate-spin" /> : <Filter size={13} />} Filtrar no Banco
+            {loading ? <Loader2 size={13} className="animate-spin" /> : <Filter size={13} />} Filtrar
           </button>
         </div>
       </div>
@@ -174,8 +306,7 @@ export default function NewsViewsClient() {
           <div className="flex items-center gap-2">
             <FileText size={16} className="text-slate-500" />
             <h3 className="font-black text-slate-300 text-sm uppercase tracking-widest">
-              Views por Matéria
-              {noticias.length > 0 && <span className="ml-2 text-slate-500 font-normal text-xs">({noticias.length} resultados)</span>}
+              Relatório por Matéria
             </h3>
           </div>
           <div className="flex items-center gap-2">
@@ -198,28 +329,40 @@ export default function NewsViewsClient() {
                   <tr className="border-b border-slate-800">
                     <th className="px-6 py-3 text-[10px] font-black text-slate-500 uppercase">Matéria</th>
                     <th className="px-6 py-3 text-[10px] font-black text-slate-500 uppercase">Publicação</th>
-                    <th className="px-6 py-3 text-right text-[10px] font-black text-slate-500 uppercase">Views Reais</th>
+                    <th className="px-6 py-3 text-right text-[10px] font-black text-slate-500 uppercase">Ações / Views</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/50">
                   {noticias.map((n) => (
-                    <tr key={n.id} className="hover:bg-slate-900/50">
+                    <tr key={n.id} className="hover:bg-slate-900/50 group">
                       <td className="px-6 py-3 text-slate-300 font-medium">{n.titulo}</td>
                       <td className="px-6 py-3 text-slate-500 text-xs">{new Date(n.created_at).toLocaleDateString("pt-BR")}</td>
-                      <td className="px-6 py-3 text-right text-slate-300 font-bold">{(n.views_reais || 0)?.toLocaleString()}</td>
+                      <td className="px-6 py-3 text-right">
+                        <button 
+                          onClick={() => setSelectedNews({ id: n.id, titulo: n.titulo })}
+                          className="bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 px-4 py-1.5 rounded-lg text-xs font-black uppercase tracking-tighter transition-all"
+                        >
+                          {(n.views_reais || 0)?.toLocaleString()} <span className="ml-1 opacity-60">AUDITAR</span>
+                        </button>
+                      </td>
                     </tr>
                   ))}
-                  {noticias.length === 0 && (
-                    <tr>
-                      <td colSpan={4} className="text-center p-8 text-slate-500">Nenhum dado encontrado</td>
-                    </tr>
-                  )}
                 </tbody>
               </table>
             </div>
           )}
         </div>
       </div>
+
+      <AnimatePresence>
+        {selectedNews && (
+          <NewsAuditModal 
+            noticiaId={selectedNews.id} 
+            noticiaTitulo={selectedNews.titulo} 
+            onClose={() => setSelectedNews(null)} 
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

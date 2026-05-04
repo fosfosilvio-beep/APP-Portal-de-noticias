@@ -97,22 +97,13 @@ export default function NoticiaClient({ slug, initialData }: { slug: string, ini
     }
     sessionStorage.setItem(key, "1");
 
-    // 1. Log granular na tabela page_views
+    // O incremento e o log granular agora são processados pela API /api/track-view
+    // para garantir geolocalização e auditoria centralizada.
     fetch("/api/track-view", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ noticiaId: noticia.id }),
-    }).catch(() => null);
-
-    // 2. Incremento atômico na tabela noticias via RPC (na coluna views_reais)
-    supabase.rpc('increment_views', { noticia_id: noticia.id })
-      .then((res: { data: any, error: any }) => {
-        if (res.error) {
-           console.error("[ERRO BANCO] Falha ao registrar view:", res.error);
-        } else {
-           console.log('--- VIEW COMPUTADA COM SUCESSO ---');
-        }
-      });
+    }).catch((err) => console.error("[TRACK] Erro ao registrar view:", err));
   }, [noticia?.id]);
 
   useEffect(() => {
