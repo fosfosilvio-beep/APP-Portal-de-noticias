@@ -53,14 +53,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const slug = p.slug;
   const noticia = await fetchNoticia(slug);
   
-  // Garantir base URL absoluta para evitar loops de redirecionamento no crawler do Facebook
-  // Seguindo a recomendação do usuário para usar o domínio sem 'www' se for o padrão
-  // Forçar domínio sem 'www' para evitar loop de redirecionamento (HTTP 307)
-  const rawSiteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://nossawebtv.com.br";
-  const siteUrl = rawSiteUrl.replace("www.", "");
-  const baseUrl = siteUrl.startsWith("http") ? siteUrl.replace(/\/$/, "") : `https://${siteUrl.replace(/\/$/, "")}`;
-  
-  const defaultImage = getAbsoluteUrl("/logo.png");
+  // Hardcoding do domínio canônico para evitar discrepâncias com variáveis de ambiente
+  const baseUrl = "https://nossawebtv.com.br";
+  const defaultImage = `${baseUrl}/logo.png`;
 
   if (!noticia) {
     return {
@@ -80,7 +75,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   /**
    * Link Direto da Imagem (og:image):
    * O Facebook rejeita URLs com parâmetros de redimensionamento (?width=...).
-   * Usamos getPublicUrl para entregar o link direto e limpo do Supabase.
+   * Forçamos a URL pública limpa do Supabase.
    */
   const capaUrl = getPublicUrl(rawImage) || defaultImage;
 

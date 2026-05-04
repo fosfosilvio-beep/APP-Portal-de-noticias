@@ -69,9 +69,7 @@ const oswald = Oswald({
   subsets: ["latin"],
 });
 
-const rawSiteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://nossawebtv.com.br";
-const siteUrl = rawSiteUrl.replace("www.", "");
-const baseUrl = siteUrl.startsWith("http") ? siteUrl.replace(/\/$/, "") : `https://${siteUrl.replace(/\/$/, "")}`;
+const baseUrl = "https://nossawebtv.com.br";
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
