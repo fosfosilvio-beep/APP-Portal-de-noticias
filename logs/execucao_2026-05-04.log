@@ -11,3 +11,5 @@
 [2026-05-04 14:32:00] log.error: Build falhou devido a uma chave extra em page.tsx. Corrigido imediatamente.
 [2026-05-04 14:40:00] log.info: Reforço Agressivo: Implementada remoção automática de 'www.' em todas as URLs de metadados via String.replace() para anular discrepâncias com o servidor.
 [2026-05-04 14:40:05] log.info: MetadataBase definido globalmente no layout.tsx como 'https://nossawebtv.com.br'.
+[2026-05-04 14:45:00] log.info: Ajuste Crítico de Imagem: Removidos parâmetros de redimensionamento (?width=...) da og:image. O Facebook agora recebe o link direto e limpo do Supabase.
+[2026-05-04 14:45:05] log.info: Verificada consistência da tag property='fb:app_id' e URL canônica sem 'www'.

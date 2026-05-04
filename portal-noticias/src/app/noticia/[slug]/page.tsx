@@ -78,12 +78,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const rawImage = noticia.imagem_capa_url || noticia.imagem_capa;
   
   /**
-   * Otimização de Imagem para Redes Sociais:
-   * 1. Força URL absoluta (Facebook rejeita caminhos relativos).
-   * 2. Converte para JPG/WebP via Supabase Transformation (Reduz peso p/ < 300KB).
-   * 3. Define dimensões ideais (1200x630).
+   * Link Direto da Imagem (og:image):
+   * O Facebook rejeita URLs com parâmetros de redimensionamento (?width=...).
+   * Usamos getPublicUrl para entregar o link direto e limpo do Supabase.
    */
-  const capaUrl = getOptimizedImageUrl(rawImage) || defaultImage;
+  const capaUrl = getPublicUrl(rawImage) || defaultImage;
 
   const description = noticia.resumo || noticia.subtitulo || "Leia a notícia completa no portal Nossa Web TV.";
   const canonicalUrl = `${baseUrl}/noticia/${slug}`;
