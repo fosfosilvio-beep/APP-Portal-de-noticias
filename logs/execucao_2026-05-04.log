@@ -22,4 +22,7 @@
 [2026-05-04 15:15:00] log.info: Inversão de Estratégia (www): Identificado que o servidor redireciona para a versão 'www'. Todas as URLs canônicas e OpenGraph foram alteradas para 'https://www.nossawebtv.com.br' para bater com o redirecionamento 307.
 [2026-05-04 15:18:00] log.error: Erro de Premissa: A imagem do Depurador provou que o redirect 307 é PARA a versão SEM 'www'. Reverti imediatamente todo o projeto para 'https://nossawebtv.com.br'.
 [2026-05-04 15:18:05] log.info: Verificada integridade de og:url e links canônicos para evitar o loop de redirecionamento.
+[2026-05-04 16:35:00] log.info: Relatórios Administrativos: Removida métrica de 'Views Públicos (+9)'. Integrada coluna 'view_count' real para matérias.
+[2026-05-04 16:35:05] log.info: Publicidade: Implementados filtros de data (gte/lte) nas queries de ad_impressions e ad_clicks para relatórios precisos por período.
+[2026-05-04 16:35:10] log.info: Dashboard: Refatorada contagem total de matérias para ser 100% dinâmica via Supabase count.
 [2026-05-04 15:15:05] log.info: Mantida a propriedade fb:app_id e imagens limpas (sem query params) para compatibilidade.

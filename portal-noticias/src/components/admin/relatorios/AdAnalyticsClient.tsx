@@ -9,6 +9,9 @@ export default function AdAnalyticsClient() {
   const supabase = createClient();
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  const [filtroDataInicio, setFiltroDataInicio] = useState("");
+  const [filtroDataFim, setFiltroDataFim] = useState("");
 
   useEffect(() => {
     fetchAnalytics();
@@ -17,15 +20,25 @@ export default function AdAnalyticsClient() {
   const fetchAnalytics = async () => {
     setLoading(true);
     try {
-      // Fetch slots
+      // 1. Fetch slots
       const { data: slots } = await supabase.from("ad_slots").select("id, nome_slot");
       if (!slots) return;
 
-      // In a real app, use an RPC or View. For this demo, fetch all stats or use a count query.
-      // Since we don't have a view, let's fetch counts per slot using an aggregate if possible, or just raw.
-      // Actually, we can fetch all clicks and impressions and group them in JS for simplicity.
-      const { data: impressions } = await supabase.from("ad_impressions").select("slot_id");
-      const { data: clicks } = await supabase.from("ad_clicks").select("slot_id");
+      // 2. Fetch granular analytics with date filters
+      let impQuery = supabase.from("ad_impressions").select("slot_id");
+      let clickQuery = supabase.from("ad_clicks").select("slot_id");
+
+      if (filtroDataInicio) {
+        impQuery = impQuery.gte("viewed_at", filtroDataInicio);
+        clickQuery = clickQuery.gte("clicked_at", filtroDataInicio);
+      }
+      if (filtroDataFim) {
+        impQuery = impQuery.lte("viewed_at", filtroDataFim + "T23:59:59");
+        clickQuery = clickQuery.lte("clicked_at", filtroDataFim + "T23:59:59");
+      }
+
+      const { data: impressions } = await impQuery;
+      const { data: clicks } = await clickQuery;
 
       const impMap: Record<string, number> = {};
       const clickMap: Record<string, number> = {};
@@ -58,18 +71,49 @@ export default function AdAnalyticsClient() {
     }
   };
 
-  if (loading) return <div className="p-12 flex justify-center"><Loader2 className="animate-spin text-amber-500" /></div>;
-
   const totalImpressions = data.reduce((acc: number, d: any) => acc + d.impressions, 0);
   const totalClicks = data.reduce((acc: number, d: any) => acc + d.clicks, 0);
   const avgCtr = totalImpressions > 0 ? ((totalClicks / totalImpressions) * 100).toFixed(2) : 0;
 
   return (
     <div className="space-y-6">
+      {/* Filtros */}
+      <div className="bg-slate-950 rounded-2xl border border-slate-800 p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Data Início</label>
+            <input
+              type="date"
+              value={filtroDataInicio}
+              onChange={(e) => setFiltroDataInicio(e.target.value)}
+              className="w-full bg-slate-900 border border-slate-800 text-white rounded-xl px-4 py-2 text-sm outline-none focus:border-blue-500"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Data Fim</label>
+            <input
+              type="date"
+              value={filtroDataFim}
+              onChange={(e) => setFiltroDataFim(e.target.value)}
+              className="w-full bg-slate-900 border border-slate-800 text-white rounded-xl px-4 py-2 text-sm outline-none focus:border-blue-500"
+            />
+          </div>
+        </div>
+        <div className="flex justify-end mt-4">
+          <button
+            onClick={fetchAnalytics}
+            disabled={loading}
+            className="flex items-center gap-2 bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white text-xs font-black uppercase tracking-widest px-6 py-2 rounded-xl transition-all"
+          >
+            {loading ? <Loader2 size={13} className="animate-spin" /> : "Filtrar Publicidade"}
+          </button>
+        </div>
+      </div>
+
       {/* Resumo */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-slate-950 rounded-2xl border border-slate-800 p-6 flex flex-col justify-center">
-          <p className="text-slate-500 font-bold text-xs uppercase tracking-widest mb-2 flex items-center gap-1"><Eye size={14}/> Impressões (Viewability IAB)</p>
+          <p className="text-slate-500 font-bold text-xs uppercase tracking-widest mb-2 flex items-center gap-1"><Eye size={14}/> Impressões</p>
           <h2 className="text-4xl font-black text-white">{totalImpressions.toLocaleString()}</h2>
         </div>
         <div className="bg-slate-950 rounded-2xl border border-slate-800 p-6 flex flex-col justify-center">
@@ -85,9 +129,11 @@ export default function AdAnalyticsClient() {
       {/* Gráfico */}
       <div className="bg-slate-950 rounded-2xl border border-slate-800 p-6">
         <h3 className="font-bold text-white text-lg mb-6">Desempenho por Posição (Slot)</h3>
-        {data.length === 0 ? (
+        {loading ? (
+           <div className="p-12 flex justify-center"><Loader2 className="animate-spin text-amber-500" /></div>
+        ) : data.length === 0 ? (
           <div className="text-center p-12 text-slate-500">
-            Nenhum dado de publicidade registrado ainda.
+            Nenhum dado de publicidade registrado neste período.
           </div>
         ) : (
           <div className="h-[400px] w-full">

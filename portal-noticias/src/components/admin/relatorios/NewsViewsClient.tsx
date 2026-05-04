@@ -9,7 +9,7 @@ interface NoticiaView {
   titulo: string;
   categoria: string;
   created_at: string;
-  real_views: number;
+  view_count: number;
 }
 
 export default function NewsViewsClient() {
@@ -27,14 +27,17 @@ export default function NewsViewsClient() {
     fetchRelatorio();
   }, []);
 
+    const [totalGeral, setTotalGeral] = useState(0);
+
   // Re-fetch from Supabase when filter button is clicked
   const fetchRelatorio = async () => {
     setLoading(true);
     try {
+      // 1. Fetch filtered data
       let query = supabase
         .from("noticias")
-        .select("id, titulo, categoria, created_at, real_views")
-        .order("real_views", { ascending: false })
+        .select("id, titulo, categoria, created_at, view_count")
+        .order("view_count", { ascending: false })
         .limit(200);
 
       if (filtroTitulo) query = query.ilike("titulo", `%${filtroTitulo}%`);
@@ -43,6 +46,18 @@ export default function NewsViewsClient() {
 
       const { data, error } = await query;
       if (!error && data) setNoticias(data as any[]);
+
+      // 2. Fetch total count (dynamic)
+      let countQuery = supabase
+        .from("noticias")
+        .select("*", { count: "exact", head: true });
+      
+      if (filtroTitulo) countQuery = countQuery.ilike("titulo", `%${filtroTitulo}%`);
+      if (filtroDataInicio) countQuery = countQuery.gte("created_at", filtroDataInicio);
+      if (filtroDataFim) countQuery = countQuery.lte("created_at", filtroDataFim + "T23:59:59");
+
+      const { count } = await countQuery;
+      setTotalGeral(count || 0);
     } catch (err) {
       console.error(err);
     } finally {
@@ -67,13 +82,12 @@ export default function NewsViewsClient() {
   };
 
   const exportarCSV = () => {
-    const headers = ["Título", "Categoria", "Data", "Views Reais", "Views Públicos (x9)"];
+    const headers = ["Título", "Categoria", "Data", "Views Reais"];
     const rows = noticias.map((n) => [
       `"${n.titulo.replace(/"/g, '""')}"`,
       n.categoria || "",
       new Date(n.created_at).toLocaleDateString("pt-BR"),
-      n.real_views || 0,
-      (n.real_views || 0) * 9,
+      n.view_count || 0,
     ]);
     const csvContent = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
     const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
@@ -85,23 +99,19 @@ export default function NewsViewsClient() {
     URL.revokeObjectURL(url);
   };
 
-  const totalViews = noticias.reduce((acc: number, n: NoticiaView) => acc + (n.real_views || 0), 0);
+  const totalViews = noticias.reduce((acc: number, n: NoticiaView) => acc + (n.view_count || 0), 0);
 
   return (
     <div className="space-y-6">
       {/* Resumo */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-slate-950 rounded-2xl border border-slate-800 p-6">
-          <p className="text-slate-500 font-bold text-xs uppercase tracking-widest mb-2">Total Matérias</p>
-          <h2 className="text-4xl font-black text-white border-l-4 border-blue-500 pl-3">{noticias.length}</h2>
+          <p className="text-slate-500 font-bold text-xs uppercase tracking-widest mb-2">Total Matérias (Filtrado)</p>
+          <h2 className="text-4xl font-black text-white border-l-4 border-blue-500 pl-3">{totalGeral}</h2>
         </div>
         <div className="bg-slate-950 rounded-2xl border border-slate-800 p-6">
           <p className="text-slate-500 font-bold text-xs uppercase tracking-widest mb-2">Views Reais</p>
           <h2 className="text-4xl font-black text-white border-l-4 border-emerald-500 pl-3">{totalViews.toLocaleString("pt-BR")}</h2>
-        </div>
-        <div className="bg-slate-950 rounded-2xl border border-slate-800 p-6">
-          <p className="text-slate-500 font-bold text-xs uppercase tracking-widest mb-2">Views Públicos (×9)</p>
-          <h2 className="text-4xl font-black text-white border-l-4 border-amber-500 pl-3">{(totalViews * 9).toLocaleString("pt-BR")}</h2>
         </div>
       </div>
 
@@ -184,7 +194,6 @@ export default function NewsViewsClient() {
                     <th className="px-6 py-3 text-[10px] font-black text-slate-500 uppercase">Matéria</th>
                     <th className="px-6 py-3 text-[10px] font-black text-slate-500 uppercase">Publicação</th>
                     <th className="px-6 py-3 text-right text-[10px] font-black text-slate-500 uppercase">Views Reais</th>
-                    <th className="px-6 py-3 text-right text-[10px] font-black text-slate-500 uppercase">Views Públicos (x9)</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/50">
@@ -192,8 +201,7 @@ export default function NewsViewsClient() {
                     <tr key={n.id} className="hover:bg-slate-900/50">
                       <td className="px-6 py-3 text-slate-300 font-medium">{n.titulo}</td>
                       <td className="px-6 py-3 text-slate-500 text-xs">{new Date(n.created_at).toLocaleDateString("pt-BR")}</td>
-                      <td className="px-6 py-3 text-right text-slate-300 font-bold">{(n.real_views || 0)?.toLocaleString()}</td>
-                      <td className="px-6 py-3 text-right text-amber-500 font-bold">{((n.real_views || 0) * 9).toLocaleString()}</td>
+                      <td className="px-6 py-3 text-right text-slate-300 font-bold">{(n.view_count || 0)?.toLocaleString()}</td>
                     </tr>
                   ))}
                   {noticias.length === 0 && (

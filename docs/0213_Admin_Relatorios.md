@@ -1,6 +1,6 @@
 # [0213] Tela: Admin — Relatórios de Visualizações
 
-Painel privado de analytics com dados reais de views por matéria, geolocalização e exportação PDF.
+Painel privado de analytics com dados reais de visualizações de matérias e desempenho de publicidade.
 
 ## Informações Gerais
 - **Rota**: `/admin/relatorios`
@@ -10,39 +10,24 @@ Painel privado de analytics com dados reais de views por matéria, geolocalizaç
 
 ## Funcionalidades
 
-### Cards de Resumo
-- Total de matérias filtradas.
-- Views Reais (banco — sem multiplicação).
-- Views Públicos (×9 — como o leitor vê).
+### Views de Notícias
+- **Total Matérias**: Contagem dinâmica total baseada nos filtros aplicados.
+- **Views Reais**: Soma da coluna `view_count` da tabela `noticias`.
+- **Filtros**: Título (ilike), Data Início (gte) e Data Fim (lte).
+- **Tabela**: Listagem das matérias com data de publicação e contagem real de visualizações.
+- **Exportação**: CSV e PDF (via html2pdf.js).
 
-### Geolocalização da Sessão
-- Detecta IP, Cidade, Estado e País do administrador via API Route `/api/geo`.
-- A API Route faz proxy para `ip-api.com` server-side para evitar bloqueios CORS.
-
-### Filtros
-| Filtro | Tipo | Descrição |
-| :--- | :--- | :--- |
-| Título | text | Busca case-insensitive via `ilike`. |
-| Data Início | date | Filtra matérias a partir desta data. |
-| Data Fim | date | Filtra matérias até esta data. |
-
-### Tabela de Relatório
-- Colunas: `#`, Matéria, Categoria, Data de Publicação, Views Reais, Views Públicos (×9).
-- Total consolidado no rodapé da tabela.
-
-### Exportação PDF
-- Utiliza `html2pdf.js` (instalado via npm).
-- Exporta a tabela filtrada em formato A4 landscape.
-- Nome de arquivo: `relatorio-views-YYYY-MM-DD.pdf`.
+### Analytics de Publicidade
+- **Impressões**: Contagem de registros na tabela `ad_impressions` vinculados aos slots.
+- **Cliques**: Contagem de registros na tabela `ad_clicks`.
+- **CTR Médio**: Cálculo em tempo real (Cliques / Impressões * 100).
+- **Filtros por Período**: Permite analisar o desempenho de banners em janelas de tempo específicas.
 
 ## Dados (Fetch)
-- **Tabela**: `noticias` — campos `id, titulo, categoria, created_at, real_views, slug`.
-- **API**: `/api/geo` — geolocalização por IP.
-
-## Acesso pelo Admin Principal
-- Link "Relatórios de Views" com ícone `↗` no menu lateral de `/admin`.
-- Abre em nova aba.
+- **Tabela**: `noticias` — campo `view_count`.
+- **Tabela**: `ad_impressions` e `ad_clicks` — para rastreamento granular.
+- **Tabela**: `ad_slots` — para mapeamento de nomes de posições.
 
 ---
-Status: Documentado — Criado em 2026-04-21
+Status: Atualizado em 2026-05-04 (Limpeza de métricas fakes concluída)
 Relacionado: [[0401] Table_Noticias](../04XX/0401_Table_Noticias.md) | [[0203] Admin_Dashboard](0203_Admin_Dashboard.md)
