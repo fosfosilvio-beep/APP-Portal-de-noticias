@@ -108,10 +108,9 @@ export default async function Home() {
       .from("noticias")
       .select("*, categorias(id, nome, slug)")
       .eq("status", "published")
-      .neq("categoria", "Plantão Policial Arapongas")
       .order("ordem_prioridade", { ascending: true })
       .order("created_at", { ascending: false })
-      .limit(80),
+      .limit(100),
     supabase
       .from("biblioteca_lives")
       .select("*")

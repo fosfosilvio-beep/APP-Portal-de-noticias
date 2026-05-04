@@ -46,9 +46,7 @@ export default function HomeContent({ initialConfig, liveStatus, todasNoticias, 
   // Filtrar duplicidade da live na lista de notícias e garantir ordem decrescente (DESC)
   const noticiasFiltradas = todasNoticias
     .filter((noticia) => {
-      // Isolamento Estrito: Notícias do Plantão Policial Arapongas NÃO aparecem na listagem geral
-      if (noticia.categoria === "Plantão Policial Arapongas") return false;
-
+      // Removido o isolamento: Notícias do Plantão Policial agora podem aparecer na lista geral se desejado pelo admin
       if (!isLive) return true;
       
       const hasSameUrl = (liveStatus?.url_youtube && noticia.video_url && noticia.video_url.includes(liveStatus.url_youtube)) ||
@@ -59,6 +57,11 @@ export default function HomeContent({ initialConfig, liveStatus, todasNoticias, 
       return !(hasSameUrl || hasSameTitle || noticia.is_live);
     })
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+  useEffect(() => {
+    console.log('[Home Audit] Total de notícias recebidas do banco:', todasNoticias.length);
+    console.log('[Home Audit] Notícias após filtro de duplicidade:', noticiasFiltradas.length);
+  }, [todasNoticias, noticiasFiltradas]);
 
   useEffect(() => {
     setIsMounted(true);
