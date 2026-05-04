@@ -92,8 +92,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     alternates: {
       canonical: canonicalUrl,
     },
-    other: {
-      "fb:app_id": "131682697252495",
     },
     openGraph: {
       title: noticia.titulo,

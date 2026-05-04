@@ -6,3 +6,5 @@
 [2026-05-04 14:10:10] log.info: Preparando push para Vercel via Git.
 [2026-05-04 14:15:00] log.info: Refinamento adicional: Forçada URL base sem 'www' e configurado dynamic='force-dynamic' para garantir SSR sempre atualizado.
 [2026-05-04 14:15:05] log.info: Verificação de tags og:image:width e og:image:height via Next.js Metadata API.
+[2026-05-04 14:30:00] log.info: Correção Crítica (Debugger): Removido 'www' de todos os fallbacks e URLs base para bater com redirecionamento 307 do servidor.
+[2026-05-04 14:30:05] log.info: Correção fb:app_id: Removido dos objetos Metadata (que forçavam 'name') e mantido apenas no head do layout com 'property'.

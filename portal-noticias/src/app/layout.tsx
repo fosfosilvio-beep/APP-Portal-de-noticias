@@ -72,9 +72,6 @@ const oswald = Oswald({
 export const metadata: Metadata = {
   title: "Nossa Web TV | Portal de Notícias",
   description: "O seu portal de notícias de Arapongas e região.",
-  other: {
-    "fb:app_id": "131682697252495",
-  },
 };
 
 // export const dynamic = "force-dynamic";
