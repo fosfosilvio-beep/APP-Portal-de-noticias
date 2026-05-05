@@ -392,11 +392,6 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
         if (error) throw error;
         toast.success("Matéria atualizada com sucesso!");
       } else {
-        const { data: userData } = await supabase.auth.getUser();
-        if (userData.user) {
-          (payload as any).autor_id = userData.user.id;
-        }
-
         // ── Verificação FINAL de unicidade antes do INSERT ──────────────────
         // Proteção extra independente do RPC — usa SELECT direto
         let finalSlug = payload.slug;
