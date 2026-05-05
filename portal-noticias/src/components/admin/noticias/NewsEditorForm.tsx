@@ -392,6 +392,11 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
         if (error) throw error;
         toast.success("Matéria atualizada com sucesso!");
       } else {
+        const { data: userData } = await supabase.auth.getUser();
+        if (userData.user) {
+          (payload as any).autor_id = userData.user.id;
+        }
+
         // ── Verificação FINAL de unicidade antes do INSERT ──────────────────
         // Proteção extra independente do RPC — usa SELECT direto
         let finalSlug = payload.slug;
@@ -432,7 +437,8 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
         router.push("/admin/noticias");
       }
     } catch (err: any) {
-      toast.error("Erro ao publicar", err.message);
+      console.error("ERRO DETALHADO DO SUPABASE:", err.message, err.details, err.hint, err);
+      toast.error("Erro ao publicar: " + err.message);
     } finally {
       setIsSaving(false);
     }
