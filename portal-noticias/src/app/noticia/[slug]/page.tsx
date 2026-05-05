@@ -54,8 +54,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const slug = p.slug;
   const noticia = await fetchNoticia(slug);
   
-  // Reversão para domínio SEM 'www' (Confirmado pelo Depurador como destino final do 307)
-  const baseUrl = "https://nossawebtv.com.br";
+  // Reversão para domínio COM 'www' porque a Vercel está fazendo um 307 redirect de nossawebtv.com.br para www.nossawebtv.com.br
+  const baseUrl = "https://www.nossawebtv.com.br";
   const defaultImage = `${baseUrl}/logo.png`;
 
   if (!noticia) {
