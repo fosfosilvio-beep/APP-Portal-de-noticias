@@ -416,6 +416,7 @@ export default function NewsEditorForm({ editId }: NewsEditorFormProps) {
         
         // Limpa rascunho (localStorage + banco)
         localStorage.removeItem("news_draft_local");
+        const { data: userData } = await supabase.auth.getUser();
         if (userData.user) {
           await supabase.from("news_drafts").delete().eq("user_id", userData.user.id);
         }
