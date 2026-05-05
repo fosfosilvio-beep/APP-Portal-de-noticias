@@ -11,8 +11,12 @@ O IA News Generator V3 é o motor de redação automatizada da Nossa Web TV, foc
 O componente foi refatorado para oferecer três fluxos de entrada distintos, organizados em abas:
 
 ### 1. Aba: Link Externo
-- **Propósito**: Scraping e reescrita de notícias existentes.
-- **Fontes Suportadas**: G1, Instagram, YouTube e URLs de notícias em geral.
+- **Propósito**: Scraping e reescrita de notícias existentes, burlando bloqueios de paywall ou JS pesado.
+- **Fontes Suportadas**: UOL, G1, Instagram, YouTube e URLs de notícias em geral.
+- **Estratégia de Scraping (Chave Mestra)**:
+  1. **Primária (Jina Reader)**: A URL é enviada para `https://r.jina.ai/[URL]` para retornar um Markdown limpo (passa por paywalls e resolve o JS).
+  2. **Secundária (Googlebot)**: Caso o Jina falhe, é feito um fallback usando o header `User-Agent: Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)`.
+  3. **Último Recurso (Metadados OG)**: Se o conteúdo retornar "Access Denied" ou bloqueado, a IA é instruída a redigir a notícia com base exclusivamente nos metadados (Título e Descrição do OpenGraph).
 - **Funcionamento**: A IA extrai o contexto da URL e reescreve a matéria seguindo o tom da Nossa Web TV.
 
 ### 2. Aba: Tema Livre

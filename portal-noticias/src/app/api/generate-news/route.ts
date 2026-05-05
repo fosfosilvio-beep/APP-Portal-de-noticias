@@ -66,12 +66,51 @@ export async function POST(req: NextRequest) {
       let linkContext = "";
       if (linkUrl) {
         try {
-          const response = await fetch(linkUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } });
-          const html = await response.text();
-          const ogDesc = html.match(/<meta[^>]*property=["']og:description["'][^>]*content=["']([^"']*)["']/i)?.[1] || "";
-          const bodyText = html.replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gim, "").replace(/<[^>]+>/g, " ").slice(0, 8000);
-          linkContext = `FONTE EXTERNA (URL): ${linkUrl}\nDESCRIÇÃO: ${ogDesc}\n\nCONTEÚDO EXTRAÍDO: ${bodyText}`;
-        } catch (e) {}
+          console.log('--- TENTANDO EXTRAIR VIA JINA: ' + linkUrl + ' ---');
+          let bodyText = "";
+          let html = "";
+          let isBlocked = false;
+
+          try {
+            const jinaResponse = await fetch(`https://r.jina.ai/${linkUrl}`);
+            if (jinaResponse.ok) {
+              bodyText = await jinaResponse.text();
+            } else {
+              throw new Error("Jina retornou erro");
+            }
+          } catch (e) {
+            console.log('--- JINA FALHOU, TENTANDO GOOGLEBOT FALLBACK: ' + linkUrl + ' ---');
+            const fallbackResponse = await fetch(linkUrl, { 
+              headers: { 'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)' } 
+            });
+            html = await fallbackResponse.text();
+            bodyText = html.replace(/<script\\b[^>]*>([\\s\\S]*?)<\\/script>/gim, "").replace(/<[^>]+>/g, " ");
+          }
+
+          if (!bodyText || bodyText.toLowerCase().includes("access denied") || bodyText.trim().length < 100) {
+            isBlocked = true;
+            console.log('--- CONTEÚDO VAZIO OU BLOQUEADO, USANDO METADADOS (OPENGRAPH) ---');
+            
+            if (!html) {
+              try {
+                const metaResponse = await fetch(linkUrl, { 
+                  headers: { 'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)' } 
+                });
+                html = await metaResponse.text();
+              } catch (metaErr) {}
+            }
+
+            const ogDesc = html.match(/<meta[^>]*property=["']og:description["'][^>]*content=["']([^"']*)["']/i)?.[1] || "";
+            const ogTitle = html.match(/<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']*)["']/i)?.[1] || html.match(/<title>([^<]*)<\\/title>/i)?.[1] || "";
+            
+            linkContext = `FONTE EXTERNA (URL): ${linkUrl}\\nTÍTULO: ${ogTitle}\\nDESCRIÇÃO: ${ogDesc}\\n\\n[INSTRUÇÃO IMPORTANTE: O conteúdo principal estava protegido por paywall. Baseie-se exclusivamente no Título e na Descrição acima para redigir a matéria.]`;
+          } else {
+            linkContext = `FONTE EXTERNA (URL): ${linkUrl}\\n\\nCONTEÚDO EXTRAÍDO:\\n${bodyText.slice(0, 8000)}`;
+          }
+
+        } catch (e) {
+          console.error("Erro total na extração de URL:", e);
+        }
       }
 
       const isLink = !!linkUrl;
