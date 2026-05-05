@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
               headers: { 'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)' } 
             });
             html = await fallbackResponse.text();
-            bodyText = html.replace(/<script\\b[^>]*>([\\s\\S]*?)<\\/script>/gim, "").replace(/<[^>]+>/g, " ");
+            bodyText = html.replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gim, "").replace(/<[^>]+>/g, " ");
           }
 
           if (!bodyText || bodyText.toLowerCase().includes("access denied") || bodyText.trim().length < 100) {
@@ -101,11 +101,11 @@ export async function POST(req: NextRequest) {
             }
 
             const ogDesc = html.match(/<meta[^>]*property=["']og:description["'][^>]*content=["']([^"']*)["']/i)?.[1] || "";
-            const ogTitle = html.match(/<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']*)["']/i)?.[1] || html.match(/<title>([^<]*)<\\/title>/i)?.[1] || "";
+            const ogTitle = html.match(/<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']*)["']/i)?.[1] || html.match(/<title>([^<]*)<\/title>/i)?.[1] || "";
             
-            linkContext = `FONTE EXTERNA (URL): ${linkUrl}\\nTÍTULO: ${ogTitle}\\nDESCRIÇÃO: ${ogDesc}\\n\\n[INSTRUÇÃO IMPORTANTE: O conteúdo principal estava protegido por paywall. Baseie-se exclusivamente no Título e na Descrição acima para redigir a matéria.]`;
+            linkContext = `FONTE EXTERNA (URL): ${linkUrl}\nTÍTULO: ${ogTitle}\nDESCRIÇÃO: ${ogDesc}\n\n[INSTRUÇÃO IMPORTANTE: O conteúdo principal estava protegido por paywall. Baseie-se exclusivamente no Título e na Descrição acima para redigir a matéria.]`;
           } else {
-            linkContext = `FONTE EXTERNA (URL): ${linkUrl}\\n\\nCONTEÚDO EXTRAÍDO:\\n${bodyText.slice(0, 8000)}`;
+            linkContext = `FONTE EXTERNA (URL): ${linkUrl}\n\nCONTEÚDO EXTRAÍDO:\n${bodyText.slice(0, 8000)}`;
           }
 
         } catch (e) {
