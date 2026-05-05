@@ -75,6 +75,9 @@ export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
   title: "Nossa Web TV | Portal de Notícias",
   description: "O seu portal de notícias de Arapongas e região.",
+  facebook: {
+    appId: "131682697252495",
+  }
 };
 
 // export const dynamic = "force-dynamic";
@@ -111,7 +114,6 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <meta name="theme-color" content="#00AEE0" />
-        <meta property="fb:app_id" content="131682697252495" />
         <meta property="og:image:type" content="image/png" />
         <script dangerouslySetInnerHTML={{
           __html: `

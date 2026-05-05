@@ -111,6 +111,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title: noticia.titulo,
       description: description,
       images: [capaUrl],
+    },
+    facebook: {
+      appId: "131682697252495",
     }
   };
 }
