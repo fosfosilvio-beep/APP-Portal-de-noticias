@@ -13,6 +13,9 @@ Centro de controle para jornalistas e administradores do portal.
 
 ## Funcionalidades Principais
 
+### Navegação Mobile (Topbar)
+- O menu lateral móvel (`AdminTopbar`) agora está sincronizado com todas as rotas e opções disponíveis na versão desktop, incluindo FeedNews RSS, Transmissão / Live, Biblioteca e ferramentas de comunicação.
+
 ### 1. Dashboard
 - Métricas rápidas: Status da Live, Total de Notícias, Boost de Audiência.
 

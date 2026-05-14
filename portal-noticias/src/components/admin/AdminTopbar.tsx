@@ -20,15 +20,27 @@ import {
   ExternalLink,
   LogOut,
   Building2,
+  Rss,
+  Tv,
+  Library,
+  MessageSquare,
+  Radio,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import CommandPalette from "./CommandPalette";
 
 const MOBILE_NAV = [
-  { label: "Visão Geral", href: "/admin", icon: LayoutDashboard },
+  { label: "Visão Geral", href: "/admin/dashboard", icon: LayoutDashboard },
   { label: "Métricas", href: "/admin/metricas", icon: BarChart3 },
   { label: "Notícias", href: "/admin/noticias", icon: Newspaper },
+  { label: "FeedNews RSS", href: "/admin/feednews", icon: Rss },
   { label: "Colunistas", href: "/admin/colunistas", icon: ClipboardList },
+  { label: "Transmissão / Live", href: "/admin/transmissao", icon: Tv },
+  { label: "Biblioteca", href: "/admin/biblioteca", icon: Library },
+  { label: "Comentários", href: "/admin/comentarios", icon: MessageSquare },
+  { label: "Enquetes", href: "/admin/enquetes", icon: Radio },
+  { label: "Push Alertas", href: "/admin/push-alertas", icon: Megaphone },
+  { label: "Auditoria", href: "/admin/auditoria", icon: ClipboardList },
   { label: "Publicidade", href: "/admin/publicidade", icon: Megaphone },
   { label: "Branding & UI", href: "/admin/branding", icon: Brush },
   { label: "Institucional", href: "/admin/institucional", icon: Building2 },
@@ -37,10 +49,17 @@ const MOBILE_NAV = [
 
 const BREADCRUMBS: Record<string, string> = {
   "/admin": "Dashboard / Visão Geral",
+  "/admin/dashboard": "Dashboard / Visão Geral",
   "/admin/metricas": "Dashboard / Métricas",
   "/admin/noticias": "Conteúdo / Notícias",
   "/admin/noticias/novo": "Notícias / Nova Notícia",
+  "/admin/feednews": "Conteúdo / FeedNews RSS",
   "/admin/colunistas": "Conteúdo / Colunistas",
+  "/admin/transmissao": "Conteúdo / Transmissão / Live",
+  "/admin/biblioteca": "Conteúdo / Biblioteca",
+  "/admin/comentarios": "Comunicação / Comentários",
+  "/admin/enquetes": "Comunicação / Enquetes",
+  "/admin/push-alertas": "Comunicação / Push Alertas",
   "/admin/auditoria": "Comunicação / Auditoria",
   "/admin/publicidade": "Monetização / Publicidade",
   "/admin/branding": "Configurações / Branding & UI",
