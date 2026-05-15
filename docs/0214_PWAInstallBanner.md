@@ -15,6 +15,8 @@ Responsável por exibir o banner de instalação do aplicativo (PWA) no topo do 
 
 ## Lógica Interna
 - Oculta-se automaticamente caso o portal já esteja aberto no modo *Standalone* (PWA já instalado).
+- Implementa um botão de fechar (`X`) flutuante. Ao ser clicado, a preferência do usuário de ocultar o banner é salva no `localStorage` sob a chave `pwa_banner_dismissed`, impedindo que o banner reapareça em visitas futuras no mesmo navegador.
+- Ao clicar na imagem para realizar o download do APK, o banner também é fechado automaticamente e a preferência é salva no `localStorage`.
 - Aguarda e intercepta o evento `beforeinstallprompt` do navegador.
 - Dispara o fluxo nativo de instalação ao ser clicado (`deferredPrompt.prompt()`).
 

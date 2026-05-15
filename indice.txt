@@ -23,7 +23,9 @@ Toda a documentação técnica vive na pasta /docs.
 - /docs/0212_FooterAdBanner.md (Banner Publicitário Full-Width Rodapé)
 - /docs/0213_Admin_Relatorios.md (Painel de Relatórios de Views /admin/relatorios)
 - /docs/0216_Admin_Publicidade_Canvas.md (Editor Visual de Publicidade — Canvas D&D /admin/publicidade)
+- **PushPrompt.tsx**: Card para solicitação de envio de Web Push Notifications e subscrição de SW — [[0218]](0218_PushPrompt.md).
 - /docs/0217_Componente_Header.md (Navegação Global e Estado Ativo)
+- /docs/0218_PushPrompt.md (Notificações Push Prompt)
 - /docs/0219_IANewsGenerator_V3.md (Redação IA Multimodal — Link, Tema e Vídeo)
 
 [03XX] - LÓGICA DE ESTADO E HOOKS

@@ -64,12 +64,13 @@ export default function PushPrompt() {
         ]);
 
         if (error) throw error;
-        setIsVisible(false);
       }
     } catch (error) {
       console.error("Erro ao assinar notificações:", error);
     } finally {
       setLoading(false);
+      sessionStorage.setItem("push_prompt_ignored", "true");
+      setIsVisible(false);
     }
   };
 
