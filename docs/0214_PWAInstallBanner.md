@@ -27,4 +27,4 @@ Responsável por exibir o banner de instalação do aplicativo (PWA) no topo do 
   - Garante a presença do ícone correto ("Logo web") no prompt nativo de instalação.
 
 ---
-Status: Documentado e Otimizado para Mobile (Layout Edge-to-Edge)
+Status: DEPRECATED – componente removido; instalação bloqueada via script no layout.

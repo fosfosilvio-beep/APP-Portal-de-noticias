@@ -9,7 +9,7 @@ import PlantaoPolicialWidget from "../PlantaoPolicialWidget";
 import HeroSection from "./HeroSection";
 import SmartAdSlot from "../ads/SmartAdSlot";
 
-import PWAInstallBanner from "../PWAInstallBanner";
+
 import NewsGrid from "./NewsGrid";
 import ColunistasWidget from "./ColunistasWidget";
 import EnquetesWidget from "./EnquetesWidget";
@@ -141,7 +141,7 @@ export default function HomeContent({ initialConfig, liveStatus, todasNoticias, 
   return (
     <div className="min-h-screen bg-white text-slate-900 flex flex-col font-sans overflow-x-hidden">
 
-      <PWAInstallBanner />
+
 
       <ErrorBoundary>
         <HeroSection />

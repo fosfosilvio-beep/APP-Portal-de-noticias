@@ -128,6 +128,11 @@ export default function RootLayout({
             }
           `
         }} />
+<script dangerouslySetInnerHTML={{ __html: `
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+});
+`}} />
       </head>
       <body className="min-h-full flex flex-col font-sans overflow-x-hidden" suppressHydrationWarning>
         <Providers>
