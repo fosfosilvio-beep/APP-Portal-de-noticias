@@ -30,3 +30,13 @@ O item de menu é marcado como ativo se:
 ---
 Status: Documentado
 Relacionado: [[0201] Home](0201_Home.md), [[0301] Supabase Client](../03XX/0301_Supabase_Client.md)
+
+
+## Instalação Manual do PWA
+
+- **Estado**: `showInstallBtn` controla a visibilidade do botão “Instalar Aplicativo”.
+- **Lógica**: Detecta `window.deferredPrompt` no `useEffect` de montagem e exibe o botão.
+- **Ação**: `handleInstallClick` dispara `deferredPrompt.prompt()`, aguarda a escolha do usuário e, ao aceitar, oculta o botão.
+- **Renderização**: O botão aparece ao lado das ações de ícones no cabeçalho, antes do container de ícones padrão.
+
+Esta implementação garante que a instalação do PWA só ocorra mediante interação explícita do usuário, atendendo aos requisitos de UX e acessibilidade.

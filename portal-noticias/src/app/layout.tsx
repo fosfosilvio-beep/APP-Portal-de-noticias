@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
-import { 
-  Geist, 
-  Geist_Mono, 
-  Inter, 
-  Merriweather, 
-  Montserrat, 
-  Playfair_Display, 
-  Lora, 
-  Poppins, 
-  Anton, 
-  Oswald 
+import {
+  Geist,
+  Geist_Mono,
+  Inter,
+  Merriweather,
+  Montserrat,
+  Playfair_Display,
+  Lora,
+  Poppins,
+  Anton,
+  Oswald,
 } from "next/font/google";
 import "./globals.css";
 
@@ -75,12 +75,8 @@ export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
   title: "Nossa Web TV | Portal de Notícias",
   description: "O seu portal de notícias de Arapongas e região.",
-  facebook: {
-    appId: "131682697252495",
-  }
+  facebook: { appId: "131682697252495" },
 };
-
-// export const dynamic = "force-dynamic";
 
 import { Providers } from "../components/Providers";
 import PushPrompt from "../components/PushPrompt";
@@ -88,9 +84,7 @@ import MainLayout from "../components/MainLayout";
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   const fontVariables = [
     geistSans.variable,
     geistMono.variable,
@@ -101,7 +95,7 @@ export default function RootLayout({
     playfairDisplay.variable,
     lora.variable,
     anton.variable,
-    oswald.variable
+    oswald.variable,
   ].join(" ");
 
   return (
@@ -115,30 +109,27 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <meta name="theme-color" content="#00AEE0" />
         <meta property="og:image:type" content="image/png" />
-        <script dangerouslySetInnerHTML={{
-          __html: `
-            if ('serviceWorker' in navigator) {
-              window.addEventListener('load', function() {
-                navigator.serviceWorker.register('/sw.js').then(function(registration) {
-                  console.log('ServiceWorker registration successful with scope: ', registration.scope);
-                }, function(err) {
-                  console.log('ServiceWorker registration failed: ', err);
-                });
+        <script dangerouslySetInnerHTML={{ __html: `
+          if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+              navigator.serviceWorker.register('/sw.js').then(function(registration) {
+                console.log('ServiceWorker registration successful with scope: ', registration.scope);
+              }, function(err) {
+                console.log('ServiceWorker registration failed: ', err);
               });
-            }
-          `
-        }} />
-<script dangerouslySetInnerHTML={{ __html: `
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-});
-`}} />
+            });
+          }
+        ` }} />
+        <script dangerouslySetInnerHTML={{ __html: `
+          window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            window.deferredPrompt = e;
+          });
+        ` }} />
       </head>
       <body className="min-h-full flex flex-col font-sans overflow-x-hidden" suppressHydrationWarning>
         <Providers>
-          <MainLayout>
-            {children}
-          </MainLayout>
+          <MainLayout>{children}</MainLayout>
           <PushPrompt />
         </Providers>
       </body>

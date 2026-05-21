@@ -53,6 +53,7 @@ export default function Header({
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [categorias, setCategorias] = useState<any[]>([]);
+  const [showInstallBtn, setShowInstallBtn] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -118,7 +119,18 @@ export default function Header({
     return () => subscription.unsubscribe();
   }, [config]);
 
-  const [internalConfig, setInternalConfig] = useState<any>(null);
+  useEffect(() => {
+  const handler = (e: any) => {
+    e.preventDefault();
+    (window as any).deferredPrompt = e;
+    setShowInstallBtn(true);
+  };
+  window.addEventListener('beforeinstallprompt', handler);
+  // Cleanup
+  return () => window.removeEventListener('beforeinstallprompt', handler);
+}, []);
+
+const [internalConfig, setInternalConfig] = useState<any>(null);
   const activeConfig = config || internalConfig;
 
   const activeIsLive = liveStatus?.is_live ?? false;
@@ -143,6 +155,19 @@ export default function Header({
     // Caso contrário (ou se for Plantão), navegamos para a rota absoluta forçada
     router.push(targetPath);
     setIsMobileMenuOpen(false);
+  };
+
+  // Manual PWA installation handler
+  const handleInstallClick = async () => {
+    const prompt = (window as any).deferredPrompt;
+    if (prompt) {
+      prompt.prompt();
+      const { outcome } = await prompt.userChoice;
+      if (outcome === 'accepted') {
+        setShowInstallBtn(false);
+      }
+      (window as any).deferredPrompt = null;
+    }
   };
 
   const brandName = activeConfig?.nome_plataforma || activeConfig?.ui_settings?.brand_name || ui.siteName || "NOSSA WEB TV";
@@ -212,6 +237,14 @@ export default function Header({
             </div>
 
             {/* AÇÕES DIREITA */}
+            {showInstallBtn && (
+                <button
+                  onClick={handleInstallClick}
+                  className="px-3 py-1 bg-cyan-600 text-white rounded-md hover:bg-cyan-500 transition-colors text-sm font-medium"
+                >
+                  Instalar Aplicativo
+                </button>
+              )}
             <div className="flex items-center gap-2 sm:gap-4 ml-auto">
               <Link 
                 href="/biblioteca"
